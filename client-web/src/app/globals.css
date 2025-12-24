@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+:root {
+  /* Luxury Light Theme Colors */
+  --background: #ffffff;
+  --foreground: #171717;
+
+  /* Font mappings matches layout.tsx */
+  /* If you kept Geist in layout, keep it here. 
+     If you switched to Playfair/Lato, these standard vars work better */
+}
+
+:root {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  
+  /* Register your custom fonts here so Tailwind sees them */
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
+}
+
+/* We REMOVED the @media (prefers-color-scheme: dark) block 
+   to ensure the site is always White/Gold, never Dark Mode. */
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  /* Uses the sans font by default, headings will use serif */
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
