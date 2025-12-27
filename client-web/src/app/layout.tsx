@@ -1,20 +1,17 @@
-// Inside src/app/layout.tsx
-
-// 1. Ensure you have these imports
+// src/app/layout.tsx
 import { Playfair_Display, Lato } from 'next/font/google';
 import './globals.css';
-import Navbar from '@/components/Navbar';
+import Navbar from '@/components/Navbar'; 
 
-// 2. Configure the fonts
 const serifFont = Playfair_Display({ 
   subsets: ['latin'], 
-  variable: '--font-serif' // <--- Must match css
+  variable: '--font-serif' 
 });
 
 const sansFont = Lato({ 
   weight: ['400', '700'], 
   subsets: ['latin'], 
-  variable: '--font-sans' // <--- Must match css
+  variable: '--font-sans'
 });
 
 export default function RootLayout({
@@ -23,13 +20,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      {/* 3. Inject the variables into the class string below */}
-      <body className={`${serifFont.variable} ${sansFont.variable} font-sans antialiased`}>
+    <html lang="en" className={`${serifFont.variable} ${sansFont.variable}`}>
+      <body className="font-sans antialiased bg-white">
+        {/* Navbar stays at the top of every single page */}
         <Navbar /> 
+        
         <main className="min-h-screen">
           {children}
         </main>
+
+        {/* Floating Book Consultation - Global FAB */}
+        <div className="fixed bottom-8 right-8 z-100">
+          <button className="flex items-center gap-2 bg-[#7D3C98] text-white px-6 py-3 rounded-full font-bold shadow-2xl hover:scale-105 transition">
+             <img src="/assets/google-meet-icon.png" alt="" className="w-5 h-5 invert" />
+             Book Consultation
+          </button>
+        </div>
       </body>
     </html>
   );

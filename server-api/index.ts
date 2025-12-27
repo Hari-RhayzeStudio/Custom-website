@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
+import axios from 'axios'
 
 // 1. BIGINT HELPER (Must be first)
 (BigInt.prototype as any).toJSON = function () {
@@ -53,11 +54,41 @@ app.get('/api/products', async (req, res) => {
 app.get('/api/products/:sku', async (req, res) => {
   const { sku } = req.params;
   try {
-    const product = await prisma.productAsset.findUnique({ where: { sku: sku } });
-    if (!product) return res.status(404).json({ error: "Product not found" });
+    // Ensure the field name matches your schema ('sku')
+    const product = await prisma.productAsset.findUnique({ 
+      where: { sku: sku } 
+    });
+    
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
     res.json(product);
   } catch (error) {
-    res.status(500).json({ error: "Error fetching product details" });
+    console.error("Error fetching product by SKU:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get('/api/download-proxy', async (req, res) => {
+  const { url, filename } = req.query;
+
+  if (!url) return res.status(400).send("URL is required");
+
+  try {
+    const response = await axios({
+      url: url as string,
+      method: 'GET',
+      responseType: 'stream'
+    });
+
+    // Set headers to force download with your custom filename
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Type', response.headers['content-type']);
+
+    response.data.pipe(res);
+  } catch (error) {
+    console.error("Download Proxy Error:", error);
+    res.status(500).send("Failed to download image");
   }
 });
 

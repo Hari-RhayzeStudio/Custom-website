@@ -1,76 +1,75 @@
-"use client";
-import { useState, useEffect } from 'react';
+// src/app/catalogue/page.tsx
 import Link from 'next/link';
-// IMPORT FROM YOUR NEW FILE
-import { EmptyStateIcon } from '@/components/Icons'; 
 
-export default function Catalogue() {
-  const [products, setProducts] = useState([]);
-  const [search, setSearch] = useState("");
+async function getProducts(search?: string) {
+  const url = search 
+    ? `http://localhost:3001/api/products?search=${search}`
+    : `http://localhost:3001/api/products`;
 
-  useEffect(() => {
-    // Added a small debounce could be a next step here
-    fetch(`http://localhost:3001/api/products?search=${search}`)
-      .then(res => res.json())
-      .then(data => setProducts(data))
-      .catch(err => console.error(err));
-  }, [search]);
+  const res = await fetch(url, { next: { revalidate: 60 } });
+  if (!res.ok) return [];
+  return res.json();
+}
+
+export default async function CataloguePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ search?: string }>;
+}) {
+  const { search = "" } = await searchParams;
+  const products = await getProducts(search);
+
+  // Generates: product-name-12345
+  const generateSlug = (name: string, sku: string) => {
+    const formattedName = name
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '') // Remove special chars
+      .replace(/[\s_-]+/g, '-') // Replace spaces/underscores with -
+      .replace(/^-+|-+$/g, ''); // Trim dashes
+    return `${formattedName}-${sku}`;
+  };
+
+  // Normalizes category: "Ladies Rings" -> "ladies-rings"
+  const formatCategory = (cat: string) => cat.toLowerCase().replace(/\s+/g, '-');
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen font-sans">
-      {/* Search Header */}
-      <div className="flex gap-4 mb-12 max-w-4xl mx-auto pt-10">
+      <form action="/catalogue" method="GET" className="flex gap-4 mb-12 max-w-4xl mx-auto">
         <input 
+          name="search"
           type="text" 
-          placeholder="Search for rings, necklaces, or bracelets..." 
-          className="flex-1 p-4 border border-gray-200 rounded-full px-8 shadow-sm focus:ring-2 focus:ring-[#7D3C98]/20 focus:border-[#7D3C98] outline-none transition-all"
-          onChange={(e) => setSearch(e.target.value)}
+          defaultValue={search}
+          placeholder="Search for designs..." 
+          className="flex-1 p-4 border rounded-full px-8 shadow-sm outline-none transition-all"
         />
-        <button className="bg-[#7D3C98] text-white px-10 rounded-full hover:bg-[#63307a] transition shadow-md font-medium tracking-wide">
+        <button type="submit" className="bg-[#7D3C98] text-white px-10 rounded-full font-medium">
           Search
         </button>
-      </div>
+      </form>
 
-      {/* Product Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 max-w-7xl mx-auto">
         {products.map((p: any) => (
-          <div key={p.id} className="bg-white p-4 rounded-2xl hover:shadow-xl transition-all duration-300 border border-transparent hover:border-purple-100 group">
-            {/* Image Container */}
+          <div key={p.id.toString()} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col group">
             <div className="relative aspect-square w-full mb-6 overflow-hidden rounded-xl bg-gray-50">
                <img 
-                 src={p.final_image_url || '/placeholder-jewelry.jpg'} 
+                 src={p.final_image_url || '/placeholder.jpg'} 
                  alt={p.product_name} 
-                 className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105" 
+                 className="object-cover w-full h-full" 
                />
             </div>
+            <h3 className="font-serif text-xl font-bold text-gray-900 mb-2">{p.product_name}</h3>
+            <p className="text-sm text-gray-600 line-clamp-3 mb-6">{p.final_description}</p>
             
-            <div className="px-1">
-              <h3 className="font-serif text-lg font-bold text-gray-900 mb-1">
-                {p.product_name}
-              </h3>
-              <p className="text-sm text-gray-500 line-clamp-2 mb-4 h-10">
-                {p.final_description}
-              </p>
-              
-              <Link href={`/product/${p.sku}`} className="block">
-                 <button className="w-full py-3 rounded-lg border border-[#7D3C98] text-[#7D3C98] font-semibold text-xs uppercase tracking-wider hover:bg-[#7D3C98] hover:text-white transition-all">
-                   View Design
-                 </button>
-              </Link>
-            </div>
+            {/* CORRECTED URL FORMAT: website/${category}/product_name-sku */}
+            <Link href={`/${formatCategory(p.category)}/${generateSlug(p.product_name, p.sku)}`}>
+              <button className="w-full border-2 border-[#7D3C98] text-[#7D3C98] py-2 rounded-lg font-bold">
+                View Details
+              </button>
+            </Link>
           </div>
         ))}
       </div>
-      
-      {/* Empty State with New Icon Component */}
-      {products.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-32 text-gray-400">
-          <div className="bg-gray-100 p-6 rounded-full mb-4 animate-pulse">
-            <EmptyStateIcon className="w-12 h-12 text-gray-400" />
-          </div>
-          <p className="text-xl font-serif italic text-gray-500">No matching designs found in our studio.</p>
-        </div>
-      )}
     </div>
   );
 }
