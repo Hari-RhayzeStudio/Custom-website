@@ -4,19 +4,19 @@ import {
   User, 
   Heart, 
   ArrowRight, 
-  ArrowLeft, // Added for back navigation
+  ArrowLeft,
   Sparkles, 
   Search,
   Loader2,
   Video, 
   PackageOpen,
-  Download,   // Added for image download
-  Share2,     // Added for social sharing
-  ChevronRight, // Added for recommendation slider
-  ChevronLeft   // Added for recommendation slider
+  Download,
+  Share2,
+  ChevronRight,
+  ChevronLeft
 } from 'lucide-react';
 
-// 1. Standard Icons (Re-exporting for consistent usage)
+// 1. Standard Icons
 export const BellIcon = Bell;
 export const UserIcon = User;
 export const HeartIcon = Heart;
@@ -32,30 +32,16 @@ export const ShareIcon = Share2;
 export const ChevronRightIcon = ChevronRight;
 export const ChevronLeftIcon = ChevronLeft;
 
-// 2. Custom Icons (Extracted SVGs)
+// 2. Custom Icons
 export const EmptyStateIcon = ({ className = "w-12 h-12" }: { className?: string }) => (
-  <svg 
-    className={className} 
-    fill="none" 
-    stroke="currentColor" 
-    viewBox="0 0 24 24"
-  >
-    <path 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
-      strokeWidth="2" 
-      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
-    />
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
   </svg>
 );
 
-// 3. Branding Icons (Google Meet)
+// 3. Branding Icons
 export const GoogleMeetIcon = ({ className = "w-16 h-16" }: { className?: string }) => (
   <div className={`relative ${className} mx-auto mb-6`}>
-    <img 
-      src="/assets/google-meet-icon.png" 
-      alt="Google Meet"
-      className="object-contain"
-    />
+    <img src="/assets/google-meet-icon.png" alt="Google Meet" className="object-contain" />
   </div>
 );
