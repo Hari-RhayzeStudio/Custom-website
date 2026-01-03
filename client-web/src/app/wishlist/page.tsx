@@ -56,10 +56,12 @@ export default function WishlistPage() {
 
       {/* Floating Action Button - Book Consultation */}
       <div className="fixed bottom-8 right-8 z-50">
-        <button className="flex items-center gap-2 bg-[#7D3C98] text-white px-6 py-3 rounded-full font-bold shadow-xl hover:bg-[#6a3281] transition-transform hover:scale-105">
-          <SparklesIcon className="w-5 h-5" />
-          Book Consultation
-        </button>
+        <Link href="/bookings" className="block w-full">
+          <button className="w-full bg-[#7D3C98] text-white py-4 rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-[#6a3281] transition shadow-md">
+            <img src="/assets/google-meet-icon.png" alt="Meet" className="w-5 h-5" />
+            Book Consultation
+          </button>
+        </Link>
       </div>
     </main>
   );

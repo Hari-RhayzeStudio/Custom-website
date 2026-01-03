@@ -13,7 +13,10 @@ import {
   Download,
   Share2,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  Filter,
+  X,
+  SlidersHorizontal,
 } from 'lucide-react';
 
 // 1. Standard Icons
@@ -31,6 +34,8 @@ export const DownloadIcon = Download;
 export const ShareIcon = Share2;
 export const ChevronRightIcon = ChevronRight;
 export const ChevronLeftIcon = ChevronLeft;
+export const FilterIcon = SlidersHorizontal;
+export const XIcon = X;
 
 // 2. Custom Icons
 export const EmptyStateIcon = ({ className = "w-12 h-12" }: { className?: string }) => (
