@@ -2,7 +2,7 @@
 
 generator client {
   provider        = "prisma-client-js"
-  output          = "../../node_modules/@prisma/client-user"
+  output          = "../node_modules/@prisma/client-user"
   // Removed "multiSchema" preview feature since we are focusing on public only
 }
 

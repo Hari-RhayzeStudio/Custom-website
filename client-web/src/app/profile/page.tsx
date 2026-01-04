@@ -60,7 +60,7 @@ export default function ProfilePage() {
         name: userData.name,
         email: userData.email,
         // Backend expects 'dob' or we update backend to accept 'age'
-        dob: userData.age 
+        age: userData.age ? parseInt(userData.age) : null
       });
       setIsEditing(false);
       localStorage.setItem('user_name', userData.name);

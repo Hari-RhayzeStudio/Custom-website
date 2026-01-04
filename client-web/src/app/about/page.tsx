@@ -161,14 +161,6 @@ export default async function AboutUs() {
         ©2025 All rights reserved Rhayze Studio
       </footer>
 
-       {/* Floating Action Button */}
-       <div className="fixed bottom-8 right-8 z-50">
-            <button className="flex items-center gap-2 bg-[#7D3C98] text-white px-6 py-3 rounded-full font-bold shadow-xl hover:bg-[#6a3281] transition-transform hover:scale-105">
-                <SparklesIcon className="w-5 h-5" />
-                Book Consultation
-            </button>
-       </div>
-
     </main>
   );
 }

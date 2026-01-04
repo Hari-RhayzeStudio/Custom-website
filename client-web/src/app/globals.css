@@ -28,3 +28,10 @@ body {
   /* Uses the sans font by default, headings will use serif */
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+

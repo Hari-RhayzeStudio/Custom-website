@@ -162,7 +162,7 @@ export default function DesignPage() {
         <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm mb-8">
           <div className="relative">
             <textarea
-              className="w-full p-4 pr-12 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-purple-200 min-h-[120px] resize-none text-gray-700"
+              className="w-full p-4 pr-12 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-purple-200 min-h-120px resize-none text-gray-700"
               placeholder="Enter your jewellery detail here... (e.g., A gold ring with a large emerald center stone surrounded by small diamonds)"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
@@ -247,7 +247,7 @@ export default function DesignPage() {
                 src={generatedImage}
                 alt="Generated jewelry design"
                 onClick={handleImageClick}
-                className={`max-w-full max-h-[500px] object-contain rounded-2xl shadow-lg ${
+                className={`max-w-full max-h-500px object-contain rounded-2xl shadow-lg ${
                   editMode ? 'cursor-crosshair ring-4 ring-purple-200' : ''
                 }`}
               />

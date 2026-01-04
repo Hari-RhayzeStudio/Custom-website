@@ -45,8 +45,3 @@ export const EmptyStateIcon = ({ className = "w-12 h-12" }: { className?: string
 );
 
 // 3. Branding Icons
-export const GoogleMeetIcon = ({ className = "w-16 h-16" }: { className?: string }) => (
-  <div className={`relative ${className} mx-auto mb-6`}>
-    <img src="/assets/google-meet-icon.png" alt="Google Meet" className="object-contain" />
-  </div>
-);

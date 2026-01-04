@@ -90,7 +90,7 @@ export default function CatalogueHeader({ initialSearch }: { initialSearch: stri
 
       {/* Sliding Panel */}
       <div 
-        className={`fixed top-0 right-0 h-full w-full sm:w-[400px] bg-white z-50 shadow-2xl transform transition-transform duration-300 ease-in-out ${isFilterOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`fixed top-0 right-0 h-full w-full sm:w-400px bg-white z-50 shadow-2xl transform transition-transform duration-300 ease-in-out ${isFilterOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
         <div className="h-full flex flex-col">
           {/* Drawer Header */}

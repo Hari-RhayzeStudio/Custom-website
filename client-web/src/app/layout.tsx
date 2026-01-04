@@ -1,41 +1,32 @@
 // src/app/layout.tsx
-import { Playfair_Display, Lato } from 'next/font/google';
-import './globals.css';
-import Navbar from '@/components/Navbar'; 
+import type { Metadata } from "next";
+import { Inter, Playfair_Display } from "next/font/google"; // Assuming fonts
+import "./globals.css";
+import Navbar from "@/components/Navbar";
+import FloatingButton from "@/components/FloatingButton"; // <--- Import here
 
-const serifFont = Playfair_Display({ 
-  subsets: ['latin'], 
-  variable: '--font-serif' 
-});
+const inter = Inter({ subsets: ["latin"] });
 
-const sansFont = Lato({ 
-  weight: ['400', '700'], 
-  subsets: ['latin'], 
-  variable: '--font-sans'
-});
+export const metadata: Metadata = {
+  title: "Rhayze Studio",
+  description: "Custom Jewellery Design",
+};
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
-    <html lang="en" className={`${serifFont.variable} ${sansFont.variable}`}>
-      <body className="font-sans antialiased bg-white">
-        {/* Navbar stays at the top of every single page */}
-        <Navbar /> 
+    <html lang="en">
+      <body className={inter.className}>
+        <Navbar />
         
-        <main className="min-h-screen">
-          {children}
-        </main>
-
-        {/* Floating Book Consultation - Global FAB */}
-        <div className="fixed bottom-8 right-8 z-100">
-          <button className="flex items-center gap-2 bg-[#7D3C98] text-white px-6 py-3 rounded-full font-bold shadow-2xl hover:scale-105 transition">
-             <img src="/assets/google-meet-icon.png" alt="" className="w-5 h-5 invert" />
-             Book Consultation
-          </button>
-        </div>
+        {/* Main Content */}
+        {children}
+        
+        {/* Global Floating Button - Visible on ALL pages */}
+        <FloatingButton /> 
       </body>
     </html>
   );

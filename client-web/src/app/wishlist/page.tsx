@@ -53,16 +53,6 @@ export default function WishlistPage() {
           {/* Grid of wishlist items... */}
         </section>
       )}
-
-      {/* Floating Action Button - Book Consultation */}
-      <div className="fixed bottom-8 right-8 z-50">
-        <Link href="/bookings" className="block w-full">
-          <button className="w-full bg-[#7D3C98] text-white py-4 rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-[#6a3281] transition shadow-md">
-            <img src="/assets/google-meet-icon.png" alt="Meet" className="w-5 h-5" />
-            Book Consultation
-          </button>
-        </Link>
-      </div>
     </main>
   );
 }

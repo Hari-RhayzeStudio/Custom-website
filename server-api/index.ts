@@ -124,13 +124,14 @@ app.get('/api/user/:id', async (req, res) => {
  * Update User Profile
  */
 app.put('/api/user/:id', async (req, res) => {
-  const { name, email, dob } = req.body;
+  const { name, email, age } = req.body;
   try {
     const updatedUser = await prismaUser.user.update({
       where: { id: req.params.id },
       data: { 
         full_name: name, 
-        email: email
+        email: email,
+        age: age ? parseInt(age) : undefined
       }
     });
     res.json(updatedUser);
@@ -296,6 +297,84 @@ app.get('/api/download-proxy', async (req, res) => {
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
+
+// ============================================================================
+//  SECTION 5: BOOKING ROUTES (User DB)
+// ============================================================================
+
+// Create a new Booking
+app.post('/api/bookings', async (req, res) => {
+  const { user_id, expert_name, consultation_date, slot, product_skus, email, name } = req.body;
+
+  if (!user_id || !consultation_date || !slot) {
+    return res.status(400).json({ error: "Missing required booking details" });
+  }
+
+  try {
+    // 1. FETCH CURRENT USER (to check if fields are empty)
+    const currentUser = await prismaUser.user.findUnique({
+      where: { id: user_id }
+    });
+
+    if (currentUser) {
+      // Prepare data object for update
+      const updateData: any = {};
+      
+      // Only update name if it's provided AND current profile name is missing/empty
+      if (name && (!currentUser.full_name || currentUser.full_name.trim() === "")) {
+        updateData.full_name = name;
+      }
+
+      // Only update email if it's provided AND current profile email is missing/empty
+      if (email && (!currentUser.email || currentUser.email.trim() === "")) {
+        updateData.email = email;
+      }
+
+      // Perform update only if there's something to change
+      if (Object.keys(updateData).length > 0) {
+        await prismaUser.user.update({
+          where: { id: user_id },
+          data: updateData
+        });
+        console.log(`Conditionally updated profile for user ${user_id}:`, updateData);
+      }
+    }
+
+    // 2. CREATE BOOKING
+    const booking = await prismaUser.booking.create({
+      data: {
+        user_id: user_id,
+        expert_name: expert_name || "Mr. Kamraann Rajjani",
+        consultation_date: new Date(consultation_date), 
+        slot: slot,
+        product_skus: product_skus || [],
+        status: "confirmed"
+      }
+    });
+
+    console.log(`Booking created: ${booking.id}`);
+    res.json({ success: true, booking });
+
+  } catch (error: any) {
+    console.error("Booking Creation Error:", error);
+    res.status(500).json({ error: "Failed to create booking", details: error.message });
+  }
+});
+
+// Get Bookings for a specific User
+app.get('/api/bookings/user/:id', async (req, res) => {
+  const userId = req.params.id;
+  try {
+    const bookings = await prismaUser.booking.findMany({
+      where: { user_id: userId },
+      orderBy: { created_at: 'desc' }
+    });
+    res.json(bookings);
+  } catch (error) {
+    console.error("Fetch Bookings Error:", error);
+    res.status(500).json({ error: "Failed to fetch bookings" });
+  }
 });
 
 const PORT = process.env.PORT || 3001;
