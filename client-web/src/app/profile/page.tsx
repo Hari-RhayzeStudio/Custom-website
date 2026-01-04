@@ -1,4 +1,3 @@
-// app/profile/page.tsx
 "use client";
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Edit3, Calendar, CheckCircle2, Save, LogOut } from 'lucide-react';
@@ -17,29 +16,37 @@ export default function ProfilePage() {
     name: "",
     email: "",
     phone: "",
-    dob: ""
+    age: ""
   });
 
   useEffect(() => {
+    // 1. Get ID from LocalStorage
     const userId = localStorage.getItem('user_id');
+    
+    // 2. If no ID, open the modal logic (or redirect home)
     if (!userId) {
-      router.push('/login'); // Redirect to new login page
+      router.push('/'); 
       return;
     }
 
+    // 3. Fetch full details from Backend
     const fetchUser = async () => {
       try {
         const res = await axios.get(`http://localhost:3001/api/user/${userId}`);
-        // Ensure we map the database fields (full_name, phone_number) correctly
+        const data = res.data;
+        
         setUserData({
-            id: res.data.id,
-            name: res.data.full_name || "Guest",
-            email: res.data.email || "",
-            phone: res.data.phone_number || "",
-            dob: (res.data.age ? `${res.data.age} years old` : "") // Mapping age if dob absent
+            id: data.id,
+            name: data.full_name || "Guest",
+            email: data.email || "",
+            phone: data.phone_number || "",
+            age: data.age ? String(data.age) : ""
         });
       } catch (error) {
         console.error("Error loading profile", error);
+        // Optional: Logout if token/user invalid
+        localStorage.clear();
+        router.push('/');
       } finally {
         setIsLoading(false);
       }
@@ -52,7 +59,8 @@ export default function ProfilePage() {
       await axios.put(`http://localhost:3001/api/user/${userData.id}`, {
         name: userData.name,
         email: userData.email,
-        dob: userData.dob // Note: Backend needs to handle this if you have age vs dob
+        // Backend expects 'dob' or we update backend to accept 'age'
+        dob: userData.age 
       });
       setIsEditing(false);
       localStorage.setItem('user_name', userData.name);
@@ -63,10 +71,17 @@ export default function ProfilePage() {
 
   const handleLogout = () => {
     localStorage.clear();
-    router.push('/login');
+    router.push('/');
   };
 
-  if (isLoading) return <div className="min-h-screen flex items-center justify-center font-bold text-[#7D3C98]">Loading Profile...</div>;
+  if (isLoading) return (
+    <div className="min-h-screen flex items-center justify-center bg-[#fdfbf7]">
+      <div className="flex flex-col items-center gap-2">
+        <div className="w-8 h-8 border-4 border-[#7D3C98] border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-[#7D3C98] font-bold">Loading Profile...</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-[#fdfbf7] pb-20 font-sans">
@@ -125,7 +140,35 @@ export default function ProfilePage() {
               </div>
             </div>
             
-            {/* Additional fields (Email/DOB) follow the same pattern... */}
+             {/* Email Field */}
+             <div>
+              <label className="text-xs font-bold text-gray-400 mb-2 block uppercase tracking-wider">Email</label>
+              {isEditing ? (
+                <input 
+                  type="email" 
+                  className="w-full bg-gray-50 p-3 rounded-lg border focus:border-[#7D3C98] outline-none"
+                  value={userData.email}
+                  onChange={(e) => setUserData({...userData, email: e.target.value})}
+                />
+              ) : (
+                <div className="bg-gray-50 p-3 rounded-lg text-gray-800 font-medium">{userData.email || "Not Provided"}</div>
+              )}
+            </div>
+
+            {/* Age Field */}
+            <div>
+              <label className="text-xs font-bold text-gray-400 mb-2 block uppercase tracking-wider">Age</label>
+              {isEditing ? (
+                <input 
+                  type="number" 
+                  className="w-full bg-gray-50 p-3 rounded-lg border focus:border-[#7D3C98] outline-none"
+                  value={userData.age}
+                  onChange={(e) => setUserData({...userData, age: e.target.value})}
+                />
+              ) : (
+                <div className="bg-gray-50 p-3 rounded-lg text-gray-800 font-medium">{userData.age || "Not Provided"}</div>
+              )}
+            </div>
           </div>
 
           <button onClick={handleLogout} className="w-full flex items-center py-4 px-2 hover:bg-red-50 transition rounded-lg group text-left gap-2 text-red-500 font-bold">

@@ -122,7 +122,7 @@ export default function BookingPage() {
                         <div 
                           key={p.sku} 
                           onClick={() => toggleProduct(p.sku)}
-                          className={`relative w-28 h-28 rounded-xl border-2 cursor-pointer transition overflow-hidden flex-shrink-0 group
+                          className={`relative w-28 h-28 rounded-xl border-2 cursor-pointer transition overflow-hidden shrink-0 group
                             ${selectedProducts.includes(p.sku) ? 'border-[#7D3C98] ring-2 ring-[#7D3C98]/20' : 'border-gray-200 hover:border-gray-300'}
                           `}
                         >

@@ -1,15 +1,32 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation'; // Add this
+import { useRouter, usePathname } from 'next/navigation';
 import { UserIcon, BellIcon } from '@/components/Icons'; 
 import AuthModal from './AuthModal';
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isProfileOpen, setProfileOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [user, setUser] = useState<{name: string} | null>(null); 
+
+  // Check Login Status on Mount
+  useEffect(() => {
+    const storedName = localStorage.getItem('user_name');
+    const storedId = localStorage.getItem('user_id');
+    if (storedName && storedId) {
+      setUser({ name: storedName });
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.clear();
+    setUser(null);
+    setProfileOpen(false);
+    router.push('/');
+  };
 
   const navLinks = [
     { name: 'Design', href: '/design' },
@@ -24,7 +41,7 @@ export default function Navbar() {
         “Prudent crafting, stunning art, Rhayze Studio captures every heart”
       </div>
       
-      <nav className="flex justify-between items-center px-8 py-4 shadow-sm">
+      <nav className="flex justify-between items-center px-8 py-4 shadow-sm relative">
         <Link href="/" className="text-2xl font-bold font-serif text-gray-900">Rhayze Studio</Link>
         
         <div className="hidden md:flex gap-8 text-gray-500 font-medium text-sm uppercase tracking-wider">
@@ -41,10 +58,12 @@ export default function Navbar() {
         
         <div className="flex items-center gap-6">
           <BellIcon className="w-5 h-5 text-gray-400 cursor-pointer hover:text-[#7D3C98]" />
+          
           <div className="relative">
+             {/* If user exists, show profile button. Else show Sign In */}
              <button 
                onClick={() => user ? setProfileOpen(!isProfileOpen) : setIsAuthOpen(true)} 
-               className="flex items-center gap-2"
+               className="flex items-center gap-2 focus:outline-none"
              >
                 <div className="bg-purple-50 p-2 rounded-full border border-purple-100">
                    <UserIcon className="w-5 h-5 text-[#7D3C98]" />
@@ -52,18 +71,24 @@ export default function Navbar() {
                 <span className="text-sm font-bold text-gray-700">{user ? user.name : "Sign in"}</span>
              </button>
 
+             {/* Profile Dropdown */}
              {isProfileOpen && user && (
-               <div className="absolute right-0 mt-2 w-56 bg-white border rounded-xl shadow-2xl z-70 overflow-hidden animate-in fade-in slide-in-from-top-2">
+               <div className="absolute right-0 mt-2 w-56 bg-white border rounded-xl shadow-xl z-70 overflow-hidden animate-in fade-in slide-in-from-top-2">
                  <Link href="/profile" className="block px-4 py-3 text-sm hover:bg-gray-50 border-b">My Profile</Link>
-                 <Link href="/bookings" className="block px-4 py-3 text-sm hover:bg-gray-50 border-b">Booking form</Link>
-                 <button onClick={() => setUser(null)} className="block w-full text-left px-4 py-3 text-sm hover:bg-gray-50 text-red-500 font-bold">Logout</button>
+                 <Link href="/bookings" className="block px-4 py-3 text-sm hover:bg-gray-50 border-b">Booking History</Link>
+                 <button onClick={handleLogout} className="block w-full text-left px-4 py-3 text-sm hover:bg-gray-50 text-red-500 font-bold">Logout</button>
                </div>
              )}
           </div>
         </div>
       </nav>
 
-      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} onLoginSuccess={setUser} />
+      {/* Auth Modal Triggered by Sign In button */}
+      <AuthModal 
+        isOpen={isAuthOpen} 
+        onClose={() => setIsAuthOpen(false)} 
+        onLoginSuccess={(u) => setUser({ name: u.full_name })} 
+      />
     </div>
   );
 }

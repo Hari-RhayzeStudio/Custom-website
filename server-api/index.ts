@@ -1,39 +1,87 @@
 import express from 'express';
 import cors from 'cors';
-import { PrismaClient } from '@prisma/client'; // Default Client (Products)
-import { PrismaClient as UserPrismaClient } from '@prisma/client-user'; // Second Client (Users)
+import { PrismaClient } from '@prisma/client'; 
+import { PrismaClient as UserPrismaClient } from '@prisma/client-user'; 
 import dotenv from 'dotenv';
 import axios from 'axios';
 import multer from 'multer';
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import twilio from 'twilio';
-import crypto from 'crypto'; // Added for UUID generation
+import crypto from 'crypto';
 
-// 1. BIGINT HELPER
-(BigInt.prototype as any).toJSON = function () {
-  return this.toString();
-};
+(BigInt.prototype as any).toJSON = function () { return this.toString(); };
 
 dotenv.config();
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
 
-// 2. Initialize Database Clients
-const prismaProduct = new PrismaClient(); // Connects to Product DB
-const prismaUser = new UserPrismaClient(); // Connects to User DB
-
-// 3. Initialize AI
+// Initialize Clients
+const prismaProduct = new PrismaClient();
+const prismaUser = new UserPrismaClient();
 const genAI = new GoogleGenerativeAI(process.env.API_KEY!);
-
-// 4. Initialize Twilio
-const twilioClient = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
-const TWILIO_SERVICE_SID = process.env.TWILIO_SERVICE_SID!;
 
 app.use(cors());
 app.use(express.json());
+
+// --- AUTH ROUTE ---
+
+/**
+ * Verify User & Sync to DB
+ * Uses Google Identity Toolkit API to verify the ID token.
+ */
+app.post('/api/auth/verify-user', async (req, res) => {
+  const { idToken, name } = req.body;
+
+  if (!idToken) return res.status(400).json({ error: "ID Token required" });
+
+  try {
+    // 1. Verify ID Token using Google Identity Toolkit REST API
+    // This allows verification without a Service Account private key
+    const googleVerifyURL = `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${process.env.FIREBASE_API_KEY}`;
+    
+    const verifyRes = await axios.post(googleVerifyURL, {
+      idToken: idToken
+    });
+
+    // 2. Extract user info from Google response
+    const firebaseUser = verifyRes.data.users[0];
+    const phone = firebaseUser.phoneNumber; // e.g., +919999999999
+
+    if (!phone) return res.status(400).json({ error: "Phone number not found in token" });
+
+    console.log(`Verified User Phone: ${phone}`);
+
+    // 3. Sync with Postgres Database
+    let user = await prismaUser.user.findFirst({
+      where: { phone_number: phone }
+    });
+
+    if (!user) {
+      console.log(`Creating DB entry for: ${phone}`);
+      user = await prismaUser.user.create({
+        data: {
+          id: crypto.randomUUID(),
+          phone_number: phone,
+          full_name: name || "Guest User",
+          email: null,
+          age: null
+        }
+      });
+    } else if (name) {
+      // Update name if provided
+      user = await prismaUser.user.update({
+        where: { id: user.id },
+        data: { full_name: name }
+      });
+    }
+
+    res.json({ success: true, user });
+
+  } catch (error: any) {
+    console.error("Token Verification Failed:", error.response?.data || error.message);
+    res.status(401).json({ error: "Invalid Token or expired" });
+  }
+});
+
 
 // --- HELPER FUNCTIONS ---
 
@@ -56,93 +104,13 @@ const handleApiResponse = (response: any, context: string): string => {
 };
 
 
-// ============================================================================
-//  SECTION 1: USER AUTHENTICATION & PROFILE ROUTES (User DB)
-// ============================================================================
-
-/**
- * Step A: Send OTP
- */
-app.post('/api/auth/send-otp', async (req, res) => {
-  const { phone } = req.body;
-
-  if (!phone) return res.status(400).json({ error: "Phone number is required" });
-
-  try {
-    const verification = await twilioClient.verify.v2
-      .services(TWILIO_SERVICE_SID)
-      .verifications.create({ to: phone, channel: 'sms' });
-
-    console.log(`OTP Sent to ${phone}: ${verification.status}`);
-    res.json({ success: true, status: verification.status });
-  } catch (error: any) {
-    console.error("Twilio Send Error:", error);
-    res.status(500).json({ error: error.message || "Failed to send OTP" });
-  }
-});
-
-/**
- * Step B: Verify OTP & Create User if needed
- */
-app.post('/api/auth/verify-otp', async (req, res) => {
-  const { phone, code, name } = req.body; // Added 'name'
-
-  if (!phone || !code) {
-    return res.status(400).json({ error: "Phone and Code are required" });
-  }
-
-  try {
-    // 1. Verify with Twilio
-    const verificationCheck = await twilioClient.verify.v2
-      .services(TWILIO_SERVICE_SID)
-      .verificationChecks.create({ to: phone, code: code });
-
-    if (verificationCheck.status !== 'approved') {
-      return res.status(401).json({ error: "Invalid or expired OTP" });
-    }
-
-    // 2. Database Logic
-    let user = await prismaUser.user.findFirst({
-      where: { phone_number: phone }
-    });
-
-    if (!user) {
-      // Create new user
-      console.log(`Creating new user: ${phone}`);
-      user = await prismaUser.user.create({
-        data: {
-          id: crypto.randomUUID(),
-          phone_number: phone,
-          full_name: name || "Guest User", // Use provided name or default
-          email: null,
-          age: null
-        }
-      });
-    } else if (name) {
-      // If user exists and a name was provided (e.g. updating profile during login), update it
-      user = await prismaUser.user.update({
-        where: { id: user.id },
-        data: { full_name: name }
-      });
-    }
-
-    console.log(`User logged in: ${user.id}`);
-    res.json({ success: true, user });
-
-  } catch (error: any) {
-    console.error("Auth/Verify Error:", error);
-    res.status(500).json({ error: error.message || "Authentication failed" });
-  }
-});
-
 /**
  * Get User Profile
  */
 app.get('/api/user/:id', async (req, res) => {
   try {
-    // FIXED: Removed parseInt() because ID is a UUID string
     const user = await prismaUser.user.findUnique({
-      where: { id: req.params.id } 
+      where: { id: req.params.id }
     });
     if (!user) return res.status(404).json({ error: "User not found" });
     res.json(user);
@@ -156,16 +124,13 @@ app.get('/api/user/:id', async (req, res) => {
  * Update User Profile
  */
 app.put('/api/user/:id', async (req, res) => {
-  const { name, email, dob } = req.body; // Frontend sends 'name', 'dob'
+  const { name, email, dob } = req.body;
   try {
-    // FIXED: Removed parseInt(), mapped 'name' -> 'full_name'
     const updatedUser = await prismaUser.user.update({
       where: { id: req.params.id },
       data: { 
         full_name: name, 
         email: email
-        // Note: 'dob' is ignored here because schema only has 'age' (Int).
-        // You can add logic to convert DOB to Age if needed.
       }
     });
     res.json(updatedUser);
@@ -236,7 +201,7 @@ app.post('/api/edit-design', upload.single('image'), async (req, res) => {
     const { prompt, x, y } = req.body;
     if (!req.file || !prompt) return res.status(400).json({ error: "Image and prompt required" });
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-image" });
     const promptText = `Expert jewelry editor. Edit this image based on request: "${prompt}". Focus on area x:${x}, y:${y}. Return ONLY the edited image.`;
 
     const imagePart = bufferToPart(req.file.buffer, req.file.mimetype);
@@ -341,4 +306,5 @@ app.listen(PORT, () => {
   console.log(`📍 User DB: Connected`);
   console.log(`📍 Product DB: Connected`);
   console.log(`📍 AI Service: Active`);
+  console.log(`🔥 Firebase Auth: Ready`);
 });
