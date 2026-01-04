@@ -104,7 +104,7 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in p-4">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in p-4">
       {/* Modal Container */}
       <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl relative">
         
@@ -150,7 +150,7 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
                   {wishlistProducts.length > 0 ? (
                     <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
                       {wishlistProducts.map(p => (
-                        <div key={p.sku} onClick={() => toggleProduct(p.sku)} className={`relative w-24 h-24 rounded-xl border-2 cursor-pointer flex-shrink-0 overflow-hidden transition-all group ${selectedProducts.includes(p.sku) ? 'border-[#7D3C98] ring-2 ring-purple-50' : 'border-gray-100 hover:border-purple-200'}`}>
+                        <div key={p.sku} onClick={() => toggleProduct(p.sku)} className={`relative w-24 h-24 rounded-xl border-2 cursor-pointer shrink-0 overflow-hidden transition-all group ${selectedProducts.includes(p.sku) ? 'border-[#7D3C98] ring-2 ring-purple-50' : 'border-gray-100 hover:border-purple-200'}`}>
                           <img src={p.final_image_url} alt={p.product_name} className="w-full h-full object-cover" />
                           <div className={`absolute inset-0 bg-[#7D3C98]/20 flex items-center justify-center transition-opacity duration-200 ${selectedProducts.includes(p.sku) ? 'opacity-100' : 'opacity-0'}`}>
                             <div className="bg-white rounded-full p-1 shadow-sm"><Check className="w-4 h-4 text-[#7D3C98]" /></div>

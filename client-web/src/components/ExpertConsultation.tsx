@@ -14,7 +14,7 @@ export default function ExpertConsultation({
   name = "Mr. Kamraann Rajjani", 
   experience = "12+ years in Jewellery design", 
   description = "With 12 years of experience in jewellery design, I bring a deep understanding of craftsmanship, aesthetics, and modern design trends. I specialise in transforming client ideas into custom concepts.",
-  avatarUrl = "/assets/expert-avatar.png" 
+  avatarUrl = "/assets/expert-avatar.webp" 
 }: ExpertProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 

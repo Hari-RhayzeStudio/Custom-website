@@ -28,7 +28,7 @@ export default function FloatingButton() {
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.95 }}
       whileDrag={{ cursor: "grabbing", scale: 1.1 }} // Cursor changes to "Closed Hand" when dragging
-      className="fixed bottom-8 right-8 z-[100] cursor-pointer" // Default cursor is "Hand" (Clickable)
+      className="fixed bottom-8 right-8 z-100 cursor-pointer" // Default cursor is "Hand" (Clickable)
     >
       <button 
         onClick={handleClick}
@@ -36,7 +36,7 @@ export default function FloatingButton() {
         className="group relative flex items-center gap-3 bg-[#7D3C98] text-white py-3 px-6 pr-8 rounded-full shadow-[0_20px_50px_rgba(125,60,152,0.3)] transition-all overflow-hidden border border-white/20 backdrop-blur-md"
       >
         {/* Shimmer Effect */}
-        <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+        <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_2s_infinite] bg-linear-to-r from-transparent via-white/10 to-transparent" />
 
         {/* Icon Container */}
         <div className="relative flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-inner border border-[#F9F5E8]">

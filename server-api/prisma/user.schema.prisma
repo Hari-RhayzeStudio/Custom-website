@@ -40,6 +40,7 @@ model Booking {
   consultation_date DateTime @db.Date
   slot              String
   product_skus      String[]
+  product_images    String[]
   meet_link         String?
   status            String?  @default("confirmed")
   created_at        DateTime @default(now()) @db.Timestamptz(6)

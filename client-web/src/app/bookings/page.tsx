@@ -1,4 +1,3 @@
-// src/app/bookings/page.tsx
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -29,8 +28,9 @@ export default function BookingPage() {
   useEffect(() => {
     const userId = localStorage.getItem('user_id');
     const localName = localStorage.getItem('user_name');
+    const directSku = searchParams.get('sku');
 
-    // A. FETCH USER PROFILE TO PRE-FILL FORM
+    // A. PRE-FILL USER FORM
     if (userId) {
       axios.get(`http://localhost:3001/api/user/${userId}`)
         .then((res) => {
@@ -38,39 +38,57 @@ export default function BookingPage() {
           setFormData(prev => ({
             ...prev,
             name: user.full_name || localName || "",
-            email: user.email || "" // <--- Pre-fills email from DB
+            email: user.email || "" 
           }));
         })
         .catch(err => console.error("Failed to load user info", err));
     }
 
-    // B. LOAD WISHLIST PRODUCTS
-    const loadWishlistData = async () => {
-      const directSku = searchParams.get('sku');
-      const storedWishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-      
-      const allSkusToFetch = Array.from(new Set([...storedWishlist, directSku].filter(Boolean)));
-
-      if (allSkusToFetch.length === 0) {
-        setProductsLoading(false);
-        return;
-      }
+    // B. LOAD WISHLIST (FROM DATABASE) + DIRECT SKU
+    const loadProducts = async () => {
+      setProductsLoading(true);
+      let combinedProducts: any[] = [];
 
       try {
-        const res = await fetch('http://localhost:3001/api/products');
-        const allData = await res.json();
-        const filtered = allData.filter((p: any) => allSkusToFetch.includes(p.sku));
-        setWishlistProducts(filtered);
+        // 1. Fetch Wishlist from DB if user logged in
+        if (userId) {
+          const res = await axios.get(`http://localhost:3001/api/wishlist/${userId}`);
+          // Map DB response to match component structure
+          const dbWishlist = res.data.map((item: any) => ({
+             sku: item.product_sku,
+             product_name: item.product_name,
+             final_image_url: item.product_image // Map image field correctly
+          }));
+          combinedProducts = [...dbWishlist];
+        }
 
-        if (directSku) setSelectedProducts([directSku]);
+        // 2. Fetch Direct SKU (if clicked "Book" from a specific product page)
+        if (directSku) {
+          // Check if already in wishlist to avoid duplicates
+          const alreadyExists = combinedProducts.some(p => p.sku === directSku);
+          
+          if (!alreadyExists) {
+             try {
+               const productRes = await axios.get(`http://localhost:3001/api/products/${directSku}`);
+               combinedProducts.push(productRes.data);
+             } catch (e) {
+               console.error("Failed to load direct SKU product");
+             }
+          }
+          // Auto-select the direct product
+          setSelectedProducts([directSku]);
+        }
+
+        setWishlistProducts(combinedProducts);
+
       } catch (err) {
-        console.error("Failed to load wishlist products", err);
+        console.error("Failed to load products", err);
       } finally {
         setProductsLoading(false);
       }
     };
 
-    loadWishlistData();
+    loadProducts();
   }, [searchParams]);
 
   const toggleProduct = (sku: string) => {
@@ -86,25 +104,29 @@ export default function BookingPage() {
     
     const userId = localStorage.getItem('user_id');
     
-    // Force login if not authenticated
     if (!userId) {
       alert("Please log in to book a consultation.");
-      // Optional: trigger login modal here if you have global state, or redirect
       return;
     }
 
     setIsLoading(true);
 
     try {
+      // Extract Image URLs for the selected products
+      const selectedImageUrls = wishlistProducts
+        .filter(p => selectedProducts.includes(p.sku))
+        .map(p => p.final_image_url);
+
       const res = await axios.post('http://localhost:3001/api/bookings', {
         user_id: userId,
         expert_name: "Mr. Kamraann Rajjani",
         consultation_date: formData.date,
         slot: formData.slot,
-        product_skus: selectedProducts,
-        // Send these so backend can update the profile
         name: formData.name, 
-        email: formData.email 
+        email: formData.email,
+        
+        product_skus: selectedProducts,
+        product_images: selectedImageUrls 
       });
 
       if (res.data.success) {
@@ -122,13 +144,13 @@ export default function BookingPage() {
     <div className="min-h-screen bg-[#fdfbf7] p-6 md:p-12 font-sans">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-8">
-          <Link href="/"><ArrowLeft className="w-6 h-6 text-gray-600" /></Link>
+          <Link href="/catalogue"><ArrowLeft className="w-6 h-6 text-gray-600 cursor-pointer" /></Link>
           <h1 className="text-2xl font-serif font-bold text-gray-800 text-center flex-1 pr-10">Consultation Booking</h1>
         </div>
 
         <div className="bg-white rounded-3xl shadow-sm overflow-hidden">
           <div className="bg-[#F9F5E8] p-8 flex items-center gap-6">
-            <img src="/assets/expert-avatar.png" alt="Expert" className="w-20 h-20 rounded-full object-cover border-2 border-white shadow-sm"/>
+            <img src="/assets/expert-avatar.webp" alt="Expert" className="w-20 h-20 rounded-full object-cover border-2 border-white shadow-sm"/>
             <div>
               <h2 className="text-xl font-bold text-gray-900">Mr. Kamraann Rajjani</h2>
               <p className="text-sm text-gray-500">12+ years in Jewellery design</p>
@@ -198,7 +220,9 @@ export default function BookingPage() {
                   </div>
 
                   {productsLoading ? (
-                    <div className="text-sm text-gray-400 italic">Loading your wishlist...</div>
+                    <div className="text-sm text-gray-400 italic flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin"/> Loading your wishlist...
+                    </div>
                   ) : wishlistProducts.length > 0 ? (
                     <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
                       {wishlistProducts.map((p) => (
@@ -242,7 +266,7 @@ export default function BookingPage() {
                 </div>
                 <h3 className="text-xl font-bold text-green-600 mb-2">Booking confirmed</h3>
                 <p className="text-gray-500 text-sm mb-12 max-w-md mx-auto">
-                  Meet link will be sent to <strong>{formData.email}</strong> so be ready to utilise your free consultation.
+                  Meet link will be sent to <strong>{formData.email}</strong>.
                 </p>
                 <Link href="/catalogue">
                   <button className="border-2 border-[#7D3C98] text-[#7D3C98] px-10 py-3 rounded-full font-bold hover:bg-purple-50 transition">
