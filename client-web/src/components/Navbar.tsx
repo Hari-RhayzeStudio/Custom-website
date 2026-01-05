@@ -1,16 +1,23 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { UserIcon, BellIcon } from '@/components/Icons'; 
 import AuthModal from './AuthModal';
+import NotificationPanel from './NotificationPanel'; // <--- Import Component
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
+  
+  // State Management
   const [isProfileOpen, setProfileOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false); // <--- New State
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [user, setUser] = useState<{name: string} | null>(null); 
+  
+  // Click Outside Handler Ref
+  const navRef = useRef<HTMLDivElement>(null);
 
   // Check Login Status on Mount
   useEffect(() => {
@@ -21,10 +28,23 @@ export default function Navbar() {
     }
   }, []);
 
+  // Close dropdowns if clicking outside Navbar
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(event.target as Node)) {
+        setProfileOpen(false);
+        setIsNotificationOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const handleLogout = () => {
     localStorage.clear();
     setUser(null);
     setProfileOpen(false);
+    setIsNotificationOpen(false);
     router.push('/');
   };
 
@@ -36,7 +56,7 @@ export default function Navbar() {
   ];
 
   return (
-    <div className="w-full sticky top-0 z-60 bg-white">
+    <div className="w-full sticky top-0 z-60 bg-white" ref={navRef}>
       <div className="bg-[#F9F5E8] text-center py-2 text-xs text-[#7D3C98] font-serif italic border-b border-[#ebdcb2]">
         “Prudent crafting, stunning art, Rhayze Studio captures every heart”
       </div>
@@ -57,37 +77,72 @@ export default function Navbar() {
         </div>
         
         <div className="flex items-center gap-6">
-          <BellIcon className="w-5 h-5 text-gray-400 cursor-pointer hover:text-[#7D3C98]" />
           
+          {/* --- NOTIFICATION SECTION --- */}
           <div className="relative">
-             {/* If user exists, show profile button. Else show Sign In */}
+            <button 
+              onClick={() => {
+                 setIsNotificationOpen(!isNotificationOpen);
+                 setProfileOpen(false); // Close profile if notifications open
+              }}
+              className={`relative p-2 rounded-full transition-colors duration-200 
+                ${isNotificationOpen ? 'bg-purple-50 text-[#7D3C98]' : 'text-gray-400 hover:text-[#7D3C98] hover:bg-gray-50'}`}
+            >
+              <BellIcon className="w-5 h-5" />
+              
+              {/* Dynamic Notification Dot (Only show if user logged in for now) */}
+              {user && (
+                <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-white animate-pulse"></span>
+              )}
+            </button>
+
+            {/* Notification Panel Component */}
+            <NotificationPanel 
+              isOpen={isNotificationOpen} 
+              onClose={() => setIsNotificationOpen(false)} 
+            />
+          </div>
+
+          {/* --- USER PROFILE SECTION --- */}
+          <div className="relative">
              <button 
-               onClick={() => user ? setProfileOpen(!isProfileOpen) : setIsAuthOpen(true)} 
-               className="flex items-center gap-2 focus:outline-none"
+               onClick={() => {
+                 if (user) {
+                   setProfileOpen(!isProfileOpen);
+                   setIsNotificationOpen(false); // Close notifications if profile open
+                 } else {
+                   setIsAuthOpen(true);
+                 }
+               }} 
+               className="flex items-center gap-2 focus:outline-none group"
              >
-                <div className="bg-purple-50 p-2 rounded-full border border-purple-100">
-                   <UserIcon className="w-5 h-5 text-[#7D3C98]" />
+                <div className={`p-2 rounded-full border transition-all duration-200 
+                  ${isProfileOpen ? 'bg-[#7D3C98] border-[#7D3C98]' : 'bg-purple-50 border-purple-100 group-hover:border-[#7D3C98]'}`}
+                >
+                   <UserIcon className={`w-5 h-5 transition-colors ${isProfileOpen ? 'text-white' : 'text-[#7D3C98]'}`} />
                 </div>
-                <span className="text-sm font-bold text-gray-700">{user ? user.name : "Sign in"}</span>
+                <span className="text-sm font-bold text-gray-700 max-w-100px truncate">{user ? user.name : "Sign in"}</span>
              </button>
 
              {/* Profile Dropdown */}
              {isProfileOpen && user && (
-               <div className="absolute right-0 mt-2 w-56 bg-white border rounded-xl shadow-xl z-70 overflow-hidden animate-in fade-in slide-in-from-top-2">
-                 <Link href="/profile" className="block px-4 py-3 text-sm hover:bg-gray-50 border-b">My Profile</Link>
-                 <Link href="/bookings" className="block px-4 py-3 text-sm hover:bg-gray-50 border-b">Booking History</Link>
-                 <button onClick={handleLogout} className="block w-full text-left px-4 py-3 text-sm hover:bg-gray-50 text-red-500 font-bold">Logout</button>
+               <div className="absolute right-0 mt-2 w-56 bg-white border rounded-xl shadow-xl z-70 overflow-hidden animate-in fade-in slide-in-from-top-2 origin-top-right">
+                 <Link href="/profile" onClick={() => setProfileOpen(false)} className="block px-4 py-3 text-sm hover:bg-gray-50 border-b transition">My Profile</Link>
+                 <Link href="/bookings" onClick={() => setProfileOpen(false)} className="block px-4 py-3 text-sm hover:bg-gray-50 border-b transition">Booking History</Link>
+                 <button onClick={handleLogout} className="block w-full text-left px-4 py-3 text-sm hover:bg-red-50 text-red-500 font-bold transition">Logout</button>
                </div>
              )}
           </div>
         </div>
       </nav>
 
-      {/* Auth Modal Triggered by Sign In button */}
       <AuthModal 
         isOpen={isAuthOpen} 
         onClose={() => setIsAuthOpen(false)} 
-        onLoginSuccess={(u) => setUser({ name: u.full_name })} 
+        onLoginSuccess={(u) => {
+          setUser({ name: u.full_name });
+          setIsAuthOpen(false);
+        }} 
       />
     </div>
   );
