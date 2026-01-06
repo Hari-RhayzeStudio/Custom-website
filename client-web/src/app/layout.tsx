@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google"; // Assuming fonts
 import "./globals.css";
 import Navbar from "@/components/Navbar";
-import FloatingButton from "@/components/FloatingButton"; // <--- Import here
+import FloatingButton from "@/components/FloatingButton";
+import Footer from "@/components/Footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,6 +26,7 @@ export default function RootLayout({
         {/* Main Content */}
         {children}
         
+        <Footer/>
         {/* Global Floating Button - Visible on ALL pages */}
         <FloatingButton /> 
       </body>

@@ -4,7 +4,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
 
-const CATEGORIES = ["All", "Rings", "Necklaces", "Earrings", "Bracelets", "Men Rings"];
+const CATEGORIES = ["All", "Earrings", "Bracelets", "Men Rings", "Ladies Rings", "Bands"];
 const MATERIALS = ["All", "Platinum", "Gold", "White Gold", "Rose Gold"];
 
 export default function CatalogueFilters() {
