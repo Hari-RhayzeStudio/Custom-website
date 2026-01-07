@@ -6,6 +6,12 @@ import { useRouter } from 'next/navigation';
 import { auth } from '@/app/firebase'; 
 import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from "firebase/auth";
 
+declare global {
+  interface Window {
+    recaptchaVerifier?: RecaptchaVerifier;
+  }
+}
+
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;

@@ -128,7 +128,7 @@ export default function Navbar() {
              {isProfileOpen && user && (
                <div className="absolute right-0 mt-2 w-56 bg-white border rounded-xl shadow-xl z-70 overflow-hidden animate-in fade-in slide-in-from-top-2 origin-top-right">
                  <Link href="/profile" onClick={() => setProfileOpen(false)} className="block px-4 py-3 text-sm hover:bg-gray-50 border-b transition">My Profile</Link>
-                 <Link href="/bookings" onClick={() => setProfileOpen(false)} className="block px-4 py-3 text-sm hover:bg-gray-50 border-b transition">Booking History</Link>
+                 <Link href="/bookings" onClick={() => setProfileOpen(false)} className="block px-4 py-3 text-sm hover:bg-gray-50 border-b transition">My Consultations</Link>
                  <button onClick={handleLogout} className="block w-full text-left px-4 py-3 text-sm hover:bg-red-50 text-red-500 font-bold transition">Logout</button>
                </div>
              )}
