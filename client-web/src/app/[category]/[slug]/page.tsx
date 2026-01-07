@@ -96,8 +96,57 @@ export default function ProductDetails() {
     }
   };
 
-  const handleDownload = async () => { /* ... existing download logic ... */ };
-  const handleShare = async () => { /* ... existing share logic ... */ };
+  const handleDownload = async () => {
+    if (!product) return;
+
+    const imageUrl = product[`${activeView}_image_url`];
+    if (!imageUrl) {
+      alert("Image not available");
+      return;
+    }
+
+    // Using the Backend Proxy approach we discussed previously
+    const filename = `${product.product_name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${product.sku}-${activeView}.jpg`;
+    // Ensure this matches your actual backend URL and port
+    const proxyUrl = `http://localhost:3001/api/download-proxy?url=${encodeURIComponent(imageUrl)}&filename=${encodeURIComponent(filename)}`;
+
+    try {
+      const link = document.createElement('a');
+      link.href = proxyUrl;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error("Download error:", err);
+      window.open(imageUrl, '_blank');
+    }
+  };
+
+  const handleShare = async () => {
+    if (!product) return;
+    const shareData = {
+      title: `Rhayze Studio - ${product.product_name}`,
+      text: `Check out this exquisite ${product.product_name} design (${activeView} view)!`,
+      url: window.location.href,
+    };
+
+    if (navigator.share && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.log('Error sharing:', err);
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        alert("Link copied to clipboard!");
+      } catch (err) {
+         alert("Unable to share.");
+      }
+    }
+  };
+
 
   if (loading) return <div className="p-20 text-center font-serif text-xl">Loading Design...</div>;
   if (!product) return <div className="p-20 text-center font-serif text-xl">Product Not Found</div>;
