@@ -146,6 +146,61 @@ app.put('/api/user/:id', async (req, res) => {
 //  SECTION 2: PRODUCT ROUTES (Product DB)
 // ============================================================================
 
+app.get('/api/products/trending', async (req, res) => {
+  try {
+    // 1. Group by SKU to find the most popular ones
+    const trendingStats = await prismaUser.wishlistItem.groupBy({
+      by: ['product_sku'],
+      _count: {
+        product_sku: true
+      },
+      orderBy: {
+        _count: {
+          product_sku: 'desc'
+        }
+      },
+      take: 3
+    });
+
+    if (trendingStats.length === 0) {
+      return res.json([]);
+    }
+
+    // 2. Fetch details (Name/Image) from the Wishlist Items themselves
+    // (We do this because we don't have a 'Product' table in Prisma yet)
+    const trendingProducts = await Promise.all(
+      trendingStats.map(async (stat) => {
+        const item = await prismaUser.wishlistItem.findFirst({
+          where: { product_sku: stat.product_sku },
+          select: {
+            product_sku: true,
+            product_name: true,
+            product_image: true
+          }
+        });
+        
+        if (!item) return null;
+
+        // Map it to the format the Frontend expects
+        return {
+          sku: item.product_sku,
+          product_name: item.product_name,
+          final_image_url: item.product_image,
+          // Generate a description since Wishlist doesn't store it
+          final_description: `A stunning ${item.product_name} design that is currently trending.` 
+        };
+      })
+    );
+
+    // Filter out any potential nulls and send response
+    res.json(trendingProducts.filter(Boolean));
+
+  } catch (error) {
+    console.error("Trending Error:", error);
+    res.status(500).json({ error: "Failed to fetch trending items" });
+  }
+});
+
 app.get('/api/products', async (req, res) => {
   const { search, category, material } = req.query;
   const whereClause: any = { status: "Filled" };
@@ -426,6 +481,7 @@ app.get('/api/wishlist/:userId', async (req, res) => {
     res.status(500).json({ error: "Failed to fetch wishlist" });
   }
 });
+
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

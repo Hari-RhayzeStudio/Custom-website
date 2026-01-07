@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef } from 'react';
+import TrendingDesigns from '@/components/TrendingDesigns';
 
 // Icon Components
 const SparklesIcon = ({ className = "" }) => (
@@ -292,6 +293,35 @@ export default function DesignPage() {
             )}
           </div>
         )}
+
+        {/* --- 2. ADD TRENDING COMPONENT HERE --- */}
+        <TrendingDesigns 
+          onSelectPrompt={(newPrompt) => {
+            setPrompt(newPrompt);
+            // Smooth scroll back to input
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }} 
+        />
+        
+        {/* How It Works Section (Optional, matches your design) */}
+        <div className="mt-20 border-t border-gray-200 pt-10">
+            <div className="flex items-center gap-4 mb-12 justify-center">
+              <div className="h-1px bg-gray-200 w-20"></div>
+              <h2 className="text-2xl font-serif text-gray-800">How it works</h2>
+              <div className="h-1px bg-gray-200 w-20"></div>
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-8">
+               <div className="bg-white p-8 rounded-3xl text-center shadow-sm">
+                  <h3 className="text-xl font-serif font-bold text-[#7D3C98] mb-4">Step 1: Generate</h3>
+                  <p className="text-gray-500 text-sm">Create your favourite jewellery with just a prompt and save it in your wishlist.</p>
+               </div>
+               <div className="bg-white p-8 rounded-3xl text-center shadow-sm">
+                  <h3 className="text-xl font-serif font-bold text-[#7D3C98] mb-4">Step 2: Consultation</h3>
+                  <p className="text-gray-500 text-sm">We'll help you to bring your imagination into reality with free discussion.</p>
+               </div>
+            </div>
+        </div>
 
         {/* Loading State */}
         {loading && (
