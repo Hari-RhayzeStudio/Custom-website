@@ -1,10 +1,10 @@
-// components/DesignInterface.tsx
 "use client";
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { X, Upload, Sparkles } from 'lucide-react';
 import TrendingDesigns from '@/components/TrendingDesigns';
 
+// Default / Fallback Images
 const DEFAULT_CATEGORIES = [
   { name: 'Men-rings', image: '/placeholder-Men-ring.jpg' },
   { name: 'Bands', image: '/placeholder-band.jpg' },
@@ -12,7 +12,7 @@ const DEFAULT_CATEGORIES = [
   { name: 'Earrings', image: '/placeholder-earring.jpg' },
 ];
 
-export default function DesignInterface() {
+export default function DesignPage() {
   const router = useRouter();
   
   // -- STATE --
@@ -25,7 +25,7 @@ export default function DesignInterface() {
   const imageRef = useRef<HTMLImageElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // --- FETCH RANDOM IMAGES FROM DB ---
+  // --- 1. FETCH RANDOM IMAGES ---
   useEffect(() => {
     const fetchCategoryImages = async () => {
       try {
@@ -65,6 +65,7 @@ export default function DesignInterface() {
     if (file) {
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
+      setHotspot({ x: 0, y: 0 }); // Reset hotspot on new file
     }
   };
 
@@ -101,7 +102,6 @@ export default function DesignInterface() {
     
     localStorage.setItem('pendingDesignRequest', JSON.stringify(pendingRequest));
 
-    // SEO Friendly URL Redirect
     const cleanPrompt = prompt.replace(/[^a-z0-9]/gi, '-').toLowerCase();
     router.push(`/design/result?prompt=${cleanPrompt}`);
   };
@@ -109,85 +109,138 @@ export default function DesignInterface() {
   return (
     <div className="min-h-screen bg-[#FAF8F3] py-10">
       <div className="max-w-5xl mx-auto px-6">
+        
+        {/* Header */}
         <h1 className="text-4xl md:text-5xl font-serif text-center mb-12 text-gray-800">
           {selectedFile ? "Edit Your Piece" : "Generate Your Personalized Jewellery"}
         </h1>
 
-        {/* --- DYNAMIC CATEGORIES GRID --- */}
+        {/* --- 1. CATEGORIES GRID (Only visible if NO file selected) --- */}
         {!selectedFile && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-12">
             {categories.map((category) => (
-              <div key={category.name} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
+              <div key={category.name} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group cursor-default">
                 <div className="aspect-square overflow-hidden bg-gray-100 relative">
                   <img 
                     src={category.image} 
                     alt={category.name} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-                    onError={(e) => { e.currentTarget.src = "/placeholder-jewelry.jpg" }}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    onError={(e) => { e.currentTarget.src = "/placeholder-jewelry.jpg"; }} 
                   />
+                  <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors" />
                 </div>
-                <p className="text-center py-3 font-medium text-gray-700">{category.name}</p>
+                <p className="text-center py-3 font-medium text-gray-700 font-serif tracking-wide">{category.name}</p>
               </div>
             ))}
           </div>
         )}
 
-        {/* --- IMAGE UPLOAD PREVIEW --- */}
+        {/* --- 2. PREVIEW & INSTRUCTIONS (Visible ONLY if file selected) --- */}
         {selectedFile && (
-          <div className="bg-white rounded-3xl p-8 shadow-sm mb-8 flex flex-col md:flex-row gap-8 justify-center">
-            <div className="relative inline-block border border-gray-100 rounded-xl overflow-hidden bg-gray-50">
-               <button onClick={() => { setSelectedFile(null); setHotspot({x:0, y:0}); }} className="absolute top-4 right-4 bg-white/80 p-1 rounded-full hover:text-red-500 z-10 shadow-sm transition-transform hover:scale-110">
-                 <X className="w-5 h-5"/>
-               </button>
-               <img ref={imageRef} src={previewUrl} onClick={handleImageClick} className="max-h-100 object-contain cursor-crosshair" alt="Reference" />
-               {hotspot.x > 0 && (
-                 <div className="absolute w-4 h-4 bg-purple-600 rounded-full border-2 border-white shadow-lg pointer-events-none animate-pulse" 
-                      style={{ left: `${(hotspot.x / (imageRef.current?.naturalWidth||1))*(imageRef.current?.width||1)}px`, top: `${(hotspot.y / (imageRef.current?.naturalHeight||1))*(imageRef.current?.height||1)}px`, transform: 'translate(-50%, -50%)' }} />
-               )}
+          <div className="bg-white rounded-3xl p-8 shadow-sm mb-8 animate-in fade-in slide-in-from-bottom-4">
+            <div className="flex flex-col md:flex-row gap-12 items-start justify-center">
+              
+              {/* Left Column: Image with Hotspot */}
+              <div className="relative group w-full md:w-1/2 flex justify-center">
+                {/* Close Button */}
+                <button 
+                  onClick={() => { setSelectedFile(null); setHotspot({x:0, y:0}); }} 
+                  className="absolute -top-2 -right-2 md:top-0 md:right-0 p-2 text-gray-400 hover:text-red-500 hover:bg-gray-100 rounded-full transition z-10"
+                >
+                  <X className="w-5 h-5"/>
+                </button>
+
+                <div className="relative inline-block">
+                  <img 
+                    ref={imageRef} 
+                    src={previewUrl} 
+                    onClick={handleImageClick} 
+                    className="max-h-75 w-auto object-contain cursor-crosshair rounded-lg" 
+                    alt="Reference"
+                  />
+                  {/* Purple Hotspot Dot */}
+                  {hotspot.x > 0 && (
+                    <div 
+                      className="absolute w-5 h-5 bg-purple-600 rounded-full border-[3px] border-white shadow-lg pointer-events-none animate-pulse" 
+                      style={{ 
+                        left: `${(hotspot.x / (imageRef.current?.naturalWidth||1))*(imageRef.current?.width||1)}px`, 
+                        top: `${(hotspot.y / (imageRef.current?.naturalHeight||1))*(imageRef.current?.height||1)}px`, 
+                        transform: 'translate(-50%, -50%)' 
+                      }} 
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* Right Column: Instructions */}
+              <div className="w-full md:w-1/2 flex flex-col justify-center space-y-6 pt-4">
+                 {/* Beige Alert Box */}
+                 <div className="bg-[#F9F5E8] py-3 px-6 rounded-lg shadow-sm border border-[#F0EAD6]">
+                    <p className="font-bold text-gray-800 text-sm text-center tracking-wide">
+                      Click on product to make precise edit
+                    </p>
+                 </div>
+
+                 {/* Steps List */}
+                 <div className="bg-[#FDFBF7] p-6 rounded-xl border border-gray-100 space-y-4">
+                    <p className="text-gray-600 text-sm flex gap-3 items-center">
+                      <span className="font-bold text-gray-400">1.</span> Select part to edit
+                    </p>
+                    <p className="text-gray-600 text-sm flex gap-3 items-center">
+                      <span className="font-bold text-gray-400">2.</span> enter prompt to make precise edit
+                    </p>
+                    <p className="text-gray-600 text-sm flex gap-3 items-center">
+                      <span className="font-bold text-gray-400">3.</span> Generate Product
+                    </p>
+                 </div>
+              </div>
             </div>
           </div>
         )}
 
-        {/* --- INPUT AREA --- */}
+        {/* --- 3. INPUT AREA (Full Width) --- */}
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100/50">
           <div className="relative">
              <textarea
-               className="w-full p-4 pr-12 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-purple-200 min-h-30 resize-none text-gray-700 placeholder:text-gray-400"
-               placeholder={selectedFile ? "Describe your edit (e.g., 'Change the center stone to a ruby')..." : "Enter your jewellery details here... (e.g. A platinum ring with a sapphire center stone)"}
+               className="w-full p-4 pr-12 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-purple-200 min-h-30 resize-none text-gray-700 placeholder:text-gray-400 text-base"
+               placeholder={selectedFile ? "Describe your edit here... (e.g. Change the color of diamond to amber)" : "Enter your jewellery detail here... (e.g. A platinum ring with a sapphire center stone)"}
                value={prompt}
                onChange={(e) => setPrompt(e.target.value)}
              />
              
+             {/* Upload Icon (Only show if no file selected yet) */}
              {!selectedFile && (
-               <button onClick={() => fileInputRef.current?.click()} className="absolute bottom-4 right-4 p-2 text-gray-400 hover:text-purple-600 transition bg-white rounded-full hover:bg-gray-50" title="Upload Reference Image">
-                 <Upload className="w-6 h-6" />
+               <button 
+                 onClick={() => fileInputRef.current?.click()} 
+                 className="absolute bottom-4 right-4 p-2 text-gray-400 hover:text-purple-600 transition bg-white rounded-full hover:bg-gray-50 border border-transparent hover:border-gray-200" 
+                 title="Upload Reference Image"
+               >
+                 <Upload className="w-5 h-5" />
                </button>
              )}
              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
           </div>
-          
-          <div className="mt-6 flex justify-center">
-             <button
-               onClick={handleGenerate}
-               disabled={!prompt.trim()}
-               className="w-full md:w-1/3 py-3 bg-[#E5E7EB] hover:bg-[#d1d5db] text-gray-800 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-             >
-               <Sparkles className="w-5 h-5 text-purple-600" /> Generate
-             </button>
-          </div>
         </div>
 
-        {/* --- TRENDING DESIGNS --- */}
-        <div className="mt-12">
-            <TrendingDesigns 
-              onSelectPrompt={(newPrompt) => {
-                setPrompt(newPrompt);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }} 
-            />
+        {/* --- 4. GENERATE BUTTON (Centered Bottom) --- */}
+        <div className="mt-8 flex justify-center">
+           <button
+             onClick={handleGenerate}
+             disabled={!prompt.trim()}
+             className="px-12 py-3 bg-[#E5E7EB] hover:bg-[#d1d5db] text-gray-700 rounded-lg font-medium transition-colors text-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+           >
+             Generate
+           </button>
         </div>
 
-        {/* --- HOW IT WORKS SECTION --- */}
+        {/* --- 5. FOOTER SECTIONS (Trending & How-to) --- */}
+        <TrendingDesigns 
+          onSelectPrompt={(newPrompt) => {
+            setPrompt(newPrompt);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }} 
+        />
+        
         <div className="mt-20 border-t border-gray-200 pt-10">
             <div className="flex items-center gap-4 mb-12 justify-center">
               <div className="h-px bg-gray-200 w-20"></div>

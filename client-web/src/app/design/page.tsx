@@ -1,6 +1,6 @@
-// app/design/page.tsx
+// app/page.tsx
 import DesignInterface from '@/components/DesignInterface';
 
-export default function DesignPage() {
+export default function Home() {
   return <DesignInterface />;
 }

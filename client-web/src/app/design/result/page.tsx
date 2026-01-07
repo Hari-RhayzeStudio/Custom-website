@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Download, Pencil, X, AlertTriangle, Sparkles, Undo2 } from 'lucide-react';
+import { ArrowLeft, Download, Pencil, X, AlertTriangle, Sparkles, Undo2, Loader2 } from 'lucide-react';
 import DesignGenerationLoader from '@/components/DesignGenerationLoader';
 
 // --- CONSTANTS ---
@@ -26,18 +26,18 @@ type DesignState = {
 
 export default function DesignResultPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   
   // -- STATE --
   const [data, setData] = useState<DesignState | null>(null);
-  const [history, setHistory] = useState<DesignState[]>([]); // HISTORY STACK
-  const [loading, setLoading] = useState(true); // Default true to show skeleton immediately
+  const [history, setHistory] = useState<DesignState[]>([]); 
+  const [loading, setLoading] = useState(true); 
   const [keywords, setKeywords] = useState<string[]>([]);
   
   // Edit Mode
   const [isEditing, setIsEditing] = useState(false);
   const [hotspot, setHotspot] = useState({ x: 0, y: 0 });
   const [editPrompt, setEditPrompt] = useState("");
+  const [isDownloading, setIsDownloading] = useState(false); // New State for Download Loading
   
   // Modal
   const [selectedCard, setSelectedCard] = useState<{ title: string; desc: string } | null>(null);
@@ -47,15 +47,12 @@ export default function DesignResultPage() {
   // --- 1. INITIALIZATION & FETCHING LOGIC ---
   useEffect(() => {
     const init = async () => {
-      // A. Check for Pending Request (New Generation from Design Page)
       const pendingReqString = localStorage.getItem('pendingDesignRequest');
       
       if (pendingReqString) {
         const req = JSON.parse(pendingReqString);
-        
-        // If it's pending, WE execute the API call here
         if (req.status === 'pending') {
-          setLoading(true); // Show Skeleton
+          setLoading(true); 
           
           try {
             const formData = new FormData();
@@ -63,9 +60,7 @@ export default function DesignResultPage() {
             
             let endpoint = 'http://localhost:3001/api/generate-design';
 
-            // Check if it was an edit (image upload)
             if (req.base64Image) {
-               // Convert Base64 back to Blob for upload
                const res = await fetch(req.base64Image);
                const blob = await res.blob();
                formData.append('image', blob);
@@ -81,14 +76,9 @@ export default function DesignResultPage() {
             
             if (result.imageUrl) {
               const newState = { imageUrl: result.imageUrl, prompt: req.prompt };
-              
-              // Initialize History
               setHistory([newState]);
               setData(newState);
-              
-              // Clear pending flag so we don't re-fetch on refresh
               localStorage.removeItem('pendingDesignRequest');
-              // Save stable result
               localStorage.setItem('designResult', JSON.stringify(newState));
             }
           } catch (e) {
@@ -96,11 +86,10 @@ export default function DesignResultPage() {
           } finally {
             setLoading(false);
           }
-          return; // Exit early since we handled the pending request
+          return; 
         }
       }
 
-      // B. If no pending request, load from saved result (Page Refresh)
       const storedResult = localStorage.getItem('designResult');
       if (storedResult) {
         const parsed = JSON.parse(storedResult);
@@ -113,7 +102,7 @@ export default function DesignResultPage() {
     };
 
     init();
-  }, []); // Run once on mount
+  }, []); 
 
   // --- KEYWORD EXTRACTION ---
   useEffect(() => {
@@ -130,20 +119,48 @@ export default function DesignResultPage() {
 
   // --- HANDLERS ---
 
+  // NEW: Robust Download Handler
+  const handleDownload = async () => {
+    if (!data?.imageUrl) return;
+    setIsDownloading(true);
+    
+    try {
+      // 1. Fetch the image data as a Blob
+      const response = await fetch(data.imageUrl);
+      const blob = await response.blob();
+      
+      // 2. Create a temporary URL for the Blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // 3. Create a hidden link and click it
+      const link = document.createElement('a');
+      link.href = url;
+      // Clean filename from prompt
+      const filename = `rhayze-${data.prompt.substring(0, 20).replace(/[^a-z0-9]/gi, '_')}.png`; 
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      
+      // 4. Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Download failed:", error);
+      alert("Could not download image. Opening in new tab instead.");
+      window.open(data.imageUrl, '_blank');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   const handleBack = () => {
     if (history.length <= 1) return;
-
-    // Pop current state
     const newHistory = [...history];
     newHistory.pop(); 
-    
     const previousState = newHistory[newHistory.length - 1];
-
     setHistory(newHistory);
     setData(previousState);
     localStorage.setItem('designResult', JSON.stringify(previousState));
-
-    // Update URL to match previous prompt for SEO
     const cleanPrompt = previousState.prompt.replace(/[^a-z0-9]/gi, '-').toLowerCase();
     router.replace(`/design/result?prompt=${cleanPrompt}`);
   };
@@ -151,10 +168,8 @@ export default function DesignResultPage() {
   const handleGenerateEdit = async () => {
     if (!editPrompt.trim()) return;
 
-    setLoading(true); // SHOW SKELETON
-    setIsEditing(false); // Close edit UI to show skeleton full screen
-
-    // Update URL immediately
+    setLoading(true); 
+    setIsEditing(false); 
     const cleanPrompt = editPrompt.replace(/[^a-z0-9]/gi, '-').toLowerCase();
     router.push(`/design/result?prompt=${cleanPrompt}`);
 
@@ -177,12 +192,9 @@ export default function DesignResultPage() {
 
       if (result.imageUrl) {
         const newState = { imageUrl: result.imageUrl, prompt: editPrompt };
-        
-        // ADD TO HISTORY STACK
         setHistory(prev => [...prev, newState]);
         setData(newState);
         localStorage.setItem('designResult', JSON.stringify(newState));
-        
         setEditPrompt("");
         setHotspot({x:0, y:0});
       }
@@ -229,7 +241,6 @@ export default function DesignResultPage() {
               </h1>
           </div>
           
-          {/* BACK BUTTON (Only shows if there is history) */}
           {history.length > 1 && !isEditing && (
             <button 
               onClick={handleBack}
@@ -267,9 +278,16 @@ export default function DesignResultPage() {
                     <Pencil className="w-5 h-5" />
                     <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition">Edit</span>
                   </button>
-                  <a href={data.imageUrl} download="rhayze-design.png" className="flex items-center gap-2 bg-[#EAE4D8] hover:bg-[#dcd5c7] text-gray-800 px-6 py-2.5 rounded-lg font-medium transition text-sm">
-                     <Download className="w-4 h-4" /> Download
-                  </a>
+                  
+                  {/* UPDATED DOWNLOAD BUTTON */}
+                  <button 
+                    onClick={handleDownload} 
+                    disabled={isDownloading}
+                    className="flex items-center gap-2 bg-[#EAE4D8] hover:bg-[#dcd5c7] text-gray-800 px-6 py-2.5 rounded-lg font-medium transition text-sm disabled:opacity-50"
+                  >
+                     {isDownloading ? <Loader2 className="w-4 h-4 animate-spin"/> : <Download className="w-4 h-4" />} 
+                     Download
+                  </button>
               </div>
             )}
         </div>
