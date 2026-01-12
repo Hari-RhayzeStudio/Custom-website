@@ -20,7 +20,9 @@ const prismaUser = new UserPrismaClient();
 const genAI = new GoogleGenerativeAI(process.env.API_KEY!);
 
 app.use(cors());
-app.use(express.json());
+// app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // --- AUTH ROUTE ---
 
@@ -479,6 +481,53 @@ app.get('/api/wishlist/:userId', async (req, res) => {
   } catch (error) {
     console.error("Fetch Wishlist Error:", error);
     res.status(500).json({ error: "Failed to fetch wishlist" });
+  }
+});
+
+app.post('/api/generate-flashcards', async (req, res) => {
+  const { prompt } = req.body;
+
+  if (!prompt) return res.status(400).json({ error: "Prompt required" });
+
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    
+    const instruction = `
+      You are a jewelry expert. Based on this design request: "${prompt}", 
+      generate 6 educational flashcards about the materials, gemstones, or techniques implied.
+      
+      Strict Output Format:
+      Term: Concise Definition
+      Term: Concise Definition
+      
+      Example:
+      Platinum: A dense, malleable, silver-white metal highly resistant to corrosion.
+      Pavé Setting: Small stones set closely together, separated by tiny metal beads.
+    `;
+
+    const result = await model.generateContent(instruction);
+    const responseText = result.response.text();
+
+    // Parsing Logic (Matches your provided snippet)
+    const flashcards = responseText
+      .split('\n')
+      .map((line) => {
+        const parts = line.split(':');
+        if (parts.length >= 2 && parts[0].trim()) {
+          return {
+            term: parts[0].trim().replace(/^\*+|\*+$/g, ''), // Remove asterisks if AI adds them
+            definition: parts.slice(1).join(':').trim()
+          };
+        }
+        return null;
+      })
+      .filter((card) => card !== null);
+
+    res.json({ flashcards });
+
+  } catch (error: any) {
+    console.error("Flashcard Gen Error:", error);
+    res.status(500).json({ error: error.message });
   }
 });
 

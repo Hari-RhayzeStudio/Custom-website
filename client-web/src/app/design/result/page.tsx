@@ -2,21 +2,8 @@
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Download, Pencil, X, AlertTriangle, Sparkles, Undo2, Loader2 } from 'lucide-react';
+import { ArrowLeft, Download, Pencil, X, AlertTriangle, Sparkles, Undo2, Heart, Loader2 } from 'lucide-react';
 import DesignGenerationLoader from '@/components/DesignGenerationLoader';
-
-// --- CONSTANTS ---
-const JEWELRY_KNOWLEDGE_BASE: Record<string, string> = {
-  "Platinum(Pt)": "A dense, malleable, ductile, highly unreactive, precious, silver-white transition metal.",
-  "Blue Sapphire": "A precious gemstone, a variety of the mineral corundum.",
-  "Diamond": "A solid form of the element carbon with its atoms arranged in a crystal structure.",
-  "Carat (ct)": "A unit of mass equal to 200 mg, used for measuring gemstones.",
-  "Ring": "A round band, usually of metal, worn as an ornamental piece of jewellery.",
-  "Mohs Hardness Scale": "A qualitative ordinal scale characterizing scratch resistance.",
-  "Gold": "A bright, slightly reddish yellow, dense, soft, malleable, and ductile metal.",
-  "Luxury": "The state of great comfort and extravagant living.",
-  "Custom": "Made or done to order for a particular customer."
-};
 
 // Type Definitions
 type DesignState = {
@@ -24,25 +11,61 @@ type DesignState = {
   prompt: string;
 };
 
+type Flashcard = {
+  term: string;
+  definition: string;
+};
+
 export default function DesignResultPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   
   // -- STATE --
   const [data, setData] = useState<DesignState | null>(null);
   const [history, setHistory] = useState<DesignState[]>([]); 
   const [loading, setLoading] = useState(true); 
-  const [keywords, setKeywords] = useState<string[]>([]);
+  
+  // Flashcard State
+  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const [loadingCards, setLoadingCards] = useState(true); // Default true to show skeleton
+  const [flippedIndices, setFlippedIndices] = useState<number[]>([]);
   
   // Edit Mode
   const [isEditing, setIsEditing] = useState(false);
   const [hotspot, setHotspot] = useState({ x: 0, y: 0 });
   const [editPrompt, setEditPrompt] = useState("");
-  const [isDownloading, setIsDownloading] = useState(false); // New State for Download Loading
   
-  // Modal
-  const [selectedCard, setSelectedCard] = useState<{ title: string; desc: string } | null>(null);
+  // Saving
+  const [isSaving, setIsSaving] = useState(false);
 
   const imageRef = useRef<HTMLImageElement>(null);
+
+  // --- HELPER: FETCH FLASHCARDS ---
+  const fetchFlashcards = async (promptText: string) => {
+    setLoadingCards(true);
+    try {
+      const res = await fetch('http://localhost:3001/api/generate-flashcards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: promptText })
+      });
+      const result = await res.json();
+      if (result.flashcards) {
+        setFlashcards(result.flashcards);
+      }
+    } catch (err) {
+      console.error("Failed to load flashcards", err);
+      // Fallback
+      setFlashcards([
+        { term: "Custom Design", definition: "A unique piece created specifically for you based on your prompt." },
+        { term: "Consultation", definition: "A discussion with our jewelry experts to refine details before manufacturing." },
+        { term: "3D Modeling", definition: "The process of creating a digital representation of the jewelry before casting." },
+        { term: "Gemstone Setting", definition: "The art of securely attaching gemstones to the metal framework." }
+      ]);
+    } finally {
+      setLoadingCards(false);
+    }
+  };
 
   // --- 1. INITIALIZATION & FETCHING LOGIC ---
   useEffect(() => {
@@ -51,9 +74,17 @@ export default function DesignResultPage() {
       
       if (pendingReqString) {
         const req = JSON.parse(pendingReqString);
+        
+        // If it's pending, WE execute the API call here
         if (req.status === 'pending') {
           setLoading(true); 
           
+          // --- PARALLEL EXECUTION START ---
+          
+          // 1. Start Flashcard Generation Immediately (Don't await)
+          fetchFlashcards(req.prompt);
+
+          // 2. Start Image Generation
           try {
             const formData = new FormData();
             formData.append('prompt', req.prompt);
@@ -84,74 +115,32 @@ export default function DesignResultPage() {
           } catch (e) {
             console.error(e);
           } finally {
-            setLoading(false);
+            setLoading(false); // Image is done
           }
+          // --- PARALLEL EXECUTION END ---
           return; 
         }
       }
 
+      // Fallback: Load from saved result (Page Refresh)
       const storedResult = localStorage.getItem('designResult');
       if (storedResult) {
         const parsed = JSON.parse(storedResult);
         setData(parsed);
         if(history.length === 0) setHistory([parsed]);
         setLoading(false);
+        // Also fetch flashcards for saved result if missing
+        if (flashcards.length === 0) fetchFlashcards(parsed.prompt);
       } else {
         setLoading(false);
+        setLoadingCards(false);
       }
     };
 
     init();
-  }, []); 
-
-  // --- KEYWORD EXTRACTION ---
-  useEffect(() => {
-    if (data?.prompt) {
-      const words = data.prompt.split(/\s+/)
-        .filter((w) => w.length > 3)
-        .map((w) => w.replace(/[^a-zA-Z]/g, ""))
-        .filter((w) => !['with', 'have', 'make', 'this', 'that', 'from', 'generate'].includes(w.toLowerCase()));
-      
-      const defaults = ["Platinum(Pt)", "Blue Sapphire", "Diamond", "Carat (ct)", "Ring", "Mohs Hardness Scale"];
-      setKeywords(Array.from(new Set([...defaults, ...words])).slice(0, 6));
-    }
-  }, [data]);
+  }, []);
 
   // --- HANDLERS ---
-
-  // NEW: Robust Download Handler
-  const handleDownload = async () => {
-    if (!data?.imageUrl) return;
-    setIsDownloading(true);
-    
-    try {
-      // 1. Fetch the image data as a Blob
-      const response = await fetch(data.imageUrl);
-      const blob = await response.blob();
-      
-      // 2. Create a temporary URL for the Blob
-      const url = window.URL.createObjectURL(blob);
-      
-      // 3. Create a hidden link and click it
-      const link = document.createElement('a');
-      link.href = url;
-      // Clean filename from prompt
-      const filename = `rhayze-${data.prompt.substring(0, 20).replace(/[^a-z0-9]/gi, '_')}.png`; 
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      
-      // 4. Cleanup
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Download failed:", error);
-      alert("Could not download image. Opening in new tab instead.");
-      window.open(data.imageUrl, '_blank');
-    } finally {
-      setIsDownloading(false);
-    }
-  };
 
   const handleBack = () => {
     if (history.length <= 1) return;
@@ -163,6 +152,8 @@ export default function DesignResultPage() {
     localStorage.setItem('designResult', JSON.stringify(previousState));
     const cleanPrompt = previousState.prompt.replace(/[^a-z0-9]/gi, '-').toLowerCase();
     router.replace(`/design/result?prompt=${cleanPrompt}`);
+    // Re-fetch flashcards for previous state
+    fetchFlashcards(previousState.prompt);
   };
 
   const handleGenerateEdit = async () => {
@@ -170,6 +161,10 @@ export default function DesignResultPage() {
 
     setLoading(true); 
     setIsEditing(false); 
+    
+    // Start Flashcards for new prompt immediately
+    fetchFlashcards(editPrompt);
+
     const cleanPrompt = editPrompt.replace(/[^a-z0-9]/gi, '-').toLowerCase();
     router.push(`/design/result?prompt=${cleanPrompt}`);
 
@@ -216,13 +211,48 @@ export default function DesignResultPage() {
     });
   };
 
-  const handleCardClick = (word: string) => {
-    const description = JEWELRY_KNOWLEDGE_BASE[word] || `Information about ${word}.`;
-    setSelectedCard({ title: word, desc: description });
+  const handleSaveToAccount = async () => {
+    const userId = localStorage.getItem('user_id');
+    if (!userId) {
+      alert("Please log in to save designs to your account.");
+      return;
+    }
+    if (!data) return;
+
+    setIsSaving(true);
+    try {
+      const generatedSku = `gen-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      const res = await fetch('http://localhost:3001/api/wishlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userId,
+          product_sku: generatedSku,
+          product_name: `Custom: ${data.prompt.substring(0, 20)}...`,
+          product_image: data.imageUrl
+        })
+      });
+
+      if (res.ok) alert("Design saved successfully!");
+      else alert("Failed to save design.");
+    } catch (error) {
+      alert("An error occurred while saving.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCardClick = (index: number) => {
+    if (flippedIndices.includes(index)) {
+        setFlippedIndices(prev => prev.filter(i => i !== index));
+    } else {
+        setFlippedIndices(prev => [...prev, index]);
+    }
   };
 
   // --- RENDER ---
 
+  // Special Case: If IMAGE is loading, show Loader but pass flashcards if ready
   if (loading) return <DesignGenerationLoader />;
   if (!data) return <div className="text-center p-20">No design found.</div>;
 
@@ -242,12 +272,8 @@ export default function DesignResultPage() {
           </div>
           
           {history.length > 1 && !isEditing && (
-            <button 
-              onClick={handleBack}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-gray-600 bg-gray-100 rounded-full hover:bg-gray-200 hover:text-purple-700 transition"
-            >
-              <Undo2 className="w-4 h-4" />
-              Undo Last Edit
+            <button onClick={handleBack} className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-gray-600 bg-gray-100 rounded-full hover:bg-gray-200 hover:text-purple-700 transition">
+              <Undo2 className="w-4 h-4" /> Undo Last Edit
             </button>
           )}
         </div>
@@ -273,21 +299,17 @@ export default function DesignResultPage() {
             </div>
 
             {!isEditing && (
-              <div className="flex items-center gap-4 w-full max-w-500px justify-end">
+              <div className="flex items-center gap-3 w-full max-w-500px justify-end">
                   <button onClick={() => setIsEditing(true)} className="p-3 text-gray-500 hover:text-purple-700 hover:bg-purple-50 rounded-full transition relative group">
                     <Pencil className="w-5 h-5" />
                     <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition">Edit</span>
                   </button>
-                  
-                  {/* UPDATED DOWNLOAD BUTTON */}
-                  <button 
-                    onClick={handleDownload} 
-                    disabled={isDownloading}
-                    className="flex items-center gap-2 bg-[#EAE4D8] hover:bg-[#dcd5c7] text-gray-800 px-6 py-2.5 rounded-lg font-medium transition text-sm disabled:opacity-50"
-                  >
-                     {isDownloading ? <Loader2 className="w-4 h-4 animate-spin"/> : <Download className="w-4 h-4" />} 
-                     Download
+                  <button onClick={handleSaveToAccount} disabled={isSaving} className="flex items-center gap-2 bg-white border border-gray-200 hover:border-red-200 hover:bg-red-50 text-gray-700 hover:text-red-500 px-6 py-2.5 rounded-lg font-medium transition text-sm disabled:opacity-50">
+                     {isSaving ? <Loader2 className="w-4 h-4 animate-spin"/> : <Heart className="w-4 h-4" />} Save
                   </button>
+                  <a href={data.imageUrl} download="rhayze-design.png" className="flex items-center gap-2 bg-[#EAE4D8] hover:bg-[#dcd5c7] text-gray-800 px-6 py-2.5 rounded-lg font-medium transition text-sm">
+                     <Download className="w-4 h-4" /> Download
+                  </a>
               </div>
             )}
         </div>
@@ -312,12 +334,35 @@ export default function DesignResultPage() {
               </div>
 
               <h2 className="text-xl font-bold text-gray-800 mb-6">Flashcard Guide</h2>
+              
+              {/* DYNAMIC FLASHCARDS GRID - FLIP IMPLEMENTATION */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
-                  {keywords.map((word, index) => (
-                    <button key={index} onClick={() => handleCardClick(word)} className="bg-[#F3EFE0] hover:bg-[#ebdcb2] h-24 p-2 rounded-xl flex items-center justify-center text-center transition-colors">
-                      <span className="text-gray-700 text-sm font-medium">{word}</span>
-                    </button>
-                  ))}
+                  {loadingCards ? (
+                     [1,2,3,4,5,6].map(i => <div key={i} className="h-40 bg-gray-100 rounded-xl animate-pulse"></div>)
+                  ) : (
+                     flashcards.map((card, index) => {
+                        const isFlipped = flippedIndices.includes(index);
+                        return (
+                            <div 
+                                key={index} 
+                                className="group h-40 w-full perspective-[1000px] cursor-pointer"
+                                onClick={() => handleCardClick(index)}
+                            >
+                                <div className={`relative h-full w-full transition-all duration-500 transform-3d ${isFlipped ? 'transform-[rotateY(180deg)]' : ''}`}>
+                                    {/* FRONT FACE */}
+                                    <div className="absolute inset-0 h-full w-full rounded-xl bg-[#F3EFE0] border border-transparent hover:border-[#7D3C98] flex items-center justify-center text-center p-4 backface-hidden">
+                                        <span className="text-gray-700 text-sm font-bold font-serif">{card.term}</span>
+                                    </div>
+                                    
+                                    {/* BACK FACE (Rotated) */}
+                                    <div className="absolute inset-0 h-full w-full rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-center p-4 transform-[rotateY(180deg)] backface-hidden overflow-y-auto no-scrollbar">
+                                        <p className="text-purple-900 text-xs leading-relaxed font-medium">{card.definition}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                     })
+                  )}
               </div>
 
               <button onClick={() => router.push('/bookings')} className="w-full py-3.5 rounded-full border border-purple-300 text-purple-700 font-bold hover:bg-purple-50 transition flex items-center justify-center gap-3 shadow-sm hover:shadow-md mt-6">
@@ -327,17 +372,6 @@ export default function DesignResultPage() {
           )}
         </div>
       </div>
-
-      {/* MODAL */}
-      {selectedCard && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
-            <button onClick={() => setSelectedCard(null)} className="absolute top-4 right-4 text-gray-400"><X className="w-5 h-5" /></button>
-            <h3 className="text-xl font-serif font-bold text-[#7D3C98] mb-4 border-b pb-2">{selectedCard.title}</h3>
-            <p className="text-gray-600 text-sm">{selectedCard.desc}</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
