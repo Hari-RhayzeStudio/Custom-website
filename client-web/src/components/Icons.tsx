@@ -44,4 +44,15 @@ export const EmptyStateIcon = ({ className = "w-12 h-12" }: { className?: string
   </svg>
 );
 
+export const CheckIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
+  <svg 
+    className={className} 
+    fill="none" 
+    stroke="currentColor" 
+    viewBox="0 0 24 24"
+  >
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+  </svg>
+);
+
 // 3. Branding Icons
