@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import axios from 'axios'; // Import axios
-import CraftingProcess from '@/components/cataloguePage/CraftingProcess';
+import CraftingProcess from '@/components/CraftingProcess';
 import RecommendedProducts from '@/components/cataloguePage/RecommendedProducts';
 import { ArrowLeftIcon, DownloadIcon, HeartIcon, ShareIcon } from '@/components/Icons';
 

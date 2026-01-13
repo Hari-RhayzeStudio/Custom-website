@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState, useRef } from 'react';
+
+import { useEffect, useState, useRef, Suspense } from 'react'; // 1. Import Suspense
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Download, Pencil, X, AlertTriangle, Sparkles, Undo2, Heart, Loader2 } from 'lucide-react';
@@ -16,9 +17,11 @@ type Flashcard = {
   definition: string;
 };
 
-export default function DesignResultPage() {
+// 2. RENAME your main logic component (e.g., DesignResultContent)
+// Remove "export default" from here
+function DesignResultContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams(); // This is safe now because it's inside Suspense
   
   // -- STATE --
   const [data, setData] = useState<DesignState | null>(null);
@@ -27,7 +30,7 @@ export default function DesignResultPage() {
   
   // Flashcard State
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
-  const [loadingCards, setLoadingCards] = useState(true); // Default true to show skeleton
+  const [loadingCards, setLoadingCards] = useState(true);
   const [flippedIndices, setFlippedIndices] = useState<number[]>([]);
   
   // Edit Mode
@@ -55,7 +58,6 @@ export default function DesignResultPage() {
       }
     } catch (err) {
       console.error("Failed to load flashcards", err);
-      // Fallback
       setFlashcards([
         { term: "Custom Design", definition: "A unique piece created specifically for you based on your prompt." },
         { term: "Consultation", definition: "A discussion with our jewelry experts to refine details before manufacturing." },
@@ -75,16 +77,10 @@ export default function DesignResultPage() {
       if (pendingReqString) {
         const req = JSON.parse(pendingReqString);
         
-        // If it's pending, WE execute the API call here
         if (req.status === 'pending') {
           setLoading(true); 
-          
-          // --- PARALLEL EXECUTION START ---
-          
-          // 1. Start Flashcard Generation Immediately (Don't await)
           fetchFlashcards(req.prompt);
 
-          // 2. Start Image Generation
           try {
             const formData = new FormData();
             formData.append('prompt', req.prompt);
@@ -115,21 +111,18 @@ export default function DesignResultPage() {
           } catch (e) {
             console.error(e);
           } finally {
-            setLoading(false); // Image is done
+            setLoading(false); 
           }
-          // --- PARALLEL EXECUTION END ---
           return; 
         }
       }
 
-      // Fallback: Load from saved result (Page Refresh)
       const storedResult = localStorage.getItem('designResult');
       if (storedResult) {
         const parsed = JSON.parse(storedResult);
         setData(parsed);
         if(history.length === 0) setHistory([parsed]);
         setLoading(false);
-        // Also fetch flashcards for saved result if missing
         if (flashcards.length === 0) fetchFlashcards(parsed.prompt);
       } else {
         setLoading(false);
@@ -141,7 +134,6 @@ export default function DesignResultPage() {
   }, []);
 
   // --- HANDLERS ---
-
   const handleBack = () => {
     if (history.length <= 1) return;
     const newHistory = [...history];
@@ -152,7 +144,6 @@ export default function DesignResultPage() {
     localStorage.setItem('designResult', JSON.stringify(previousState));
     const cleanPrompt = previousState.prompt.replace(/[^a-z0-9]/gi, '-').toLowerCase();
     router.replace(`/design/result?prompt=${cleanPrompt}`);
-    // Re-fetch flashcards for previous state
     fetchFlashcards(previousState.prompt);
   };
 
@@ -161,8 +152,6 @@ export default function DesignResultPage() {
 
     setLoading(true); 
     setIsEditing(false); 
-    
-    // Start Flashcards for new prompt immediately
     fetchFlashcards(editPrompt);
 
     const cleanPrompt = editPrompt.replace(/[^a-z0-9]/gi, '-').toLowerCase();
@@ -251,14 +240,11 @@ export default function DesignResultPage() {
   };
 
   // --- RENDER ---
-
-  // Special Case: If IMAGE is loading, show Loader but pass flashcards if ready
   if (loading) return <DesignGenerationLoader />;
   if (!data) return <div className="text-center p-20">No design found.</div>;
 
   return (
     <div className="min-h-screen bg-white font-sans pb-20">
-      
       {/* HEADER */}
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex items-center justify-between">
@@ -280,7 +266,6 @@ export default function DesignResultPage() {
       </div>
 
       <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-        
         {/* LEFT: IMAGE */}
         <div className="flex flex-col items-center">
             <div className={`w-full max-w-500px aspect-square bg-[#FAF9F6] rounded-3xl flex items-center justify-center relative mb-6 transition-all ${isEditing ? 'border-2 border-purple-200 cursor-crosshair' : ''}`}>
@@ -335,7 +320,6 @@ export default function DesignResultPage() {
 
               <h2 className="text-xl font-bold text-gray-800 mb-6">Flashcard Guide</h2>
               
-              {/* DYNAMIC FLASHCARDS GRID - FLIP IMPLEMENTATION */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
                   {loadingCards ? (
                      [1,2,3,4,5,6].map(i => <div key={i} className="h-40 bg-gray-100 rounded-xl animate-pulse"></div>)
@@ -349,12 +333,9 @@ export default function DesignResultPage() {
                                 onClick={() => handleCardClick(index)}
                             >
                                 <div className={`relative h-full w-full transition-all duration-500 transform-3d ${isFlipped ? 'transform-[rotateY(180deg)]' : ''}`}>
-                                    {/* FRONT FACE */}
                                     <div className="absolute inset-0 h-full w-full rounded-xl bg-[#F3EFE0] border border-transparent hover:border-[#7D3C98] flex items-center justify-center text-center p-4 backface-hidden">
                                         <span className="text-gray-700 text-sm font-bold font-serif">{card.term}</span>
                                     </div>
-                                    
-                                    {/* BACK FACE (Rotated) */}
                                     <div className="absolute inset-0 h-full w-full rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-center p-4 transform-[rotateY(180deg)] backface-hidden overflow-y-auto no-scrollbar">
                                         <p className="text-purple-900 text-xs leading-relaxed font-medium">{card.definition}</p>
                                     </div>
@@ -373,5 +354,15 @@ export default function DesignResultPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// 3. NEW EXPORT DEFAULT (The actual Page component)
+export default function DesignResultPage() {
+  return (
+    // Wrap the content in Suspense. fallback can be your loading spinner.
+    <Suspense fallback={<DesignGenerationLoader />}>
+      <DesignResultContent />
+    </Suspense>
   );
 }

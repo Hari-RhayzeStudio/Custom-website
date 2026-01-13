@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { MeetIcon, RequirementsIcon, SparklesIcon } from '@/components/Icons';
-import CraftingProcess from '@/components/cataloguePage/CraftingProcess';
+import CraftingProcess from '@/components/CraftingProcess';
 
 // Define the product shape based on your Prisma schema
 interface Product {

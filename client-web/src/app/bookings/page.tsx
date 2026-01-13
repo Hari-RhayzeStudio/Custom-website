@@ -1,14 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react'; // 1. Added Suspense
 import { ArrowLeft, Calendar, Check, PackageOpen, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
 
-export default function BookingPage() {
+// 2. RENAME: This was your original BookingPage. 
+// Remove "export default" and name it "BookingContent"
+function BookingContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams(); // Safe to use here now
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [productsLoading, setProductsLoading] = useState(true);
@@ -279,5 +281,19 @@ export default function BookingPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// 3. NEW EXPORT DEFAULT (The actual Page component)
+export default function BookingPage() {
+  return (
+    // We wrap the content in Suspense to satisfy Next.js build requirements for useSearchParams
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#fdfbf7] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-[#7D3C98] animate-spin" />
+      </div>
+    }>
+      <BookingContent />
+    </Suspense>
   );
 }
