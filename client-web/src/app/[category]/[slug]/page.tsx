@@ -5,8 +5,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import axios from 'axios'; // Import axios
-import CraftingProcess from '@/components/CraftingProcess';
-import RecommendedProducts from '@/components/RecommendedProducts';
+import CraftingProcess from '@/components/cataloguePage/CraftingProcess';
+import RecommendedProducts from '@/components/cataloguePage/RecommendedProducts';
 import { ArrowLeftIcon, DownloadIcon, HeartIcon, ShareIcon } from '@/components/Icons';
 
 type ViewType = 'sketch' | 'wax' | 'cast' | 'final';

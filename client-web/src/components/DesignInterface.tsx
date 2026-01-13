@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { X, Upload, Sparkles } from 'lucide-react';
-import TrendingDesigns from '@/components/TrendingDesigns';
+import TrendingDesigns from '@/components/designPage/TrendingDesigns';
 
 // Default / Fallback Images
 const DEFAULT_CATEGORIES = [

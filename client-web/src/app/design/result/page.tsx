@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Download, Pencil, X, AlertTriangle, Sparkles, Undo2, Heart, Loader2 } from 'lucide-react';
-import DesignGenerationLoader from '@/components/DesignGenerationLoader';
+import DesignGenerationLoader from '@/components/designPage/DesignGenerationLoader';
 
 // Type Definitions
 type DesignState = {

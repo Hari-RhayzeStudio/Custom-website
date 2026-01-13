@@ -1,6 +1,6 @@
 // src/app/catalogue/page.tsx
 import Link from 'next/link';
-import CatalogueHeader from '@/components/CatalogueHeader'; // Import new header
+import CatalogueHeader from '@/components/cataloguePage/CatalogueHeader'; // Import new header
 import { EmptyStateIcon } from '@/components/Icons';
 
 // ... (Keep your getProducts function exactly as it is) ...

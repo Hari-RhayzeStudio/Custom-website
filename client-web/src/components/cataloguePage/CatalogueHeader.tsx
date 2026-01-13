@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { SearchIcon, FilterIcon, XIcon } from '@/components/Icons'; // Ensure path is correct
-import CatalogueFilters from '@/components/CatalogueFilters';
+import CatalogueFilters from '@/components/cataloguePage/CatalogueFilters';
 
 export default function CatalogueHeader({ initialSearch }: { initialSearch: string }) {
   const router = useRouter();

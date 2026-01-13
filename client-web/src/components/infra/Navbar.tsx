@@ -3,8 +3,8 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { UserIcon, BellIcon } from '@/components/Icons'; 
-import AuthModal from './AuthModal';
-import NotificationPanel from './NotificationPanel'; // <--- Import Component
+import AuthModal from '../AuthModal';
+import NotificationPanel from '../infra/NotificationPanel'; // <--- Import Component
 
 export default function Navbar() {
   const pathname = usePathname();
