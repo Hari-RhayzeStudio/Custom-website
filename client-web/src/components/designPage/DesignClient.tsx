@@ -7,10 +7,10 @@ import TrendingDesigns from '@/components/designPage/TrendingDesigns';
 
 // Default / Fallback Images
 const DEFAULT_CATEGORIES = [
-  { name: 'Men-rings', image: '/placeholder-Men-ring.jpg' },
-  { name: 'Bands', image: '/placeholder-band.jpg' },
-  { name: 'Ladies-rings', image: '/placeholder-Ladies-ring.jpg' },
-  { name: 'Earrings', image: '/placeholder-earring.jpg' },
+  { name: 'Men-rings', image: '/assets/placeholder-Men-ring.jpg' },
+  { name: 'Bands', image: '/assets/placeholder-band.jpg' },
+  { name: 'Ladies-rings', image: '/assets/placeholder-Ladies-ring.jpg' },
+  { name: 'Earrings', image: '/assets/placeholder-earring.jpg' },
 ];
 
 interface DesignClientProps {
