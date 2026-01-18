@@ -32,7 +32,7 @@ export default function CraftingProcess({ product }: { product: LifecycleProduct
     {
       id: "3.3",
       title: "Casting Model Creation",
-      heading: "3.3: Caste Design",
+      heading: "3.3: Cast Design",
       img: product.cast_image_url,
       desc: "Gold, platinum, or silver is poured into the cavity, creating a raw metal version of your jewellery design."
     },

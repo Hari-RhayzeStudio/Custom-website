@@ -144,7 +144,7 @@ export default async function AboutUs() {
 
 
       {/* --- SECTION 5: Why Rhayze Studio & Footer --- */}
-      <section className="bg-[#FDFBF7] py-20 px-6 text-center">
+      {/* <section className="bg-[#FDFBF7] py-20 px-6 text-center">
         <div className="max-w-4xl mx-auto">
             <h2 className="text-4xl font-serif font-bold text-gray-900 mb-8">Why Rhayze Studio</h2>
             <p className="text-lg text-gray-600 mb-12 leading-relaxed">
@@ -155,11 +155,7 @@ export default async function AboutUs() {
                 Book Consultation
             </button>
         </div>
-      </section>
-      
-      <footer className="bg-[#FDFBF7] py-8 text-center text-gray-500 text-sm border-t border-gray-200">
-        ©2025 All rights reserved Rhayze Studio
-      </footer>
+      </section> */}
 
     </main>
   );
