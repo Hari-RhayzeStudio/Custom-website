@@ -1,35 +1,109 @@
 import express from 'express';
 import cors from 'cors';
-import { PrismaClient } from '@prisma/client'; 
-import { PrismaClient as UserPrismaClient } from '@prisma/client-user'; 
+import { PrismaClient } from '@prisma/client';
+import { PrismaClient as UserPrismaClient } from '@prisma/client-user';
 import dotenv from 'dotenv';
-import axios from 'axios';
 import multer from 'multer';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import crypto from 'crypto';
+import twilio from 'twilio';
+import axios from 'axios';
 
+// Fix for BigInt serialization in JSON
 (BigInt.prototype as any).toJSON = function () { return this.toString(); };
 
+// Load Environment Variables
 dotenv.config();
+
+// Debug: Check if keys are loaded
+if (!process.env.API_KEY || !process.env.TWILIO_ACCOUNT_SID) {
+  console.error("❌ ERROR: Environment variables are missing. Check your .env file.");
+  process.exit(1);
+}
+
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Initialize Clients
+// Initialize DB Clients
 const prismaProduct = new PrismaClient();
 const prismaUser = new UserPrismaClient();
+
+// Initialize AI
 const genAI = new GoogleGenerativeAI(process.env.API_KEY!);
 
+// Initialize Twilio
+const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+const TWILIO_SERVICE_SID = process.env.TWILIO_SERVICE_SID!;
+
 app.use(cors());
-// app.use(express.json());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// --- AUTH ROUTE ---
+// ==========================================
+// 1. AUTH ROUTES (TWILIO ONLY)
+// ==========================================
 
-/**
- * Verify User & Sync to DB
- * Uses Google Identity Toolkit API to verify the ID token.
- */
+// Send OTP
+app.post('/api/auth/send-otp', async (req, res) => {
+  const { phoneNumber } = req.body;
+  if (!phoneNumber) return res.status(400).json({ error: "Phone number is required" });
+
+  try {
+    const verification = await twilioClient.verify.v2.services(TWILIO_SERVICE_SID)
+      .verifications.create({ to: phoneNumber, channel: 'sms' });
+    
+    console.log(`OTP Sent to ${phoneNumber}: ${verification.status}`);
+    res.json({ success: true, status: verification.status });
+  } catch (error: any) {
+    console.error("Twilio Send Error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Verify OTP & Login/Signup
+app.post('/api/auth/verify-otp', async (req, res) => {
+  const { phoneNumber, code, name } = req.body;
+  if (!phoneNumber || !code) return res.status(400).json({ error: "Phone and Code required" });
+
+  try {
+    // 1. Verify with Twilio
+    const verificationCheck = await twilioClient.verify.v2.services(TWILIO_SERVICE_SID)
+      .verificationChecks.create({ to: phoneNumber, code: code });
+
+    if (verificationCheck.status !== 'approved') {
+      return res.status(400).json({ error: "Invalid or expired OTP" });
+    }
+
+    // 2. Sync with Database
+    let user = await prismaUser.user.findFirst({ where: { phone_number: phoneNumber } });
+
+    if (!user) {
+      console.log(`Creating new user: ${phoneNumber}`);
+      user = await prismaUser.user.create({
+        data: {
+          id: crypto.randomUUID(),
+          phone_number: phoneNumber,
+          full_name: name || "Guest User",
+        }
+      });
+    } else if (name) {
+      user = await prismaUser.user.update({
+        where: { id: user.id },
+        data: { full_name: name }
+      });
+    }
+
+    res.json({ success: true, user });
+  } catch (error: any) {
+    console.error("Twilio Verify Error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+// --- OLD FIREBASE AUTH (COMMENTED OUT FOR FUTURE USE) ---
+
+/*
 app.post('/api/auth/verify-user', async (req, res) => {
   const { idToken, name } = req.body;
 
@@ -37,7 +111,6 @@ app.post('/api/auth/verify-user', async (req, res) => {
 
   try {
     // 1. Verify ID Token using Google Identity Toolkit REST API
-    // This allows verification without a Service Account private key
     const googleVerifyURL = `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${process.env.FIREBASE_API_KEY}`;
     
     const verifyRes = await axios.post(googleVerifyURL, {
@@ -69,7 +142,6 @@ app.post('/api/auth/verify-user', async (req, res) => {
         }
       });
     } else if (name) {
-      // Update name if provided
       user = await prismaUser.user.update({
         where: { id: user.id },
         data: { full_name: name }
@@ -83,6 +155,7 @@ app.post('/api/auth/verify-user', async (req, res) => {
     res.status(401).json({ error: "Invalid Token or expired" });
   }
 });
+*/
 
 
 // --- HELPER FUNCTIONS ---
@@ -169,7 +242,6 @@ app.get('/api/products/trending', async (req, res) => {
     }
 
     // 2. Fetch details (Name/Image) from the Wishlist Items themselves
-    // (We do this because we don't have a 'Product' table in Prisma yet)
     const trendingProducts = await Promise.all(
       trendingStats.map(async (stat) => {
         const item = await prismaUser.wishlistItem.findFirst({
@@ -183,18 +255,15 @@ app.get('/api/products/trending', async (req, res) => {
         
         if (!item) return null;
 
-        // Map it to the format the Frontend expects
         return {
           sku: item.product_sku,
           product_name: item.product_name,
           final_image_url: item.product_image,
-          // Generate a description since Wishlist doesn't store it
           final_description: `A stunning ${item.product_name} design that is currently trending.` 
         };
       })
     );
 
-    // Filter out any potential nulls and send response
     res.json(trendingProducts.filter(Boolean));
 
   } catch (error) {
@@ -362,7 +431,6 @@ app.get('/api/health', (req, res) => {
 
 // Create a new Booking
 app.post('/api/bookings', async (req, res) => {
-  // 1. Accept product_images from body
   const { user_id, expert_name, consultation_date, slot, product_skus, product_images, email, name } = req.body;
 
   if (!user_id || !consultation_date || !slot) {
@@ -370,7 +438,7 @@ app.post('/api/bookings', async (req, res) => {
   }
 
   try {
-    // 2. Profile Update Logic (Keep existing)
+    // 2. Profile Update Logic
     const currentUser = await prismaUser.user.findUnique({ where: { id: user_id } });
     if (currentUser) {
       const updateData: any = {};
@@ -390,7 +458,7 @@ app.post('/api/bookings', async (req, res) => {
         consultation_date: new Date(consultation_date), 
         slot: slot,
         product_skus: product_skus || [],
-        product_images: product_images || [], // <--- Save the images here
+        product_images: product_images || [],
         status: "confirmed"
       }
     });
@@ -508,14 +576,13 @@ app.post('/api/generate-flashcards', async (req, res) => {
     const result = await model.generateContent(instruction);
     const responseText = result.response.text();
 
-    // Parsing Logic (Matches your provided snippet)
     const flashcards = responseText
       .split('\n')
       .map((line) => {
         const parts = line.split(':');
         if (parts.length >= 2 && parts[0].trim()) {
           return {
-            term: parts[0].trim().replace(/^\*+|\*+$/g, ''), // Remove asterisks if AI adds them
+            term: parts[0].trim().replace(/^\*+|\*+$/g, ''),
             definition: parts.slice(1).join(':').trim()
           };
         }
@@ -540,5 +607,5 @@ app.listen(PORT, () => {
   console.log(`📍 User DB: Connected`);
   console.log(`📍 Product DB: Connected`);
   console.log(`📍 AI Service: Active`);
-  console.log(`🔥 Firebase Auth: Ready`);
+  console.log(`📱 Twilio Auth: Active`); // Updated Log
 });

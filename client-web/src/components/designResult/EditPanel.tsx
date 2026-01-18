@@ -19,7 +19,7 @@ export default function EditPanel({ editPrompt, setEditPrompt, onGenerate, hotsp
         value={editPrompt} 
         onChange={(e) => setEditPrompt(e.target.value)} 
         placeholder="Change the color..." 
-        className="w-full p-4 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-purple-200 min-h-[120px] resize-none mb-6" 
+        className="w-full p-4 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-purple-200 min-h-30 resize-none mb-6" 
       />
       <button 
         onClick={onGenerate} 

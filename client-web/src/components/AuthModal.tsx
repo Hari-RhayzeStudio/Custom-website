@@ -3,14 +3,6 @@ import { useState, useEffect, useRef } from 'react';
 import { X, Loader2, ChevronDown } from 'lucide-react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
-import { auth } from '@/app/firebase'; 
-import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from "firebase/auth";
-
-declare global {
-  interface Window {
-    recaptchaVerifier?: RecaptchaVerifier;
-  }
-}
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -21,7 +13,7 @@ interface AuthModalProps {
 export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModalProps) {
   const router = useRouter();
   const [step, setStep] = useState(1);
-  const [isLoginMode, setIsLoginMode] = useState(false); // Toggle state: false = Sign Up, true = Login
+  const [isLoginMode, setIsLoginMode] = useState(false);
   
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -29,82 +21,68 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   
   const [isLoading, setIsLoading] = useState(false);
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Reset state when modal opens/closes
+  // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
       setStep(1);
-      setIsLoginMode(false); // Default to Sign Up, or change to true if you prefer
+      setIsLoginMode(false); 
       setOtp(["", "", "", "", "", ""]);
-      setTimeout(() => {
-        if (!window.recaptchaVerifier) {
-          try {
-            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-              'size': 'invisible',
-              'callback': () => console.log("✅ reCAPTCHA solved"),
-            });
-          } catch (e) {
-            console.error(e);
-          }
-        }
-      }, 500);
+      setPhone("");
+      setName("");
     }
   }, [isOpen]);
 
+  // --- 1. SEND OTP (Call your Node API) ---
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validation
     if (phone.length < 10) return alert("Please enter a valid phone number");
-    // Only require Name if we are in "Sign Up" mode
     if (!isLoginMode && !name.trim()) return alert("Please enter your name");
 
     setIsLoading(true);
+    // Format: +919999999999
     const formattedNumber = `${countryCode}${phone.replace(/\D/g, '')}`;
     
     try {
-      if(!window.recaptchaVerifier) throw new Error("Recaptcha not initialized");
-      
-      const appVerifier = window.recaptchaVerifier;
-      const confirmation = await signInWithPhoneNumber(auth, formattedNumber, appVerifier);
-      setConfirmationResult(confirmation);
-      setStep(2);
-    } catch (error: any) {
-      console.error("Firebase Send Error:", error);
-      alert("Failed to send OTP. " + error.message);
-      if(window.recaptchaVerifier) {
-        window.recaptchaVerifier.clear();
-        window.recaptchaVerifier = undefined;
+      // Call your backend Twilio route
+      const res = await axios.post('http://localhost:3001/api/auth/send-otp', {
+        phoneNumber: formattedNumber
+      });
+
+      if (res.data.success) {
+        setStep(2);
+      } else {
+        alert("Failed to send OTP.");
       }
+    } catch (error: any) {
+      console.error("Send OTP Error:", error);
+      alert(error.response?.data?.error || "Failed to send OTP.");
     } finally {
       setIsLoading(false);
     }
   };
 
+  // --- 2. VERIFY OTP (Call your Node API) ---
   const handleVerifyOTP = async () => {
     const enteredCode = otp.join("");
     if (enteredCode.length !== 6) return alert("Enter full 6-digit code");
-    if (!confirmationResult) return;
 
     setIsLoading(true);
-    try {
-      // 1. Verify with Firebase
-      const result = await confirmationResult.confirm(enteredCode);
-      const user = result.user;
-      const idToken = await user.getIdToken();
+    const formattedNumber = `${countryCode}${phone.replace(/\D/g, '')}`;
 
-      // 2. Sync with Backend
-      // We pass 'name' only if in Sign Up mode. 
-      // If isLoginMode is true, name is empty, backend keeps existing name.
-      const res = await axios.post('http://localhost:3001/api/auth/verify-user', {
-        idToken,
-        name: isLoginMode ? undefined : name 
+    try {
+      const res = await axios.post('http://localhost:3001/api/auth/verify-otp', {
+        phoneNumber: formattedNumber,
+        code: enteredCode,
+        name: isLoginMode ? undefined : name // Send name only if registering
       });
 
       if (res.data.success) {
         const dbUser = res.data.user;
+        
+        // Save session
         localStorage.setItem('user_id', dbUser.id);
         localStorage.setItem('user_name', dbUser.full_name);
         
@@ -114,18 +92,25 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
       }
     } catch (error: any) {
       console.error("Verify Error:", error);
-      alert("Invalid OTP. Please try again.");
+      alert(error.response?.data?.error || "Invalid OTP.");
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Helper for auto-focusing OTP inputs
   const handleOtpChange = (val: string, index: number) => {
     if (isNaN(Number(val))) return;
     const newOtp = [...otp];
     newOtp[index] = val.slice(-1);
     setOtp(newOtp);
     if (val && index < 5) inputRefs.current[index + 1]?.focus();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
   };
 
   if (!isOpen) return null;
@@ -147,12 +132,9 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
           </p>
         )}
 
-        <div id="recaptcha-container"></div>
-
         {step === 1 ? (
           <form onSubmit={handleSendOTP} className="space-y-6">
             
-            {/* Name Input - Only Show if NOT in Login Mode */}
             {!isLoginMode && (
               <div className="space-y-2 animate-in slide-in-from-top-2 fade-in duration-300">
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Full Name</label>
@@ -185,7 +167,6 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
               {isLoading ? "Sending OTP..." : "Continue"}
             </button>
 
-            {/* Toggle Sign In / Sign Up */}
             <div className="text-center pt-2">
               <p className="text-sm text-gray-500">
                 {isLoginMode ? "Don't have an account? " : "Already have an account? "}
@@ -209,7 +190,9 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
                   ref={el => {inputRefs.current[i] = el}}
                   type="text" maxLength={1} 
                   className="w-12 h-14 border-2 rounded-xl text-center text-2xl font-bold outline-none focus:border-[#7D3C98] bg-gray-50" 
-                  value={d} onChange={e => handleOtpChange(e.target.value, i)} 
+                  value={d} 
+                  onChange={e => handleOtpChange(e.target.value, i)} 
+                  onKeyDown={(e) => handleKeyDown(e, i)}
                 />
               ))}
             </div>

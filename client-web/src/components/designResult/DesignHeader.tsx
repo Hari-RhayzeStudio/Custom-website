@@ -16,7 +16,7 @@ export default function DesignHeader({ prompt, canUndo, onUndo }: DesignHeaderPr
           <Link href="/design" className="p-2 hover:bg-gray-100 rounded-full transition text-gray-600">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-lg text-gray-700 font-medium truncate max-w-[500px] capitalize">
+          <h1 className="text-lg text-gray-700 font-medium truncate max-w-125 capitalize">
             {prompt}
           </h1>
         </div>
