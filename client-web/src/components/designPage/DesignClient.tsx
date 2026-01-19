@@ -121,7 +121,7 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
                     src={category.image} 
                     alt={category.name} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    onError={(e) => { e.currentTarget.src = "/placeholder-jewelry.jpg"; }} 
+                    onError={(e) => { e.currentTarget.src = "/assets/placeholder-jewelry.jpg"; }} 
                   />
                   <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors" />
                 </div>
