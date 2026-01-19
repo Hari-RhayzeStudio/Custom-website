@@ -10,16 +10,20 @@ interface LifecycleProduct {
   final_image_url?: string;
 }
 
-export default function TimelineSection({ product }: { product: LifecycleProduct | null }) {
+interface TimelineProps {
+  product: LifecycleProduct | null;
+  mode?: 'full' | 'design-only';
+}
+
+export default function TimelineSection({ product, mode = 'full' }: TimelineProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   
-  // Track scroll progress for the ENTIRE container
+  // Track scroll progress
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start 20%", "end 80%"]
   });
 
-  // Smooth the scroll progress
   const scaleY = useSpring(scrollYProgress, {
     stiffness: 100,
     damping: 30,
@@ -28,13 +32,13 @@ export default function TimelineSection({ product }: { product: LifecycleProduct
 
   const placeholderImg = "/placeholder-jewelry.jpg";
 
-  const steps = [
+  const allSteps = [
     {
       id: "1",
       label: "Step-1: Consultation",
       title: "Book Consultation",
       desc: "Book free-consultation and discuss your requirement with us",
-      icon: <MeetIcon className="w-10 h-10 text-blue-600" />,
+      icon: <img src="/assets/google-meet-icon.png" alt="Consultation" className="w-10 h-10 object-contain" />,
       type: "card",
     },
     {
@@ -84,25 +88,32 @@ export default function TimelineSection({ product }: { product: LifecycleProduct
     }
   ];
 
+  // ✅ FIX 1: Filter out 'header' too when in design-only mode
+  const displayedSteps = mode === 'design-only' 
+    ? allSteps.filter(step => !['1', '2', 'header'].includes(step.id)) 
+    : allSteps;
+
   return (
-    <div ref={containerRef} className="relative max-w-6xl mx-auto px-4 py-24 overflow-hidden">
+    <div ref={containerRef} className="relative max-w-6xl mx-auto px-4 py-10 md:py-24 overflow-hidden">
       
       {/* --- THE SCROLL LINE --- */}
-      <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-1 md:-ml-0.5 h-full z-0">
+      {/* ✅ FIX 2: Conditionally set 'top' so line doesn't stick out above the first item */}
+      <div className={`absolute left-8 md:left-1/2 bottom-0 w-1 md:-ml-0.5 z-0 
+          ${mode === 'design-only' ? 'top-8' : 'top-0'}
+      `}>
         <div className="absolute inset-0 w-full h-full bg-gray-100 rounded-full" />
         
         {/* Active Purple Line */}
         <motion.div 
           style={{ scaleY, transformOrigin: "top" }}
-          className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-[#7D3C98] to-purple-400 rounded-full origin-top"
+          className="absolute top-0 left-0 w-full h-full bg-linear-to-b from-[#7D3C98] to-purple-400 rounded-full origin-top"
         >
-            {/* Glowing Head */}
             <div className="absolute bottom-0 -left-1 w-3 h-3 bg-purple-400 rounded-full blur-md shadow-[0_0_10px_#7D3C98]"></div>
         </motion.div>
       </div>
 
       <div className="flex flex-col gap-24 relative z-10">
-        {steps.map((step, index) => {
+        {displayedSteps.map((step, index) => {
           
           if (step.type === "header") {
              return (
@@ -125,22 +136,20 @@ export default function TimelineSection({ product }: { product: LifecycleProduct
                 transition={{ duration: 0.6, ease: "easeOut" }}
                 className={`flex flex-col md:flex-row items-center w-full ${!isEven ? 'md:flex-row-reverse' : ''}`}
             >
-              {/* CONTENT SIDE */}
               <div className={`w-full md:w-1/2 pl-20 md:pl-0 relative group ${isEven ? 'md:pr-12' : 'md:pl-12'}`}>
                  
-                 {/* Step Label (Centered) */}
+                 {/* Step Label */}
                  <div className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2 text-left md:text-center">
                     {step.label}
                  </div>
 
-                 {/* The Card (Centered Content) */}
+                 {/* The Card */}
                  <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden text-center">
                     
                     {/* Background Decor */}
-                    <div className={`absolute top-0 w-24 h-24 bg-[#F9F5E8] rounded-full -z-0 opacity-50 ${!isEven ? '-right-10 -top-10' : '-left-10 -top-10'}`} />
+                    <div className={`absolute top-0 w-24 h-24 bg-[#F9F5E8] rounded-full z-0 opacity-50 ${!isEven ? '-right-10 -top-10' : '-left-10 -top-10'}`} />
 
                     <div className="relative z-10 flex flex-col items-center">
-                        {/* Icon or Image */}
                         <div className="mb-5">
                             {step.type === 'image' ? (
                                 <div className="bg-[#FAF9F6] p-4 rounded-2xl inline-block shadow-inner border border-gray-50">
@@ -152,7 +161,6 @@ export default function TimelineSection({ product }: { product: LifecycleProduct
                                 </div>
                             )}
                         </div>
-
                         <h3 className="text-2xl font-serif font-bold text-gray-900 mb-3">{step.title}</h3>
                         <p className="text-gray-500 leading-relaxed max-w-sm">{step.desc}</p>
                     </div>

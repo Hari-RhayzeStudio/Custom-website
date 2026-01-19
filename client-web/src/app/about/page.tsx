@@ -52,21 +52,21 @@ export default async function AboutUs() {
           About <span className="text-[#7D3C98]">Rhayze Studio</span>
         </h1>
         <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed mb-16">
-          We combine advanced AI precision with the soulful touch of traditional craftsmanship to create jewellery that is uniquely yours.
+          We combine high skill with the soulful touch of traditional craftsmanship to create jewellery that is uniquely yours.
         </p>
 
         {/* Carousel Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
             {headerImages.length > 0 ? headerImages.map((p, idx) => (
-                <div key={p.id || idx} className={`relative aspect-[4/5] rounded-3xl overflow-hidden shadow-lg border border-gray-100 ${idx === 1 ? 'md:-mt-12 z-10 shadow-2xl' : 'scale-95 opacity-90'}`}>
+                <div key={p.id || idx} className={`relative aspect-4/5 rounded-3xl overflow-hidden shadow-lg border border-gray-100 ${idx === 1 ? 'md:-mt-12 z-10 shadow-2xl' : 'scale-95 opacity-90'}`}>
                     <img src={p.final_image_url || placeholderImg} alt={p.product_name} className="object-cover w-full h-full hover:scale-110 transition duration-700" />
                 </div>
-            )) : [1,2,3].map(i => <div key={i} className="aspect-[4/5] bg-gray-100 rounded-3xl animate-pulse"></div>)}
+            )) : [1,2,3].map(i => <div key={i} className="aspect-4/5 bg-gray-100 rounded-3xl animate-pulse"></div>)}
         </div>
       </section>
 
       {/* SECTION 2: The New "Cool" Timeline */}
-      <section className="bg-gradient-to-b from-white to-[#FDFBF7]">
+      <section className="bg-linear-to-b from-white to-[#FDFBF7]">
          <div className="text-center pt-20">
             <h2 className="text-4xl font-serif font-bold text-gray-900 mb-2">The Crafting Journey</h2>
             <p className="text-gray-500">From your imagination to reality</p>

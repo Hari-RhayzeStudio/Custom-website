@@ -43,7 +43,7 @@ export default function RecommendedProducts({ products, currentSku }: { products
     <section className="max-w-7xl mx-auto px-6 py-24 relative group">
       <div className="flex justify-between items-end mb-12">
         <h2 className="text-4xl font-serif font-bold text-gray-900">Recommended for You</h2>
-        <p className="text-[#7D3C98] font-bold text-sm tracking-widest uppercase">Same Category</p>
+        {/* <p className="text-[#7D3C98] font-bold text-sm tracking-widest uppercase">Same Category</p> */}
       </div>
       
       <div className="relative">

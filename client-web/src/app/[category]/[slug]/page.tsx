@@ -1,12 +1,11 @@
 // src/app/[category]/[slug]/page.tsx
-
 "use client";
 
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import axios from 'axios';
-import TimelineSection from '@/components/TimelineSection'; // Import the new component
+import axios from 'axios'; 
+import TimelineSection from '@/components/TimelineSection'; // ✅ UPDATED IMPORT
 import RecommendedProducts from '@/components/cataloguePage/RecommendedProducts';
 import { ArrowLeftIcon, DownloadIcon, HeartIcon, ShareIcon } from '@/components/Icons';
 
@@ -19,7 +18,7 @@ export default function ProductDetails() {
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState<ViewType>('final');
   
-  // NEW STATES FOR WISHLIST
+  // WISHLIST STATES
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
 
@@ -70,18 +69,14 @@ export default function ProductDetails() {
       alert("Please login to add items to wishlist");
       return;
     }
-    
     setWishlistLoading(true);
-    
     try {
       if (isWishlisted) {
-        // Remove
         await axios.delete('http://localhost:3001/api/wishlist', {
           data: { user_id: userId, product_sku: product.sku }
         });
         setIsWishlisted(false);
       } else {
-        // Add
         await axios.post('http://localhost:3001/api/wishlist', {
           user_id: userId,
           product_sku: product.sku,
@@ -99,13 +94,11 @@ export default function ProductDetails() {
 
   const handleDownload = async () => {
     if (!product) return;
-
     const imageUrl = product[`${activeView}_image_url`];
     if (!imageUrl) {
       alert("Image not available");
       return;
     }
-
     const filename = `${product.product_name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${product.sku}-${activeView}.jpg`;
     const proxyUrl = `http://localhost:3001/api/download-proxy?url=${encodeURIComponent(imageUrl)}&filename=${encodeURIComponent(filename)}`;
 
@@ -145,7 +138,6 @@ export default function ProductDetails() {
       }
     }
   };
-
 
   if (loading) return <div className="p-20 text-center font-serif text-xl">Loading Design...</div>;
   if (!product) return <div className="p-20 text-center font-serif text-xl">Product Not Found</div>;
@@ -211,10 +203,9 @@ export default function ProductDetails() {
         </div>
       </section>
 
-      {/* REPLACED CRAFTING PROCESS WITH TIMELINE SECTION */}
-      <section className="bg-white border-t border-gray-100 py-24">
-        <h2 className="text-4xl font-serif font-bold text-center text-gray-900 mb-10">Designing Process</h2>
-        <TimelineSection product={product} />
+      {/* ✅ UPDATED SECTION: Using TimelineSection with design-only mode */}
+      <section className="bg-white border-t border-gray-100 py-10">
+        <TimelineSection product={product} mode="design-only" />
       </section>
 
       <RecommendedProducts products={recommended} currentSku={product.sku} />
