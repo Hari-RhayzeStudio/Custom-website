@@ -5,14 +5,14 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import axios from 'axios';
-import { X } from 'lucide-react';
+import { XIcon } from '@/components/Icons'; // Updated import
 
 export default function WishlistPage() {
   const [wishlistItems, setWishlistItems] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
 
-  // Helper to generate slug for links (same as in your catalogue)
+  // Helper to generate slug for links
   const generateSlug = (name: string, sku: string) => {
     const formattedName = name?.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-');
     return `${formattedName}-${sku}`;
@@ -93,7 +93,7 @@ export default function WishlistPage() {
                   onClick={() => removeItem(item.product_sku)}
                   className="absolute top-4 right-4 z-10 w-8 h-8 bg-white/90 backdrop-blur rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 shadow-sm transition"
                 >
-                  <X className="w-4 h-4" />
+                  <XIcon className="w-4 h-4" />
                 </button>
 
                 <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-50 mb-4">

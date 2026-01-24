@@ -4,9 +4,8 @@ import { prismaUser } from '../utils/prismaClients';
 const router = express.Router();
 
 // ==========================================
-// 1. USER PROFILE (Mounted at /api)
+// 1. USER PROFILE
 // ==========================================
-// Route becomes: /api/user/:id
 router.get('/user/:id', async (req, res) => {
   try {
     const user = await prismaUser.user.findUnique({ where: { id: req.params.id } });
@@ -26,9 +25,8 @@ router.put('/user/:id', async (req, res) => {
 });
 
 // ==========================================
-// 2. BOOKINGS (Mounted at /api)
+// 2. BOOKINGS
 // ==========================================
-// Route becomes: /api/bookings
 router.post('/bookings', async (req, res) => {
   const { user_id, expert_name, consultation_date, slot, product_skus, product_images } = req.body;
   try {
@@ -55,9 +53,8 @@ router.get('/bookings/user/:id', async (req, res) => {
 });
 
 // ==========================================
-// 3. WISHLIST (Mounted at /api)
+// 3. WISHLIST (Optimized for Speed)
 // ==========================================
-// Route becomes: /api/wishlist
 router.post('/wishlist', async (req, res) => {
   try {
     const item = await prismaUser.wishlistItem.create({ data: req.body });
@@ -68,7 +65,6 @@ router.post('/wishlist', async (req, res) => {
   }
 });
 
-// ✅ ADDED MISSING DELETE ROUTE
 router.delete('/wishlist', async (req, res) => {
   const { user_id, product_sku } = req.body;
   try {
@@ -79,10 +75,20 @@ router.delete('/wishlist', async (req, res) => {
   } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
+// ✅ UPDATED: Supports ?product_sku=... for instant lookup
 router.get('/wishlist/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const { product_sku } = req.query;
+
+  // If product_sku is provided, we only look for that ONE item (Very Fast)
+  const whereClause: any = { user_id: userId };
+  if (product_sku) {
+    whereClause.product_sku = String(product_sku);
+  }
+
   try {
     const items = await prismaUser.wishlistItem.findMany({ 
-      where: { user_id: req.params.userId }, 
+      where: whereClause, 
       orderBy: { created_at: 'desc' } 
     });
     res.json(items);

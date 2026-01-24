@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { ArrowLeft, ShoppingBag, Settings } from 'lucide-react';
+import { ArrowLeftIcon, ShoppingBagIcon, SettingsIcon } from '@/components/Icons'; // Updated imports
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
@@ -44,7 +44,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-[#fdfbf7] pb-20 font-sans">
       <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center gap-4">
-          <Link href="/"><ArrowLeft className="w-6 h-6 text-gray-600 hover:text-[#7D3C98] transition" /></Link>
+          <Link href="/"><ArrowLeftIcon className="w-6 h-6 text-gray-600 hover:text-[#7D3C98] transition" /></Link>
           <h1 className="text-xl font-bold font-serif text-gray-800">My Account</h1>
         </div>
       </header>
@@ -56,8 +56,8 @@ export default function ProfilePage() {
           {activeTab === 'profile' && (
             <ProfileDetails userData={userData} setUserData={setUserData} isEditing={isEditing} setIsEditing={setIsEditing} onSave={handleSave} />
           )}
-          {activeTab === 'consultations' && <EmptyTab icon={ShoppingBag} title="No previous consultations" desc="Your past jewelry purchases will appear here." />}
-          {activeTab === 'settings' && <EmptyTab icon={Settings} title="Account Settings" desc="Manage notifications and privacy settings here." />}
+          {activeTab === 'consultations' && <EmptyTab icon={ShoppingBagIcon} title="No previous consultations" desc="Your past jewelry purchases will appear here." />}
+          {activeTab === 'settings' && <EmptyTab icon={SettingsIcon} title="Account Settings" desc="Manage notifications and privacy settings here." />}
         </section>
       </main>
     </div>

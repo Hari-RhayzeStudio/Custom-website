@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar } from 'lucide-react';
+import { CalendarIcon } from '@/components/Icons'; // Updated import
 
 interface BookingFormProps {
   formData: {
@@ -43,7 +43,8 @@ export default function BookingForm({ formData, setFormData }: BookingFormProps)
             value={formData.date}
             onChange={(e) => handleChange('date', e.target.value)}
           />
-          <Calendar className="absolute right-3 top-3 w-4 h-4 text-gray-400 pointer-events-none" />
+          {/* Updated Icon Component */}
+          <CalendarIcon className="absolute right-3 top-3 w-4 h-4 text-gray-400 pointer-events-none" />
         </div>
       </div>
 

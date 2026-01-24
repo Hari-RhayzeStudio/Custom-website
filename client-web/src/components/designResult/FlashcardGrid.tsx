@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+import { AlertTriangleIcon, ChevronDownIcon, ChevronUpIcon} from '@/components/Icons';
 
 export default function FlashcardGrid({ loading, cards }: { loading: boolean; cards: any[] }) {
   const [flipped, setFlipped] = useState<number[]>([]);
@@ -21,7 +21,7 @@ export default function FlashcardGrid({ loading, cards }: { loading: boolean; ca
       
       {/* Disclaimer Section */}
       <div className="bg-[#F5F5F5] rounded-lg p-4 mb-8 flex gap-3 items-start">
-         <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+         <AlertTriangleIcon className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
          <div>
             <p className="font-bold text-gray-700 text-sm">Disclaimer:</p>
             <p className="text-gray-500 text-xs">We are not saving this design.</p>
@@ -66,9 +66,9 @@ export default function FlashcardGrid({ loading, cards }: { loading: boolean; ca
             className="flex items-center gap-1 text-xs font-bold text-[#7D3C98] hover:text-purple-800 hover:bg-purple-50 px-3 py-1.5 rounded-full transition-colors"
           >
             {isExpanded ? (
-              <>Show Less <ChevronUp className="w-3 h-3" /></>
+              <>Show Less <ChevronUpIcon className="w-3 h-3" /></>
             ) : (
-              <>+{hiddenCount} More <ChevronDown className="w-3 h-3" /></>
+              <>+{hiddenCount} More <ChevronDownIcon className="w-3 h-3" /></>
             )}
           </button>
         </div>

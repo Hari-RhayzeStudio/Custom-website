@@ -1,5 +1,5 @@
-import { Edit3, Save, CheckCircle2 } from 'lucide-react';
 import ExpertConsultation from '@/components/ExpertConsultation';
+import { PencilIcon, SaveIcon, CheckCircleIcon } from '@/components/Icons';
 
 interface Props {
   userData: any;
@@ -16,7 +16,7 @@ export default function ProfileDetails({ userData, setUserData, isEditing, setIs
         <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-4">
           <div><h2 className="text-2xl font-serif font-bold text-gray-800">Personal Information</h2><p className="text-sm text-gray-500 mt-1">Manage your personal details</p></div>
           <button onClick={() => isEditing ? onSave() : setIsEditing(true)} className="flex items-center gap-2 text-[#7D3C98] font-bold hover:bg-purple-50 px-5 py-2.5 rounded-full transition border border-transparent hover:border-purple-100">
-            {isEditing ? <><Save className="w-4 h-4" /> Save Changes</> : <><Edit3 className="w-4 h-4" /> Edit Profile</>}
+            {isEditing ? <><SaveIcon className="w-4 h-4" /> Save Changes</> : <><PencilIcon className="w-4 h-4" /> Edit Profile</>}
           </button>
         </div>
 
@@ -27,7 +27,7 @@ export default function ProfileDetails({ userData, setUserData, isEditing, setIs
             <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Mobile Number</label>
             <div className="bg-gray-50/50 p-4 rounded-xl flex items-center justify-between border border-gray-100 cursor-not-allowed">
               <span className="font-medium text-gray-500">{userData.phone}</span>
-              <div className="flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-bold tracking-wide uppercase"><CheckCircle2 className="w-3 h-3" /> Verified</div>
+              <div className="flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-bold tracking-wide uppercase"><CheckCircleIcon className="w-3 h-3" /> Verified</div>
             </div>
           </div>
 

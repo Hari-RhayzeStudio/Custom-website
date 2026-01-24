@@ -1,9 +1,9 @@
-// src/components/NotificationPanel.tsx
+// client-web/app/components/NotificationPanel.tsx
 "use client";
 import React, { useEffect, useState } from 'react';
-import { Calendar, AlertTriangle, X, CheckCircle2, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import Link from 'next/link';
+import { CalendarIcon, AlertTriangleIcon, XIcon, CheckCircleIcon, LoaderIcon } from '@/components/Icons';
 
 interface Notification {
   id: string;
@@ -60,8 +60,8 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
           type: 'booking',
           title: 'Booking Confirmed',
           message: `Consultation with ${b.expert_name} on ${new Date(b.consultation_date).toLocaleDateString()} at ${b.slot}.`,
-          date: new Date(b.created_at).toLocaleDateString(), // Or "Just now" based on logic
-          read: true, // Mark older bookings as read logic can go here
+          date: new Date(b.created_at).toLocaleDateString(),
+          read: true, 
           link: '/bookings' 
         }));
 
@@ -84,7 +84,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
       <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50/80 backdrop-blur-sm">
         <h3 className="font-serif font-bold text-gray-900">Notifications</h3>
         <button onClick={onClose} className="text-gray-400 hover:text-gray-700 transition p-1 rounded-full hover:bg-gray-200">
-          <X className="w-4 h-4" />
+          <XIcon className="w-4 h-4" />
         </button>
       </div>
 
@@ -92,13 +92,13 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
       <div className="max-h-400px overflow-y-auto custom-scrollbar">
         {isLoading ? (
           <div className="p-8 text-center text-gray-400 text-sm flex flex-col items-center gap-2">
-            <Loader2 className="w-5 h-5 animate-spin text-[#7D3C98]" />
+            <LoaderIcon className="w-5 h-5 animate-spin text-[#7D3C98]" />
             <span>Checking updates...</span>
           </div>
         ) : notifications.length === 0 ? (
           <div className="p-10 text-center text-gray-400 text-sm">
             <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
-              <Calendar className="w-6 h-6 text-gray-300" />
+              <CalendarIcon className="w-6 h-6 text-gray-300" />
             </div>
             <p>No new notifications</p>
           </div>
@@ -115,9 +115,9 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                     note.type === 'warning' ? 'bg-orange-100 text-orange-500' : 
                     'bg-blue-100 text-blue-600'}`
                 }>
-                  {note.type === 'booking' && <CheckCircle2 className="w-4 h-4" />}
-                  {note.type === 'warning' && <AlertTriangle className="w-4 h-4" />}
-                  {note.type === 'info' && <Calendar className="w-4 h-4" />}
+                  {note.type === 'booking' && <CheckCircleIcon className="w-4 h-4" />}
+                  {note.type === 'warning' && <AlertTriangleIcon className="w-4 h-4" />}
+                  {note.type === 'info' && <CalendarIcon className="w-4 h-4" />}
                 </div>
 
                 <div className="flex-1 min-w-0">

@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+// 1. Changed Imports: Removed 'lucide-react' and imported from your Icons file
+import { ArrowLeftIcon, LoaderIcon } from '@/components/Icons';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
 
-// Imports from the components we just created
 import ExpertHeader from '@/components/bookingPage/ExpertHeader';
 import BookingForm from '@/components/bookingPage/BookingForm';
 import WishlistSelector from '@/components/bookingPage/WishlistSelector';
@@ -127,7 +127,10 @@ function BookingContent() {
         
         {/* Top Nav */}
         <div className="flex items-center gap-4 mb-8">
-          <Link href="/catalogue"><ArrowLeft className="w-6 h-6 text-gray-600 cursor-pointer" /></Link>
+          <Link href="/catalogue">
+            {/* 2. Changed Icon Usage: ArrowLeft -> ArrowLeftIcon */}
+            <ArrowLeftIcon className="w-6 h-6 text-gray-600 cursor-pointer" />
+          </Link>
           <h1 className="text-2xl font-serif font-bold text-gray-800 text-center flex-1 pr-10">Consultation Booking</h1>
         </div>
 
@@ -151,7 +154,8 @@ function BookingContent() {
                   disabled={isLoading}
                   className="w-full bg-[#BFA3C6] hover:bg-[#7D3C98] text-white font-bold py-4 rounded-full transition shadow-md flex items-center justify-center gap-2 disabled:opacity-70"
                 >
-                  {isLoading && <Loader2 className="w-5 h-5 animate-spin" />}
+                  {/* 3. Changed Icon Usage: Loader2 -> LoaderIcon */}
+                  {isLoading && <LoaderIcon className="w-5 h-5 animate-spin" />}
                   {isLoading ? "Confirming..." : "Confirm Booking"}
                 </button>
               </form>
@@ -167,7 +171,12 @@ function BookingContent() {
 
 export default function BookingPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 text-[#7D3C98] animate-spin" /></div>}>
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+         {/* 4. Changed Icon Usage in Fallback */}
+        <LoaderIcon className="w-8 h-8 text-[#7D3C98] animate-spin" />
+      </div>
+    }>
       <BookingContent />
     </Suspense>
   );

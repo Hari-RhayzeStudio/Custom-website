@@ -1,8 +1,8 @@
-// src/app/design/DesignClient.tsx
 "use client";
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Upload, Sparkles } from 'lucide-react';
+// UPDATED: Import from your central Icons file
+import { XIcon, UploadIcon } from '@/components/Icons';
 import TrendingDesigns from '@/components/designPage/TrendingDesigns';
 
 // Default / Fallback Images
@@ -136,7 +136,9 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
           <div className="bg-white rounded-3xl p-8 shadow-sm mb-8 animate-in fade-in slide-in-from-bottom-4">
             <div className="flex flex-col md:flex-row gap-12 items-start justify-center">
               <div className="relative group w-full md:w-1/2 flex justify-center">
-                <button onClick={() => { setSelectedFile(null); setHotspot({x:0, y:0}); }} className="absolute -top-2 -right-2 md:top-0 md:right-0 p-2 text-gray-400 hover:text-red-500 hover:bg-gray-100 rounded-full transition z-10"><X className="w-5 h-5"/></button>
+                <button onClick={() => { setSelectedFile(null); setHotspot({x:0, y:0}); }} className="absolute -top-2 -right-2 md:top-0 md:right-0 p-2 text-gray-400 hover:text-red-500 hover:bg-gray-100 rounded-full transition z-10">
+                    <XIcon className="w-5 h-5"/>
+                </button>
                 <div className="relative inline-block">
                   <img ref={imageRef} src={previewUrl} onClick={handleImageClick} className="max-h-75 w-auto object-contain cursor-crosshair rounded-lg" alt="Reference"/>
                   {hotspot.x > 0 && (
@@ -166,7 +168,9 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
                onChange={(e) => setPrompt(e.target.value)}
              />
              {!selectedFile && (
-               <button onClick={() => fileInputRef.current?.click()} className="absolute bottom-4 right-4 p-2 text-gray-400 hover:text-purple-600 transition bg-white rounded-full hover:bg-gray-50 border border-transparent hover:border-gray-200"><Upload className="w-5 h-5" /></button>
+               <button onClick={() => fileInputRef.current?.click()} className="absolute bottom-4 right-4 p-2 text-gray-400 hover:text-purple-600 transition bg-white rounded-full hover:bg-gray-50 border border-transparent hover:border-gray-200">
+                   <UploadIcon className="w-5 h-5" />
+               </button>
              )}
              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
           </div>

@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
-import { X, Loader2, ChevronDown } from 'lucide-react';
+import { XIcon, LoaderIcon, ChevronDownIcon } from './Icons'; 
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 
@@ -119,7 +119,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
     <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in">
       <div className="bg-white rounded-3xl p-8 w-full max-w-md relative shadow-2xl transition-all">
         <button onClick={onClose} className="absolute right-5 top-5 text-gray-400 hover:text-gray-800 transition">
-          <X className="w-6 h-6" />
+          <XIcon className="w-6 h-6" />
         </button>
 
         <h2 className="text-2xl font-bold font-serif text-gray-900 mb-2 text-center">
@@ -154,7 +154,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
                       <option value="+91">+91</option>
                       <option value="+1">+1</option>
                    </select>
-                   <ChevronDown className="w-4 h-4 text-gray-400"/>
+                   <ChevronDownIcon className="w-4 h-4 text-gray-400"/>
                 </div>
                 <input type="tel" placeholder="99999 88888" className="w-full p-4 bg-transparent outline-none"
                   value={phone} onChange={(e) => setPhone(e.target.value)} required 
@@ -163,7 +163,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
             </div>
 
             <button disabled={isLoading} className="w-full bg-[#7D3C98] text-white py-4 rounded-xl font-bold shadow-lg hover:bg-[#6a3281] transition flex justify-center items-center gap-2 disabled:opacity-70">
-              {isLoading && <Loader2 className="w-5 h-5 animate-spin" />}
+              {isLoading && <LoaderIcon className="w-5 h-5 animate-spin" />}
               {isLoading ? "Sending OTP..." : "Continue"}
             </button>
 
@@ -198,7 +198,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
             </div>
 
             <button onClick={handleVerifyOTP} disabled={isLoading} className="w-full bg-[#7D3C98] text-white py-4 rounded-xl font-bold shadow-lg flex justify-center items-center gap-2 disabled:opacity-70">
-              {isLoading && <Loader2 className="w-5 h-5 animate-spin" />}
+              {isLoading && <LoaderIcon className="w-5 h-5 animate-spin" />}
               {isLoading ? "Verifying..." : "Verify & Login"}
             </button>
             

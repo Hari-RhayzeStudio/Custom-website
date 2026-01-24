@@ -1,5 +1,5 @@
 import React from 'react';
-import { Loader2, PackageOpen } from 'lucide-react';
+import { LoaderIcon, PackageOpenIcon } from '@/components/Icons'; // Updated imports
 
 interface WishlistSelectorProps {
   loading: boolean;
@@ -18,7 +18,8 @@ export default function WishlistSelector({ loading, products, selectedProducts, 
 
       {loading ? (
         <div className="text-sm text-gray-400 italic flex items-center gap-2">
-          <Loader2 className="w-4 h-4 animate-spin"/> Loading your wishlist...
+          {/* Updated Icon Component */}
+          <LoaderIcon className="w-4 h-4 animate-spin"/> Loading your wishlist...
         </div>
       ) : products.length > 0 ? (
         <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
@@ -46,7 +47,8 @@ export default function WishlistSelector({ loading, products, selectedProducts, 
         </div>
       ) : (
         <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg border border-dashed border-gray-200 text-gray-400 text-sm">
-          <PackageOpen className="w-5 h-5" />
+          {/* Updated Icon Component */}
+          <PackageOpenIcon className="w-5 h-5" />
           <span>Your wishlist is empty. Browse the catalogue to add items!</span>
         </div>
       )}

@@ -1,7 +1,7 @@
-// components/BookingModal.tsx
 "use client";
 import React, { useState, useEffect } from 'react';
-import { X, Check, PackageOpen, Loader2 } from 'lucide-react';
+// Changed: Import from your local Icons file instead of lucide-react
+import { XIcon, CheckIcon, PackageOpenIcon, LoaderIcon } from './Icons';
 import axios from 'axios';
 
 interface BookingModalProps {
@@ -109,7 +109,7 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
       <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl relative">
         
         <button onClick={onClose} className="absolute right-5 top-5 text-gray-400 hover:text-gray-800 transition z-10">
-          <X className="w-6 h-6" />
+          <XIcon className="w-6 h-6" />
         </button>
 
         <div className="p-8">
@@ -153,20 +153,20 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
                         <div key={p.sku} onClick={() => toggleProduct(p.sku)} className={`relative w-24 h-24 rounded-xl border-2 cursor-pointer shrink-0 overflow-hidden transition-all group ${selectedProducts.includes(p.sku) ? 'border-[#7D3C98] ring-2 ring-purple-50' : 'border-gray-100 hover:border-purple-200'}`}>
                           <img src={p.final_image_url} alt={p.product_name} className="w-full h-full object-cover" />
                           <div className={`absolute inset-0 bg-[#7D3C98]/20 flex items-center justify-center transition-opacity duration-200 ${selectedProducts.includes(p.sku) ? 'opacity-100' : 'opacity-0'}`}>
-                            <div className="bg-white rounded-full p-1 shadow-sm"><Check className="w-4 h-4 text-[#7D3C98]" /></div>
+                            <div className="bg-white rounded-full p-1 shadow-sm"><CheckIcon className="w-4 h-4 text-[#7D3C98]" /></div>
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className="p-4 bg-gray-50 rounded-xl border border-dashed border-gray-200 text-sm text-gray-400 flex gap-2 items-center justify-center">
-                      <PackageOpen className="w-5 h-5 text-gray-300"/> <span>Wishlist is empty</span>
+                      <PackageOpenIcon className="w-5 h-5 text-gray-300"/> <span>Wishlist is empty</span>
                     </div>
                   )}
                 </div>
 
                 <button disabled={isLoading} className="w-full bg-[#7D3C98] text-white py-4 rounded-xl font-bold flex justify-center items-center gap-2 hover:bg-[#6a3281] transition shadow-lg shadow-purple-100 disabled:opacity-70">
-                  {isLoading && <Loader2 className="w-5 h-5 animate-spin" />}
+                  {isLoading && <LoaderIcon className="w-5 h-5 animate-spin" />}
                   {isLoading ? "Confirming..." : "Confirm Booking"}
                 </button>
               </form>
@@ -175,7 +175,7 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
             // Success Step
             <div className="text-center py-12">
               <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-in zoom-in">
-                <Check className="w-10 h-10" />
+                <CheckIcon className="w-10 h-10" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Booking Confirmed!</h3>
               <p className="text-gray-500 mb-8 max-w-sm mx-auto">

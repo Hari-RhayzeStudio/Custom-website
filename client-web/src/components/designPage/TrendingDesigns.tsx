@@ -1,5 +1,6 @@
 "use client";
-import { Loader2 } from 'lucide-react';
+// UPDATED: Import from your central Icons file (even if unused in this specific snippet, maintaining consistency)
+import { LoaderIcon } from '@/components/Icons'; 
 
 interface TrendingProps {
   onSelectPrompt: (prompt: string) => void;

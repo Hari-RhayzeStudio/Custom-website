@@ -1,14 +1,14 @@
-// src/components/Footer.tsx
+// client-web/app/components/Footer.tsx
 "use client";
 
 import Link from 'next/link';
-import { Facebook, Twitter, Youtube, Instagram, PinIcon, Phone, Mail } from 'lucide-react'; // Assuming you have lucide-react
+import { FacebookIcon, TwitterIcon, YoutubeIcon, InstagramIcon, PinIcon, PhoneIcon, MailIcon } from '@/components/Icons'; 
 
 export default function Footer() {
   return (
     <footer className="bg-[#f9f9f9] text-gray-700 font-sans border-t border-gray-100">
       
-      {/* SECTION 1: NEWSLETTER (Matches Image 1) */}
+      {/* SECTION 1: NEWSLETTER */}
       <div className="py-16 px-6 border-b border-gray-200">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-2xl font-medium mb-8 text-black">
@@ -34,17 +34,17 @@ export default function Footer() {
           <div className="flex items-center justify-center gap-6">
             <span className="text-sm font-medium text-gray-600">Follow Us:</span>
             <div className="flex gap-4">
-               <Link href="#" className="hover:text-black transition"><Facebook className="w-5 h-5" /></Link>
-               <Link href="#" className="hover:text-black transition"><Twitter className="w-5 h-5" /></Link>
-               <Link href="#" className="hover:text-black transition"><Youtube className="w-5 h-5" /></Link>
+               <Link href="#" className="hover:text-black transition"><FacebookIcon className="w-5 h-5" /></Link>
+               <Link href="#" className="hover:text-black transition"><TwitterIcon className="w-5 h-5" /></Link>
+               <Link href="#" className="hover:text-black transition"><YoutubeIcon className="w-5 h-5" /></Link>
                <Link href="#" className="hover:text-black transition"><PinIcon className="w-5 h-5" /></Link>
-               <Link href="#" className="hover:text-black transition"><Instagram className="w-5 h-5" /></Link>
+               <Link href="#" className="hover:text-black transition"><InstagramIcon className="w-5 h-5" /></Link>
             </div>
           </div>
         </div>
       </div>
 
-      {/* SECTION 2: LINKS & CONTACT (Matches Image 2) */}
+      {/* SECTION 2: LINKS & CONTACT */}
       <div className="max-w-7xl mx-auto px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           
@@ -53,11 +53,11 @@ export default function Footer() {
             <h3 className="text-lg font-normal text-black mb-4">Contact</h3>
             <ul className="space-y-4 text-sm text-gray-600">
               <li className="flex items-center gap-2">
-                <Phone className="w-4 h-4" />
+                <PhoneIcon className="w-4 h-4" />
                 <span>+1 (832) 878-2877</span>
               </li>
               <li className="flex items-center gap-2">
-                <Mail className="w-4 h-4" />
+                <MailIcon className="w-4 h-4" />
                 <a href="mailto:hari@rhayzestudio.com" className="hover:underline">support@rhayzestudio.com</a>
               </li>
               <li>Custom Jewellery</li>

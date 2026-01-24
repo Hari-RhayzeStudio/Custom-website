@@ -1,12 +1,13 @@
 import React from 'react';
 import Link from 'next/link';
-import { Check } from 'lucide-react';
+import { CheckIcon } from '@/components/Icons'; // Updated import
 
 export default function SuccessView({ email }: { email: string }) {
   return (
     <div className="text-center py-10">
       <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg animate-in zoom-in">
-        <Check className="w-10 h-10 text-white" />
+        {/* Updated Icon Component */}
+        <CheckIcon className="w-10 h-10 text-white" />
       </div>
       <h3 className="text-xl font-bold text-green-600 mb-2">Booking confirmed</h3>
       <p className="text-gray-500 text-sm mb-12 max-w-md mx-auto">
