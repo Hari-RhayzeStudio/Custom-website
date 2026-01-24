@@ -1,34 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
+model ProductAsset {
+  id                    BigInt  @id(map: "product_assets_duplicate_pkey") @default(autoincrement())
+  sku                   String  @unique(map: "product_assets_duplicate_sku_key") @db.VarChar(255)
+  status                String  @default("Empty") @db.VarChar(50)
+  category              String? @db.VarChar(255)
+  pre_image_url         String?
+  wax_image_url         String?
+  wax_image_alt_text    String? @db.VarChar(255)
+  wax_description       String?
+  cast_image_url        String?
+  cast_image_alt_text   String? @db.VarChar(255)
+  cast_description      String?
+  final_image_url       String?
+  final_image_alt_text  String? @db.VarChar(255)
+  final_description     String?
+  meta_title            String? @db.VarChar(255)
+  meta_description      String? @db.VarChar(500)
+  product_name          String? @db.VarChar(255)
+  sketch_image_url      String?
+  sketch_image_alt_text String? @db.VarChar(255)
+  scetch_description    String? @map("sketch_description")
+  created_at            String? @default(dbgenerated("to_char((now() AT TIME ZONE 'America/Chicago'::text), 'MM-DD-YYYY HH12:MI AM'::text)")) @db.VarChar(30)
+  modified_at           String? @default(dbgenerated("to_char((now() AT TIME ZONE 'America/Chicago'::text), 'MM-DD-YYYY HH12:MI AM'::text)")) @db.VarChar(30)
+
+  @@map("product_assets_staging")
 }
 
-model ProductAsset {
-  id                     BigInt   @id @default(autoincrement())
-  sku                    String   @unique
-  product_name           String?
-  category               String?
-  status                 String?
-  
-  scetch_description     String?  @map("sketch_description") 
-  wax_description        String?
-  cast_description       String?
-  final_description      String?
-  
-  final_image_url        String?
-  wax_image_url          String?
-  sketch_image_url       String?
-  cast_image_url         String?
-  
-  meta_title             String?
-  meta_description       String?
-  created_at             String?
-  modified_at            String?
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model product_assets {
+  id                    BigInt  @id(map: "products_pkey") @default(autoincrement())
+  sku                   String  @unique(map: "products_sku_key") @db.VarChar(255)
+  status                String  @default("Empty") @db.VarChar(50)
+  category              String? @db.VarChar(255)
+  pre_image_url         String?
+  wax_image_url         String?
+  wax_image_alt_text    String? @db.VarChar(255)
+  wax_description       String?
+  cast_image_url        String?
+  cast_image_alt_text   String? @db.VarChar(255)
+  cast_description      String?
+  final_image_url       String?
+  final_image_alt_text  String? @db.VarChar(255)
+  final_description     String?
+  meta_title            String? @db.VarChar(255)
+  meta_description      String? @db.VarChar(500)
+  product_name          String? @db.VarChar(255)
+  sketch_image_url      String?
+  sketch_image_alt_text String? @db.VarChar(255)
+  sketch_description    String?
+  created_at            String? @default(dbgenerated("to_char((now() AT TIME ZONE 'America/Chicago'::text), 'MM-DD-YYYY HH12:MI AM'::text)")) @db.VarChar(30)
+  modified_at           String? @default(dbgenerated("to_char((now() AT TIME ZONE 'America/Chicago'::text), 'MM-DD-YYYY HH12:MI AM'::text)")) @db.VarChar(30)
 
-  @@map("product_assets_staging") 
+  @@ignore
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model product_assets_duplicate {
+  id                    BigInt  @id(map: "product_assets_duplicate_pkey1") @default(autoincrement())
+  sku                   String  @unique(map: "product_assets_duplicate_sku_key1") @db.VarChar(255)
+  status                String  @default("Empty") @db.VarChar(50)
+  category              String? @db.VarChar(255)
+  pre_image_url         String?
+  wax_image_url         String?
+  wax_image_alt_text    String? @db.VarChar(255)
+  wax_description       String?
+  cast_image_url        String?
+  cast_image_alt_text   String? @db.VarChar(255)
+  cast_description      String?
+  final_image_url       String?
+  final_image_alt_text  String? @db.VarChar(255)
+  final_description     String?
+  meta_title            String? @db.VarChar(255)
+  meta_description      String? @db.VarChar(500)
+  product_name          String? @db.VarChar(255)
+  sketch_image_url      String?
+  sketch_image_alt_text String? @db.VarChar(255)
+  sketch_description    String?
+  created_at            String? @default(dbgenerated("to_char((now() AT TIME ZONE 'America/Chicago'::text), 'MM-DD-YYYY HH12:MI AM'::text)")) @db.VarChar(30)
+  modified_at           String? @default(dbgenerated("to_char((now() AT TIME ZONE 'America/Chicago'::text), 'MM-DD-YYYY HH12:MI AM'::text)")) @db.VarChar(30)
+
+  @@ignore
 }
