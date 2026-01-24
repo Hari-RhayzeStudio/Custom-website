@@ -1,58 +1,50 @@
 // client-web/app/components/Icons.tsx
-import { 
-  Bell, 
-  User, 
-  Heart, 
-  ArrowRight, 
-  ArrowLeft,
-  Sparkles, 
-  Search,
-  Loader2,
-  Video, 
-  PackageOpen,
-  Download,
-  Share2,
-  ChevronRight,
-  ChevronLeft,
-  Filter,
-  X,
-  SlidersHorizontal,
-} from 'lucide-react';
+import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'; // Fits "Sparkles"
+import SearchIconMUI from '@mui/icons-material/Search';
+import SyncIcon from '@mui/icons-material/Sync'; // Fits "Loader"
+import VideocamOutlinedIcon from '@mui/icons-material/VideocamOutlined';
+import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'; // Fits "PackageOpen"
+import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
+import ShareOutlinedIcon from '@mui/icons-material/ShareOutlined';
+import ChevronRightIconMUI from '@mui/icons-material/ChevronRight';
+import ChevronLeftIconMUI from '@mui/icons-material/ChevronLeft';
+import TuneIcon from '@mui/icons-material/Tune'; // Fits "SlidersHorizontal/Filter"
+import CloseIcon from '@mui/icons-material/Close';
+import SearchOffIcon from '@mui/icons-material/SearchOff';
+import CheckIconMUI from '@mui/icons-material/Check';
 
 // 1. Standard Icons
-export const BellIcon = Bell;
-export const UserIcon = User;
-export const HeartIcon = Heart;
-export const ArrowRightIcon = ArrowRight;
-export const ArrowLeftIcon = ArrowLeft;
-export const SparklesIcon = Sparkles;
-export const SearchIcon = Search;
-export const LoadingIcon = Loader2;
-export const MeetIcon = Video;
-export const RequirementsIcon = PackageOpen;
-export const DownloadIcon = Download;
-export const ShareIcon = Share2;
-export const ChevronRightIcon = ChevronRight;
-export const ChevronLeftIcon = ChevronLeft;
-export const FilterIcon = SlidersHorizontal;
-export const XIcon = X;
+// We map MUI icons to your existing export names
+export const BellIcon = NotificationsNoneIcon;
+export const UserIcon = PersonOutlineIcon;
+export const HeartIcon = FavoriteBorderIcon;
+export const ArrowRightIcon = ArrowForwardIcon;
+export const ArrowLeftIcon = ArrowBackIcon;
+export const SparklesIcon = AutoAwesomeIcon;
+export const SearchIcon = SearchIconMUI;
+export const LoadingIcon = SyncIcon; // Usually typically rotated via CSS/Tailwind in parent
+export const MeetIcon = VideocamOutlinedIcon;
+export const RequirementsIcon = Inventory2OutlinedIcon;
+export const DownloadIcon = FileDownloadOutlinedIcon;
+export const ShareIcon = ShareOutlinedIcon;
+export const ChevronRightIcon = ChevronRightIconMUI;
+export const ChevronLeftIcon = ChevronLeftIconMUI;
+export const FilterIcon = TuneIcon; // "Tune" looks like horizontal sliders
+export const XIcon = CloseIcon;
 
 // 2. Custom Icons
+// We wrap MUI icons to maintain your specific default sizing/styling logic if needed,
+// or simply alias them if the behavior matches.
+
 export const EmptyStateIcon = ({ className = "w-12 h-12" }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-  </svg>
+  <SearchOffIcon className={className} />
 );
 
 export const CheckIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg 
-    className={className} 
-    fill="none" 
-    stroke="currentColor" 
-    viewBox="0 0 24 24"
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-  </svg>
+  <CheckIconMUI className={className} />
 );
-
-// 3. Branding Icons
