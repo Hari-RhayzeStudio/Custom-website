@@ -4,8 +4,11 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import axios from 'axios';
-import useSWR from 'swr'; // ✅ 1. Import SWR
+import useSWR from 'swr';
 import { XIcon } from '@/components/Icons';
+
+// ✅ 1. Define Base URL from Env with Fallback
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 // ✅ 2. Define Fetcher for SWR
 const fetcher = (url: string) => axios.get(url).then(res => res.data);
@@ -18,14 +21,15 @@ export default function WishlistPage() {
     setUserId(localStorage.getItem('user_id'));
   }, []);
 
-  // ✅ 3. SWR Hook (Handles caching, revalidation, and loading state)
-  // Only fetch if userId exists
+  // ✅ 3. SWR Hook
+  // Use API_BASE_URL in the key
   const { data: wishlistItems, error, isLoading, mutate } = useSWR(
-    userId ? `http://localhost:3001/api/wishlist/${userId}` : null,
+    userId ? `${API_BASE_URL}/api/wishlist/${userId}` : null,
     fetcher,
     {
-      revalidateOnFocus: false, // Don't refetch just because I clicked the window
-      dedupingInterval: 60000,   // Cache data for 1 minute (Instant load on return)
+      revalidateOnFocus: true, // Auto-update when window gets focus
+      revalidateOnMount: true, // Check server immediately on mount
+      // dedupingInterval removed to ensure fresh data on mount
     }
   );
 
@@ -37,14 +41,15 @@ export default function WishlistPage() {
   const removeItem = async (sku: string) => {
     if (!userId || !wishlistItems) return;
 
-    // ✅ 4. Optimistic UI with SWR (Update cache immediately)
+    // ✅ 4. Optimistic UI
     const newItems = wishlistItems.filter((item: any) => item.product_sku !== sku);
     
-    // Update local data immediately without waiting for server
+    // Update local data immediately
     mutate(newItems, false); 
 
     try {
-      await axios.delete('http://localhost:3001/api/wishlist', {
+      // Use API_BASE_URL for delete request
+      await axios.delete(`${API_BASE_URL}/api/wishlist`, {
         data: { user_id: userId, product_sku: sku }
       });
       // Trigger a background re-fetch just to be safe
@@ -56,8 +61,8 @@ export default function WishlistPage() {
     }
   };
 
-  // ✅ 5. Skeleton Loading State (Better UX than text)
-  if (isLoading || !userId) return (
+  // ✅ 5. Skeleton Loading State
+  if (isLoading) return (
     <main className="bg-white min-h-screen py-10 px-6 max-w-7xl mx-auto">
       <div className="h-8 w-48 bg-gray-100 rounded mb-8 animate-pulse"></div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">

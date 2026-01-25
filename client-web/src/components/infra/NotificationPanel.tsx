@@ -1,9 +1,11 @@
-// client-web/app/components/NotificationPanel.tsx
 "use client";
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
 import { CalendarIcon, AlertTriangleIcon, XIcon, CheckCircleIcon, LoaderIcon } from '@/components/Icons';
+
+// ✅ Define Base URL from Env with Fallback
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 interface Notification {
   id: string;
@@ -51,7 +53,8 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
     // 2. Fetch Real Booking Data from Backend
     if (userId) {
       try {
-        const res = await axios.get(`http://localhost:3001/api/bookings/user/${userId}`);
+        // ✅ Updated to use dynamic API_BASE_URL
+        const res = await axios.get(`${API_BASE_URL}/api/bookings/user/${userId}`);
         const bookings = res.data;
 
         // Transform booking data into notifications
@@ -62,7 +65,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
           message: `Consultation with ${b.expert_name} on ${new Date(b.consultation_date).toLocaleDateString()} at ${b.slot}.`,
           date: new Date(b.created_at).toLocaleDateString(),
           read: true, 
-          link: '/bookings' 
+          link: '/profile?tab=consultations' // Points to your specific tab
         }));
 
         // Combine: Newest bookings first
@@ -79,7 +82,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
   if (!isOpen) return null;
 
   return (
-    <div className="absolute right-0 top-14 w-80 md:w-96 bg-white border border-gray-200 rounded-2xl shadow-2xl z-80 overflow-hidden animate-in fade-in slide-in-from-top-2 origin-top-right">
+    <div className="absolute right-0 top-14 w-80 md:w-96 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 origin-top-right">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50/80 backdrop-blur-sm">
         <h3 className="font-serif font-bold text-gray-900">Notifications</h3>
@@ -89,7 +92,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
       </div>
 
       {/* Content List */}
-      <div className="max-h-400px overflow-y-auto custom-scrollbar">
+      <div className="max-h-100 overflow-y-auto custom-scrollbar">
         {isLoading ? (
           <div className="p-8 text-center text-gray-400 text-sm flex flex-col items-center gap-2">
             <LoaderIcon className="w-5 h-5 animate-spin text-[#7D3C98]" />

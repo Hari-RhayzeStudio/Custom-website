@@ -8,26 +8,27 @@ import {
   HeartIcon, 
   HeartFilledIcon, 
   ShareIcon, 
-  MeetIcon,
-  LoaderIcon // Ensure you have this in Icons.tsx, or replace with standard spinner
+  LoaderIcon 
 } from '@/components/Icons';
 
 type ViewType = 'sketch' | 'wax' | 'cast' | 'final';
+
+// ✅ Define Base URL from Env with Fallback
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 export default function ProductDetailsClient({ product }: { product: any }) {
   const router = useRouter();
   const [activeView, setActiveView] = useState<ViewType>('final');
   
   const [isWishlisted, setIsWishlisted] = useState(false);
-  const [isChecking, setIsChecking] = useState(true); // Shows loading spinner on heart
+  const [isChecking, setIsChecking] = useState(true);
   const [isToggling, setIsToggling] = useState(false); 
 
-  // ✅ 1. FAST CHECK ON LOAD
+  // ✅ 1. FAST CHECK ON LOAD (Using Env URL)
   useEffect(() => {
     const checkStatus = async () => {
       const userId = localStorage.getItem('user_id');
       
-      // If not logged in or no product data, stop checking
       if (!userId || !product?.sku) {
         setIsChecking(false);
         return;
@@ -35,9 +36,8 @@ export default function ProductDetailsClient({ product }: { product: any }) {
 
       try {
         // 🔥 OPTIMIZED CALL: Asks server specifically for THIS item
-        const res = await axios.get(`http://localhost:3001/api/wishlist/${userId}?product_sku=${product.sku}`);
+        const res = await axios.get(`${API_BASE_URL}/api/wishlist/${userId}?product_sku=${product.sku}`);
         
-        // If the array has items, it means it's in the wishlist
         setIsWishlisted(res.data.length > 0);
       } catch (error) {
         console.error("Wishlist sync error:", error);
@@ -49,7 +49,7 @@ export default function ProductDetailsClient({ product }: { product: any }) {
     checkStatus();
   }, [product]);
 
-  // ✅ 2. INSTANT TOGGLE (Optimistic UI)
+  // ✅ 2. INSTANT TOGGLE (Using Env URL)
   const handleWishlistToggle = async () => {
     const userId = localStorage.getItem('user_id');
     if (!userId) return alert("Please login to add items to wishlist");
@@ -63,12 +63,12 @@ export default function ProductDetailsClient({ product }: { product: any }) {
     try {
       if (previousState) {
         // Remove
-        await axios.delete('http://localhost:3001/api/wishlist', { 
+        await axios.delete(`${API_BASE_URL}/api/wishlist`, { 
           data: { user_id: userId, product_sku: product.sku } 
         });
       } else {
         // Add
-        await axios.post('http://localhost:3001/api/wishlist', {
+        await axios.post(`${API_BASE_URL}/api/wishlist`, {
           user_id: userId, 
           product_sku: product.sku, 
           product_name: product.product_name, 
@@ -89,7 +89,9 @@ export default function ProductDetailsClient({ product }: { product: any }) {
     if (!imageUrl) return alert("Image not available");
     
     const filename = `${product.product_name.replace(/[^a-z0-9]/gi, '-')}-${activeView}.jpg`;
-    const proxyUrl = `http://localhost:3001/api/download-proxy?url=${encodeURIComponent(imageUrl)}&filename=${encodeURIComponent(filename)}`;
+    
+    // ✅ Using Env URL for Proxy
+    const proxyUrl = `${API_BASE_URL}/api/download-proxy?url=${encodeURIComponent(imageUrl)}&filename=${encodeURIComponent(filename)}`;
 
     try {
       const link = document.createElement('a'); link.href = proxyUrl; link.setAttribute('download', filename);
@@ -127,13 +129,10 @@ export default function ProductDetailsClient({ product }: { product: any }) {
             className="absolute top-6 right-6 p-3 rounded-full bg-white/80 backdrop-blur-sm shadow-md transition-all hover:scale-110 z-10 cursor-pointer flex items-center justify-center"
           >
             {isChecking ? (
-               // Small Spinner while checking (prevents flashing wrong state)
                <LoaderIcon className="w-6 h-6 text-gray-400 animate-spin" />
             ) : isWishlisted ? (
-               // Filled Black Heart
                <HeartFilledIcon className="w-6 h-6 text-black" />
             ) : (
-               // Outline Gray Heart
                <HeartIcon className="w-6 h-6 text-gray-400 hover:text-black transition-colors" />
             )}
           </button>
@@ -166,6 +165,7 @@ export default function ProductDetailsClient({ product }: { product: any }) {
 
          <p className="text-gray-700 leading-relaxed font-medium text-lg mb-8">{product.final_description}</p>
 
+         {/* ✅ GOOGLE MEET ICON + DISCUSS DESIGN BUTTON */}
          <button 
             onClick={handleDiscussDesign}
             className="w-full py-3.5 rounded-full border border-purple-300 text-purple-700 font-bold hover:bg-purple-50 transition flex items-center justify-center gap-3 shadow-sm bg-white"

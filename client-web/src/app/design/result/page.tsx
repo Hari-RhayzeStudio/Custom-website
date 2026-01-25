@@ -7,8 +7,10 @@ import { ArrowLeftIcon, Undo2Icon, LoaderIcon } from '@/components/Icons';
 import FlashcardGrid from '@/components/designResult/FlashcardGrid';
 import DesignImagePreview from '@/components/designResult/DesignImagePreview';
 
+// ✅ Define Base URL from Env with Fallback
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+
 // --- LOCAL LOADER COMPONENT ---
-// Replaces the confusing "DesignGenerationLoader" which was actually a full page component
 const SimpleLoader = () => (
   <div className="min-h-screen flex flex-col items-center justify-center bg-white">
     <LoaderIcon className="w-10 h-10 text-purple-600 animate-spin mb-4" />
@@ -32,14 +34,14 @@ function DesignResultContent() {
   const [editPrompt, setEditPrompt] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
-  // Ref is initialized with null, matching the updated interface in DesignImagePreview
   const imageRef = useRef<HTMLImageElement>(null);
 
   // --- API Helpers ---
   const fetchFlashcards = async (promptText: string) => {
     setLoadingCards(true);
     try {
-      const res = await fetch('http://localhost:3001/api/generate-flashcards', {
+      // ✅ Use API_BASE_URL
+      const res = await fetch(`${API_BASE_URL}/api/generate-flashcards`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: promptText })
       });
       const result = await res.json();
@@ -53,17 +55,17 @@ function DesignResultContent() {
     fetchFlashcards(editPrompt);
     
     try {
-      if (!data) return; // Guard clause
+      if (!data) return; 
       const imageRes = await fetch(data.imageUrl);
       const formData = new FormData();
       formData.append('prompt', editPrompt);
-      // Convert current image URL to blob for re-upload
       const blob = await imageRes.blob();
       formData.append('image', new File([blob], "current.png"));
       formData.append('x', hotspot.x.toString()); 
       formData.append('y', hotspot.y.toString());
 
-      const res = await fetch('http://localhost:3001/api/edit-design', { method: 'POST', body: formData });
+      // ✅ Use API_BASE_URL
+      const res = await fetch(`${API_BASE_URL}/api/edit-design`, { method: 'POST', body: formData });
       const result = await res.json();
 
       if (result.imageUrl) {
@@ -80,7 +82,8 @@ function DesignResultContent() {
     if (!userId) return alert("Please log in.");
     setIsSaving(true);
     try {
-      await fetch('http://localhost:3001/api/wishlist', {
+      // ✅ Use API_BASE_URL
+      await fetch(`${API_BASE_URL}/api/wishlist`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: userId, product_sku: `gen-${Date.now()}`, product_name: `Custom: ${data?.prompt.substring(0, 15)}...`, product_image: data?.imageUrl })
       });
@@ -99,13 +102,14 @@ function DesignResultContent() {
           try {
             const formData = new FormData();
             formData.append('prompt', req.prompt);
-            let url = 'http://localhost:3001/api/generate-design';
+            // ✅ Use API_BASE_URL
+            let url = `${API_BASE_URL}/api/generate-design`;
             
             if (req.base64Image) {
                const blob = await (await fetch(req.base64Image)).blob();
                formData.append('image', blob);
                if(req.hotspot) { formData.append('x', req.hotspot.x); formData.append('y', req.hotspot.y); }
-               url = 'http://localhost:3001/api/edit-design';
+               url = `${API_BASE_URL}/api/edit-design`;
             }
             const result = await (await fetch(url, { method: 'POST', body: formData })).json();
             if (result.imageUrl) {

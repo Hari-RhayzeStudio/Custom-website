@@ -1,6 +1,8 @@
-// src/app/catalogue/page.tsx
 import CatalogueHeader from '@/components/cataloguePage/CatalogueHeader';
 import CatalogueGrid from '@/components/cataloguePage/CatalogueGrid';
+
+// ✅ Define Base URL from Env with Fallback
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 // Fetch Logic moved back to Page
 async function getProducts(search?: string, category?: string, material?: string) {
@@ -15,14 +17,15 @@ async function getProducts(search?: string, category?: string, material?: string
     ? { next: { revalidate: 3600 } } 
     : { next: { revalidate: 0 } };
 
-  const url = `http://localhost:3001/api/products?${params.toString()}`;
+  // ✅ Use API_BASE_URL here
+  const url = `${API_BASE_URL}/api/products?${params.toString()}`;
   
   try {
     const res = await fetch(url, fetchOptions); 
     if (!res.ok) return [];
     return res.json();
   } catch (error) {
-    console.error(error);
+    console.error("Failed to fetch catalogue:", error);
     return [];
   }
 }

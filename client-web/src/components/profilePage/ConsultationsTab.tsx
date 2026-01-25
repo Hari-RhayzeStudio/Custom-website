@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import axios from 'axios';
-import useSWR from 'swr'; // ✅ Import SWR
+import useSWR from 'swr'; 
 import { CalendarIcon, MeetIcon } from '@/components/Icons';
 
 interface Booking {
@@ -14,21 +14,22 @@ interface Booking {
   product_images: string[];
 }
 
+// ✅ Define Base URL from Env with Fallback
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+
 // ✅ Define fetcher outside component
 const fetcher = (url: string) => axios.get(url).then(res => res.data);
 
 export default function ConsultationsTab({ userId }: { userId: string }) {
   const [filter, setFilter] = useState<'upcoming' | 'past'>('upcoming');
 
-  // ✅ SWR Hook: Caches data instantly. 
-  // - If you leave this tab and come back, it loads INSTANTLY from cache.
-  // - Then it checks the server quietly in the background for updates.
+  // ✅ SWR Hook: Uses API_BASE_URL now
   const { data: bookings = [], isLoading } = useSWR<Booking[]>(
-    userId ? `http://localhost:3001/api/bookings/user/${userId}` : null,
+    userId ? `${API_BASE_URL}/api/bookings/user/${userId}` : null,
     fetcher,
     {
-      revalidateOnFocus: false, // Don't refetch just by clicking window
-      dedupingInterval: 60000,  // Cache for 1 minute (Instant load on tab switch)
+      revalidateOnFocus: false, 
+      dedupingInterval: 60000, 
     }
   );
 
@@ -47,7 +48,7 @@ export default function ConsultationsTab({ userId }: { userId: string }) {
     });
   };
 
-  // ✅ Skeleton Loader (Better UX than text)
+  // ✅ Skeleton Loader
   if (isLoading) return (
     <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 min-h-100">
       <div className="h-8 w-48 bg-gray-100 rounded mb-8 animate-pulse"></div>

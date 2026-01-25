@@ -9,6 +9,9 @@ import ProfileDetails from '@/components/profilePage/ProfileDetails';
 import EmptyTab from '@/components/profilePage/EmptyTab';
 import ConsultationsTab from '@/components/profilePage/ConsultationsTab';
 
+// ✅ Define Base URL from Env with Fallback
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+
 function ProfileContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -18,7 +21,7 @@ function ProfileContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [userData, setUserData] = useState({ id: "", name: "", email: "", phone: "", age: "" });
 
-  // ✅ 1. Listen for URL changes to switch tabs automatically
+  // 1. Listen for URL changes to switch tabs automatically
   useEffect(() => {
     const tab = searchParams.get('tab');
     if (tab === 'consultations') {
@@ -26,12 +29,11 @@ function ProfileContent() {
     } else if (tab === 'settings') {
       setActiveTab('settings');
     } else {
-      // Default to 'profile' if tab is 'profile' or missing
       setActiveTab('profile');
     }
   }, [searchParams]);
 
-  // ✅ 2. Fetch User Data
+  // 2. Fetch User Data
   useEffect(() => {
     const userId = localStorage.getItem('user_id');
     if (!userId) { 
@@ -39,7 +41,8 @@ function ProfileContent() {
         return; 
     }
 
-    axios.get(`http://localhost:3001/api/user/${userId}`)
+    // ✅ UPDATED: Use API_BASE_URL variable
+    axios.get(`${API_BASE_URL}/api/user/${userId}`)
       .then(res => {
         const d = res.data;
         setUserData({ 
@@ -59,7 +62,8 @@ function ProfileContent() {
 
   const handleSave = async () => {
     try {
-      await axios.put(`http://localhost:3001/api/user/${userData.id}`, {
+      // ✅ UPDATED: Use API_BASE_URL variable
+      await axios.put(`${API_BASE_URL}/api/user/${userData.id}`, {
         name: userData.name, email: userData.email, age: userData.age ? parseInt(userData.age) : null
       });
       setIsEditing(false);
@@ -80,13 +84,11 @@ function ProfileContent() {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-8 flex flex-col md:flex-row gap-8 items-start">
-        {/* Sidebar also needs to update URL on click to keep state in sync */}
         <ProfileSidebar 
             user={userData} 
             activeTab={activeTab} 
             setActiveTab={(tab) => {
                 setActiveTab(tab);
-                // Optional: Update URL without reloading to keep history clean
                 router.push(`/profile?tab=${tab}`, { scroll: false });
             }} 
             onLogout={() => { localStorage.clear(); router.push('/'); }} 

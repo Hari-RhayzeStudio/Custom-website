@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from 'react';
-// 1. Changed Imports: Removed 'lucide-react' and imported from your Icons file
 import { ArrowLeftIcon, LoaderIcon } from '@/components/Icons';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -11,6 +10,9 @@ import ExpertHeader from '@/components/bookingPage/ExpertHeader';
 import BookingForm from '@/components/bookingPage/BookingForm';
 import WishlistSelector from '@/components/bookingPage/WishlistSelector';
 import SuccessView from '@/components/bookingPage/SuccessView';
+
+// ✅ Define Base URL from Env with Fallback
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 function BookingContent() {
   const searchParams = useSearchParams();
@@ -36,7 +38,7 @@ function BookingContent() {
 
     // A. Pre-fill User
     if (userId) {
-      axios.get(`http://localhost:3001/api/user/${userId}`)
+      axios.get(`${API_BASE_URL}/api/user/${userId}`)
         .then((res) => {
           setFormData(prev => ({
             ...prev,
@@ -54,7 +56,8 @@ function BookingContent() {
 
       try {
         if (userId) {
-          const res = await axios.get(`http://localhost:3001/api/wishlist/${userId}`);
+          // ✅ Use API_BASE_URL
+          const res = await axios.get(`${API_BASE_URL}/api/wishlist/${userId}`);
           combinedProducts = res.data.map((item: any) => ({
              sku: item.product_sku,
              product_name: item.product_name,
@@ -66,7 +69,8 @@ function BookingContent() {
           const alreadyExists = combinedProducts.some(p => p.sku === directSku);
           if (!alreadyExists) {
              try {
-               const productRes = await axios.get(`http://localhost:3001/api/products/${directSku}`);
+               // ✅ Use API_BASE_URL
+               const productRes = await axios.get(`${API_BASE_URL}/api/products/${directSku}`);
                combinedProducts.push(productRes.data);
              } catch (e) { console.error("Direct SKU error"); }
           }
@@ -102,7 +106,8 @@ function BookingContent() {
         .filter(p => selectedProducts.includes(p.sku))
         .map(p => p.final_image_url);
 
-      const res = await axios.post('http://localhost:3001/api/bookings', {
+      // ✅ Use API_BASE_URL
+      const res = await axios.post(`${API_BASE_URL}/api/bookings`, {
         user_id: userId,
         expert_name: "Mr. Kamraann Rajjani",
         consultation_date: formData.date,
@@ -128,7 +133,6 @@ function BookingContent() {
         {/* Top Nav */}
         <div className="flex items-center gap-4 mb-8">
           <Link href="/catalogue">
-            {/* 2. Changed Icon Usage: ArrowLeft -> ArrowLeftIcon */}
             <ArrowLeftIcon className="w-6 h-6 text-gray-600 cursor-pointer" />
           </Link>
           <h1 className="text-2xl font-serif font-bold text-gray-800 text-center flex-1 pr-10">Consultation Booking</h1>
@@ -154,7 +158,6 @@ function BookingContent() {
                   disabled={isLoading}
                   className="w-full bg-[#BFA3C6] hover:bg-[#7D3C98] text-white font-bold py-4 rounded-full transition shadow-md flex items-center justify-center gap-2 disabled:opacity-70"
                 >
-                  {/* 3. Changed Icon Usage: Loader2 -> LoaderIcon */}
                   {isLoading && <LoaderIcon className="w-5 h-5 animate-spin" />}
                   {isLoading ? "Confirming..." : "Confirm Booking"}
                 </button>
@@ -173,7 +176,6 @@ export default function BookingPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
-         {/* 4. Changed Icon Usage in Fallback */}
         <LoaderIcon className="w-8 h-8 text-[#7D3C98] animate-spin" />
       </div>
     }>

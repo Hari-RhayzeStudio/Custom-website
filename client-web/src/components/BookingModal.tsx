@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-// Changed: Import from your local Icons file instead of lucide-react
 import { XIcon, CheckIcon, PackageOpenIcon, LoaderIcon } from './Icons';
 import axios from 'axios';
 
@@ -8,6 +7,9 @@ interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+// ✅ 1. Define Base URL
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
   const [step, setStep] = useState(1);
@@ -32,9 +34,9 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
       const userId = localStorage.getItem('user_id');
       const localName = localStorage.getItem('user_name');
 
-      // 1. Pre-fill User Info
+      // ✅ 2. Use API_BASE_URL for User Info
       if (userId) {
-        axios.get(`http://localhost:3001/api/user/${userId}`)
+        axios.get(`${API_BASE_URL}/api/user/${userId}`)
           .then(res => {
             const u = res.data;
             setFormData(prev => ({
@@ -46,10 +48,10 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
           .catch(console.error);
       }
 
-      // 2. Load Wishlist Products
+      // ✅ 3. Use API_BASE_URL for Products
       const storedWishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
       if (storedWishlist.length > 0) {
-        fetch('http://localhost:3001/api/products')
+        fetch(`${API_BASE_URL}/api/products`)
           .then(res => res.json())
           .then(data => {
             const filtered = data.filter((p: any) => storedWishlist.includes(p.sku));
@@ -80,14 +82,15 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
     setIsLoading(true);
 
     try {
-      const res = await axios.post('http://localhost:3001/api/bookings', {
+      // ✅ 4. Use API_BASE_URL for Booking Submission
+      const res = await axios.post(`${API_BASE_URL}/api/bookings`, {
         user_id: userId,
         expert_name: "Mr. Kamraann Rajjani",
         consultation_date: formData.date,
         slot: formData.slot,
         product_skus: selectedProducts,
-        name: formData.name,  // Send for profile update
-        email: formData.email // Send for profile update
+        name: formData.name,  
+        email: formData.email 
       });
 
       if (res.data.success) {

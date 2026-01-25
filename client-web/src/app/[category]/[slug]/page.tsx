@@ -6,10 +6,13 @@ import ProductDetailsClient from '@/components/cataloguePage/ProductDetailsClien
 import TimelineSection from '@/components/TimelineSection';
 import RecommendedProducts from '@/components/cataloguePage/RecommendedProducts';
 
+// ✅ Define Base URL from Env with Fallback
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+
 // ✅ This tells Next.js to generate static pages at build time
 export async function generateStaticParams() {
   try {
-    const res = await fetch('http://localhost:3001/api/products');
+    const res = await fetch(`${API_BASE_URL}/api/products`);
     const products = await res.json();
     
     return products.map((product: any) => ({
@@ -28,7 +31,7 @@ async function getProduct(slug: string) {
     const sku = slug.split('-').pop()?.trim();
     if (!sku) return null;
 
-    const productRes = await fetch(`http://localhost:3001/api/products/${sku}`, {
+    const productRes = await fetch(`${API_BASE_URL}/api/products/${sku}`, {
       next: { revalidate: 3600 } // Revalidate every hour
     });
     
@@ -43,7 +46,7 @@ async function getProduct(slug: string) {
 
 async function getRecommendations(category: string, currentSku: string) {
   try {
-    const res = await fetch('http://localhost:3001/api/products', {
+    const res = await fetch(`${API_BASE_URL}/api/products`, {
       next: { revalidate: 3600 }
     });
     const allProducts = await res.json();

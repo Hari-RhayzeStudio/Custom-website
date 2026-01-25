@@ -4,6 +4,9 @@ import { XIcon, LoaderIcon, ChevronDownIcon } from './Icons';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 
+// ✅ Define Base URL from Env with Fallback
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -34,7 +37,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
     }
   }, [isOpen]);
 
-  // --- 1. SEND OTP (Call your Node API) ---
+  // --- 1. SEND OTP ---
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -42,12 +45,11 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
     if (!isLoginMode && !name.trim()) return alert("Please enter your name");
 
     setIsLoading(true);
-    // Format: +919999999999
     const formattedNumber = `${countryCode}${phone.replace(/\D/g, '')}`;
     
     try {
-      // Call your backend Twilio route
-      const res = await axios.post('http://localhost:3001/api/auth/send-otp', {
+      // ✅ Updated to use dynamic API_BASE_URL
+      const res = await axios.post(`${API_BASE_URL}/api/auth/send-otp`, {
         phoneNumber: formattedNumber
       });
 
@@ -64,7 +66,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
     }
   };
 
-  // --- 2. VERIFY OTP (Call your Node API) ---
+  // --- 2. VERIFY OTP ---
   const handleVerifyOTP = async () => {
     const enteredCode = otp.join("");
     if (enteredCode.length !== 6) return alert("Enter full 6-digit code");
@@ -73,10 +75,11 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
     const formattedNumber = `${countryCode}${phone.replace(/\D/g, '')}`;
 
     try {
-      const res = await axios.post('http://localhost:3001/api/auth/verify-otp', {
+      // ✅ Updated to use dynamic API_BASE_URL
+      const res = await axios.post(`${API_BASE_URL}/api/auth/verify-otp`, {
         phoneNumber: formattedNumber,
         code: enteredCode,
-        name: isLoginMode ? undefined : name // Send name only if registering
+        name: isLoginMode ? undefined : name 
       });
 
       if (res.data.success) {
