@@ -1,19 +1,12 @@
 import type { NextConfig } from "next";
 
-// We use 'any' or remove the type annotation to bypass the strict check
-// preventing you from adding the ignore rules.
-const nextConfig: any = {
+const nextConfig: NextConfig = {
+  // Keep this to ignore TypeScript errors
   typescript: {
-    // !! WARN !!
-    // Dangerously allow production builds to successfully complete even if
-    // your project has type errors.
     ignoreBuildErrors: true,
   },
-  eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
-    ignoreDuringBuilds: true,
-  },
+  // ❌ REMOVE the 'eslint' block from here completely
+  
   images: {
     remotePatterns: [
       {
