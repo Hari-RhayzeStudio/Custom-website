@@ -2,8 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.prismaUser = exports.prismaProduct = void 0;
 const client_1 = require("@prisma/client");
-const client_user_1 = require("@prisma/client-user");
-exports.prismaProduct = new client_1.PrismaClient();
-exports.prismaUser = new client_user_1.PrismaClient();
-// Fix BigInt JSON serialization
+// Create a SINGLE client instance for the entire app
+const globalPrisma = new client_1.PrismaClient();
+// Export the same client for both variables
+// This prevents errors in other files that import 'prismaProduct' or 'prismaUser'
+exports.prismaProduct = globalPrisma;
+exports.prismaUser = globalPrisma;
+// Fix BigInt JSON serialization (required for BigInt IDs)
 BigInt.prototype.toJSON = function () { return this.toString(); };

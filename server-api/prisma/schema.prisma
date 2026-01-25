@@ -94,3 +94,46 @@ model product_assets_duplicate {
   @@ignore
 }
 
+model User {
+  id           String    @id @default(uuid())
+  phone_number String?   @unique
+  full_name    String?
+  email        String?
+  age          Int?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+
+  bookings     Booking[]
+  wishlist     WishlistItem[]
+
+  @@map("users")
+}
+
+model Booking {
+  id                String   @id @default(uuid())
+  user_id           String
+  expert_name       String
+  consultation_date DateTime
+  slot              String
+  product_skus      String[]
+  product_images    String[]
+  status            String   @default("pending")
+  created_at        DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id])
+  
+  @@map("bookings")
+}
+
+model WishlistItem {
+  id            String   @id @default(uuid())
+  user_id       String
+  product_sku   String
+  product_name  String?
+  product_image String?
+  created_at    DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id])
+  
+  @@map("wishlist_items")
+}
