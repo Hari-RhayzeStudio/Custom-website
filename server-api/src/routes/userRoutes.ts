@@ -80,7 +80,6 @@ router.get('/wishlist/:userId', async (req, res) => {
   const { userId } = req.params;
   const { product_sku } = req.query;
 
-  // If product_sku is provided, we only look for that ONE item (Very Fast)
   const whereClause: any = { user_id: userId };
   if (product_sku) {
     whereClause.product_sku = String(product_sku);
@@ -91,6 +90,11 @@ router.get('/wishlist/:userId', async (req, res) => {
       where: whereClause, 
       orderBy: { created_at: 'desc' } 
     });
+    
+    // ✅ ADD THIS: Cache for 60 seconds
+    // This tells the browser: "Don't ask the server again for 1 minute, just use what you have."
+    res.set('Cache-Control', 'public, max-age=60');
+    
     res.json(items);
   } catch (e) { res.status(500).json({ error: "Fetch Failed" }); }
 });

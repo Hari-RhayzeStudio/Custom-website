@@ -170,7 +170,7 @@ export default function ProductDetailsClient({ product }: { product: any }) {
             onClick={handleDiscussDesign}
             className="w-full py-3.5 rounded-full border border-purple-300 text-purple-700 font-bold hover:bg-purple-50 transition flex items-center justify-center gap-3 shadow-sm bg-white"
          >
-            <MeetIcon className="w-6 h-6 text-blue-500" /> Discuss Design
+            <img src="/assets/google-meet-icon.png" alt="Meet" className="w-6 h-6" /> Discuss Design
          </button>
 
       </div>
