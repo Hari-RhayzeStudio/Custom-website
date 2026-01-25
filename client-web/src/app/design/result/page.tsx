@@ -154,7 +154,7 @@ function DesignResultContent() {
       <div className="max-w-6xl mx-auto px-6 py-8 flex items-center justify-between">
           <div className="flex items-center gap-4">
               <Link href="/design" className="p-2 hover:bg-gray-100 rounded-full transition text-gray-600"><ArrowLeftIcon className="w-5 h-5" /></Link>
-              <h1 className="text-lg text-gray-700 font-medium truncate max-w-[500px] capitalize">{data.prompt}</h1>
+              <h1 className="text-lg text-gray-700 font-medium truncate max-w-125 capitalize">{data.prompt}</h1>
           </div>
           {history.length > 1 && !isEditing && <button onClick={handleUndo} className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-gray-600 bg-gray-100 rounded-full hover:bg-gray-200"><Undo2Icon className="w-4 h-4" /> Undo</button>}
       </div>
@@ -171,12 +171,12 @@ function DesignResultContent() {
             imageRef={imageRef} 
         />
         
-        <div className="flex flex-col justify-center pt-4 min-h-[400px]">
+        <div className="flex flex-col justify-center pt-4 min-h-100">
           {isEditing ? (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
                <h2 className="text-xl font-bold text-gray-800 mb-6 font-serif">Select parts to edit</h2>
                <div className="bg-[#FAF8F3] p-6 rounded-2xl border border-[#F0E6D2] mb-6 text-sm text-gray-600"><p>1. Click on the image to place the edit point.</p><p>2. Describe your change below.</p></div>
-               <textarea value={editPrompt} onChange={(e) => setEditPrompt(e.target.value)} placeholder="Change the color..." className="w-full p-4 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-purple-200 min-h-[120px] resize-none mb-6" />
+               <textarea value={editPrompt} onChange={(e) => setEditPrompt(e.target.value)} placeholder="Change the color..." className="w-full p-4 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-purple-200 min-h-30 resize-none mb-6" />
                <button onClick={handleGenerateEdit} disabled={hotspot.x === 0 || !editPrompt.trim()} className="w-full px-8 py-3 bg-[#E5E7EB] hover:bg-[#d1d5db] text-gray-800 rounded-lg font-medium disabled:opacity-50">Generate</button>
             </div>
           ) : (
