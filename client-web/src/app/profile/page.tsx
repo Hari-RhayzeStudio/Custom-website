@@ -1,30 +1,59 @@
 "use client";
-import { useState, useEffect } from 'react';
-import { ArrowLeftIcon, ShoppingBagIcon, SettingsIcon } from '@/components/Icons'; // Updated imports
+import { useState, useEffect, Suspense } from 'react';
+import { ArrowLeftIcon, ShoppingBagIcon, SettingsIcon } from '@/components/Icons'; 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
 import ProfileSidebar from '@/components/profilePage/ProfileSidebar';
 import ProfileDetails from '@/components/profilePage/ProfileDetails';
 import EmptyTab from '@/components/profilePage/EmptyTab';
+import ConsultationsTab from '@/components/profilePage/ConsultationsTab';
 
-export default function ProfilePage() {
+function ProfileContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userData, setUserData] = useState({ id: "", name: "", email: "", phone: "", age: "" });
 
+  // ✅ 1. Listen for URL changes to switch tabs automatically
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'consultations') {
+      setActiveTab('consultations');
+    } else if (tab === 'settings') {
+      setActiveTab('settings');
+    } else {
+      // Default to 'profile' if tab is 'profile' or missing
+      setActiveTab('profile');
+    }
+  }, [searchParams]);
+
+  // ✅ 2. Fetch User Data
   useEffect(() => {
     const userId = localStorage.getItem('user_id');
-    if (!userId) { router.push('/'); return; }
+    if (!userId) { 
+        router.push('/'); 
+        return; 
+    }
 
     axios.get(`http://localhost:3001/api/user/${userId}`)
       .then(res => {
         const d = res.data;
-        setUserData({ id: d.id, name: d.full_name || "Guest", email: d.email || "", phone: d.phone_number || "", age: d.age ? String(d.age) : "" });
+        setUserData({ 
+            id: d.id, 
+            name: d.full_name || "Guest", 
+            email: d.email || "", 
+            phone: d.phone_number || "", 
+            age: d.age ? String(d.age) : "" 
+        });
       })
-      .catch(() => { localStorage.clear(); router.push('/'); })
+      .catch(() => { 
+          localStorage.clear(); 
+          router.push('/'); 
+      })
       .finally(() => setIsLoading(false));
   }, [router]);
 
@@ -35,6 +64,7 @@ export default function ProfilePage() {
       });
       setIsEditing(false);
       localStorage.setItem('user_name', userData.name);
+      alert("Profile updated successfully");
     } catch { alert("Failed to save changes"); }
   };
 
@@ -50,16 +80,38 @@ export default function ProfilePage() {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-8 flex flex-col md:flex-row gap-8 items-start">
-        <ProfileSidebar user={userData} activeTab={activeTab} setActiveTab={setActiveTab} onLogout={() => { localStorage.clear(); router.push('/'); }} />
+        {/* Sidebar also needs to update URL on click to keep state in sync */}
+        <ProfileSidebar 
+            user={userData} 
+            activeTab={activeTab} 
+            setActiveTab={(tab) => {
+                setActiveTab(tab);
+                // Optional: Update URL without reloading to keep history clean
+                router.push(`/profile?tab=${tab}`, { scroll: false });
+            }} 
+            onLogout={() => { localStorage.clear(); router.push('/'); }} 
+        />
         
         <section className="flex-1 w-full">
           {activeTab === 'profile' && (
             <ProfileDetails userData={userData} setUserData={setUserData} isEditing={isEditing} setIsEditing={setIsEditing} onSave={handleSave} />
           )}
-          {activeTab === 'consultations' && <EmptyTab icon={ShoppingBagIcon} title="No previous consultations" desc="Your past jewelry purchases will appear here." />}
+          
+          {activeTab === 'consultations' && (
+            <ConsultationsTab userId={userData.id} />
+          )}
+
           {activeTab === 'settings' && <EmptyTab icon={SettingsIcon} title="Account Settings" desc="Manage notifications and privacy settings here." />}
         </section>
       </main>
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <ProfileContent />
+    </Suspense>
   );
 }
