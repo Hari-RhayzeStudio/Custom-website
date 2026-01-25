@@ -5,7 +5,8 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // ❌ REMOVE the 'eslint' block from here completely
+  
+  // ❌ REMOVED the 'eslint' block entirely
   
   images: {
     remotePatterns: [
