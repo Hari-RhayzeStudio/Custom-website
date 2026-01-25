@@ -93,3 +93,4 @@ model product_assets_duplicate {
 
   @@ignore
 }
+

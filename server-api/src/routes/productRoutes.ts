@@ -15,7 +15,8 @@ router.get('/trending', async (req, res) => {
       take: 3
     });
     
-    const trending = await Promise.all(stats.map(async (stat) => {
+    // ✅ FIX: Added ': any' to the parameter
+    const trending = await Promise.all(stats.map(async (stat: any) => {
       const item = await prismaUser.wishlistItem.findFirst({ where: { product_sku: stat.product_sku } });
       return item ? {
         sku: item.product_sku, 
@@ -50,7 +51,6 @@ router.get('/', async (req, res) => {
     where.category = { equals: category as string, mode: 'insensitive' };
   }
   
-  // Basic material filter mapping logic
   if (material && material !== 'All') {
     where.AND = [
       { final_description: { contains: material as string, mode: 'insensitive' } }
@@ -70,7 +70,7 @@ router.get('/', async (req, res) => {
 });
 
 // ==========================================
-// 3. SINGLE PRODUCT DETAILS (The Missing Fix)
+// 3. SINGLE PRODUCT DETAILS
 // ==========================================
 router.get('/:sku', async (req, res) => {
   const { sku } = req.params;
@@ -82,7 +82,7 @@ router.get('/:sku', async (req, res) => {
     if (!product) {
       return res.status(404).json({ error: "Product not found" });
     }
-    
+      
     res.json(product);
   } catch (error) {
     console.error("Single Product Error:", error);
