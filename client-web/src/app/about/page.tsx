@@ -37,9 +37,9 @@ function shuffleArray<T>(array: T[]): T[] {
 async function getAboutData() {
   try {
     // ✅ 2. Use the dynamic API URL
-    // We add no-store or revalidate: 0 to ensure we get fresh random designs on every page load if desired, 
-    // or keep revalidate: 60 for performance.
-    const res = await fetch(`${API_BASE_URL}/api/products`, { next: { revalidate: 60 } });
+    // We use no-store or revalidate: 0 to ensure fresh random designs on reload.
+    // If you want static caching, change to revalidate: 60.
+    const res = await fetch(`${API_BASE_URL}/api/products`, { next: { revalidate: 0 } });
     
     if (!res.ok) throw new Error('Failed to fetch');
     const allProducts: Product[] = await res.json();
@@ -61,6 +61,8 @@ async function getAboutData() {
 
 export default async function AboutUs() {
   const { headerImages, lifecycleProduct } = await getAboutData();
+  
+  // ✅ 3. Correct Path (Assuming file is in public/assets/placeholder-jewelry.jpg)
   const placeholderImg = "/assets/placeholder-jewelry.jpg";
 
   return (
@@ -85,7 +87,11 @@ export default async function AboutUs() {
                       className="object-cover w-full h-full hover:scale-110 transition duration-700" 
                     />
                 </div>
-            )) : [1,2,3].map(i => <div key={i} className="aspect-4/5 bg-gray-100 rounded-3xl animate-pulse"></div>)}
+            )) : [1,2,3].map(i => (
+                <div key={i} className="aspect-4/5 bg-gray-50 rounded-3xl animate-pulse border border-gray-100 flex items-center justify-center">
+                    <span className="text-gray-300 font-medium">Loading Design...</span>
+                </div>
+            ))}
         </div>
       </section>
 
@@ -107,7 +113,7 @@ export default async function AboutUs() {
                 Our experts are 24/7 available to guide you through the process. Let's make something beautiful together.
             </p>
             <Link href="/bookings">
-              <button className="flex items-center gap-3 bg-[#7D3C98] text-white px-10 py-4 rounded-full font-bold hover:bg-[#6a3281] transition shadow-lg hover:shadow-purple-200 transform hover:-translate-y-1 mx-auto">
+              <button className="flex items-center gap-3 bg-[#7D3C98] text-white px-10 py-4 rounded-full font-bold hover:bg-[#6a3281] transition shadow-lg hover:shadow-purple-200 transform hover:-translate-y-1 mx-auto cursor-pointer">
                  <SparklesIcon className="w-5 h-5" /> Start Free Consultation
               </button>
             </Link>
