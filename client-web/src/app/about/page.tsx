@@ -58,7 +58,7 @@ async function getAboutData() {
 
 export default async function AboutUs() {
   const { headerImages, lifecycleProduct } = await getAboutData();
-  const placeholderImg = "/placeholder-jewelry.jpg";
+  const placeholderImg = "/assets/placeholder-jewelry.jpg";
 
   return (
     <main className="bg-white overflow-hidden font-sans">
