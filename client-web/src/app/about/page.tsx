@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { SparklesIcon } from '@/components/Icons';
-// ✅ IMPORT FIXED: Pointing to the correct location based on previous steps
 import TimelineSection from '@/components/TimelineSection'; 
 
-// ✅ INTERFACE UPDATED: Added alt_text fields for SEO
+// ✅ 1. Define Base URL from Env with Fallback
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+
 interface Product {
   id: string;
   product_name: string;
@@ -35,8 +36,10 @@ function shuffleArray<T>(array: T[]): T[] {
 
 async function getAboutData() {
   try {
-    // Ensure this URL matches your .env variable or localhost port
-    const res = await fetch('http://localhost:3001/api/products', { next: { revalidate: 60 } });
+    // ✅ 2. Use the dynamic API URL
+    // We add no-store or revalidate: 0 to ensure we get fresh random designs on every page load if desired, 
+    // or keep revalidate: 60 for performance.
+    const res = await fetch(`${API_BASE_URL}/api/products`, { next: { revalidate: 60 } });
     
     if (!res.ok) throw new Error('Failed to fetch');
     const allProducts: Product[] = await res.json();
@@ -93,7 +96,6 @@ export default async function AboutUs() {
             <p className="text-gray-500">From your imagination to reality</p>
          </div>
          
-         {/* ✅ Explicitly passing mode="full" (though it is default) */}
          <TimelineSection product={lifecycleProduct} mode="full" />
       </section>
 
@@ -104,7 +106,6 @@ export default async function AboutUs() {
             <p className="text-gray-500 mb-10 leading-relaxed">
                 Our experts are 24/7 available to guide you through the process. Let's make something beautiful together.
             </p>
-            {/* ✅ WRAPPED IN LINK TO BOOKINGS */}
             <Link href="/bookings">
               <button className="flex items-center gap-3 bg-[#7D3C98] text-white px-10 py-4 rounded-full font-bold hover:bg-[#6a3281] transition shadow-lg hover:shadow-purple-200 transform hover:-translate-y-1 mx-auto">
                  <SparklesIcon className="w-5 h-5" /> Start Free Consultation
