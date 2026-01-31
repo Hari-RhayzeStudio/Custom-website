@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { XIcon, UploadIcon } from '@/components/Icons';
 import TrendingDesigns from '@/components/designPage/TrendingDesigns';
 
+// Default / Fallback Images
 const DEFAULT_CATEGORIES = [
   { name: 'Men-rings', image: '/assets/placeholder-men-ring.jpg' },
   { name: 'Bands', image: '/assets/placeholder-band.jpg' },
@@ -25,82 +26,28 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [hotspot, setHotspot] = useState({ x: 0, y: 0 });
   
-  // Debug state - remove after fixing
-  const [showDebug, setShowDebug] = useState(false);
-  
   const imageRef = useRef<HTMLImageElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // --- ENHANCED DEBUG LOGGING ---
   useEffect(() => {
-    console.log('=== DESIGN CLIENT DEBUG START ===');
-    console.log('Environment Check:', {
-      NEXT_PUBLIC_BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL,
-      isProduction: process.env.NODE_ENV === 'production',
-      timestamp: new Date().toISOString()
-    });
-    
-    // Check productsData validity
-    if (!productsData) {
-      console.error('❌ productsData is undefined/null');
-      return;
-    }
-    
-    if (!Array.isArray(productsData)) {
-      console.error('❌ productsData is not an array:', typeof productsData, productsData);
-      return;
-    }
-    
-    if (productsData.length === 0) {
-      console.warn('⚠️ productsData is empty array - no products received from API');
-      return;
-    }
+    if (!Array.isArray(productsData) || productsData.length === 0) return;
 
-    console.log('✅ Products received:', productsData.length);
-    console.log('Sample product structure:', {
-      firstProduct: productsData[0],
-      hasCategory: !!productsData[0]?.category,
-      hasImageUrl: !!productsData[0]?.image_url,
-      hasFinalImageUrl: !!productsData[0]?.final_image_url
-    });
-
-    // Process categories
     const dynamicCategories = DEFAULT_CATEGORIES.map(cat => {
-      const matching = productsData.filter((p: any) => {
-        const categoryMatch = p.category?.toLowerCase() === cat.name.toLowerCase();
-        const hasImage = !!(p.final_image_url || p.image_url);
-        return categoryMatch && hasImage;
-      });
+        const matching = productsData.filter((p: any) => 
+            p.category?.toLowerCase() === cat.name.toLowerCase() && 
+            (p.final_image_url || p.image_url)
+        );
 
-      console.log(`📂 Category "${cat.name}":`, {
-        totalMatching: matching.length,
-        sampleProduct: matching[0] || 'none',
-        sampleImageUrl: matching[0]?.final_image_url || matching[0]?.image_url || 'none'
-      });
-
-      if (matching.length > 0) {
-        const randomProduct = matching[Math.floor(Math.random() * matching.length)];
-        const imageUrl = randomProduct.final_image_url || randomProduct.image_url;
-        
-        console.log(`✅ Assigning image to ${cat.name}:`, {
-          productId: randomProduct._id || randomProduct.id,
-          imageUrl: imageUrl,
-          urlStartsWith: imageUrl?.substring(0, 50)
-        });
-        
-        return { 
-          name: cat.name, 
-          image: imageUrl 
-        };
-      }
-      
-      console.log(`⚠️ No matching products for ${cat.name}, using fallback`);
-      return cat;
+        if (matching.length > 0) {
+            const randomProduct = matching[Math.floor(Math.random() * matching.length)];
+            return { 
+                name: cat.name, 
+                image: randomProduct.final_image_url || randomProduct.image_url 
+            };
+        }
+        return cat;
     });
 
-    console.log('Final categories configuration:', dynamicCategories);
-    console.log('=== DESIGN CLIENT DEBUG END ===');
-    
     setCategories(dynamicCategories);
   }, [productsData]);
 
@@ -149,68 +96,13 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
     router.push(`/design/result?prompt=${cleanPrompt}`);
   };
 
+  // ✅ NEW: Navigate to catalogue with category filter
   const handleCategoryClick = (categoryName: string) => {
-    console.log('Category clicked:', categoryName);
     router.push(`/catalogue?category=${encodeURIComponent(categoryName)}`);
   };
 
   return (
     <div className="min-h-screen bg-[#FAF8F3] py-10">
-      {/* DEBUG PANEL - REMOVE AFTER FIXING */}
-      {showDebug && (
-        <div className="fixed bottom-20 right-4 bg-black text-white p-4 rounded-lg max-w-md max-h-96 overflow-auto z-50 text-xs font-mono">
-          <button 
-            onClick={() => setShowDebug(false)} 
-            className="float-right text-red-500 hover:text-red-300"
-          >
-            ❌ Close
-          </button>
-          <h3 className="font-bold mb-2 text-green-400">🐛 Debug Info</h3>
-          <div className="space-y-2">
-            <div>
-              <strong className="text-yellow-400">Products Data:</strong>
-              <div className="pl-2">
-                Length: {productsData?.length || 0}<br/>
-                Type: {Array.isArray(productsData) ? 'Array ✅' : typeof productsData + ' ❌'}
-              </div>
-            </div>
-            <div>
-              <strong className="text-yellow-400">Environment:</strong>
-              <div className="pl-2 break-all">
-                {process.env.NEXT_PUBLIC_BACKEND_URL || '❌ NOT SET'}
-              </div>
-            </div>
-            <div>
-              <strong className="text-yellow-400">Categories:</strong>
-              {categories.map((cat, idx) => (
-                <div key={idx} className="pl-2 mb-1">
-                  {cat.name}:<br/>
-                  <span className="text-green-300 break-all text-[10px]">
-                    {cat.image.substring(0, 60)}...
-                  </span>
-                </div>
-              ))}
-            </div>
-            {productsData?.[0] && (
-              <div>
-                <strong className="text-yellow-400">Sample Product:</strong>
-                <pre className="pl-2 text-[10px] overflow-auto">
-                  {JSON.stringify(productsData[0], null, 2).substring(0, 500)}
-                </pre>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-      
-      {/* DEBUG TOGGLE BUTTON - REMOVE AFTER FIXING */}
-      <button 
-        onClick={() => setShowDebug(!showDebug)} 
-        className="fixed bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg z-50 shadow-lg text-sm font-medium"
-      >
-        🐛 {showDebug ? 'Hide' : 'Show'} Debug
-      </button>
-
       <div className="max-w-5xl mx-auto px-6">
         
         <h1 className="text-4xl md:text-5xl font-serif text-center mb-12 text-gray-800">
@@ -223,27 +115,18 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
               <div 
                 key={category.name} 
                 onClick={() => handleCategoryClick(category.name)}
-                className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all group cursor-pointer"
+                className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group cursor-pointer"
               >
                 <div className="aspect-square overflow-hidden bg-gray-100 relative">
                   <img 
                     src={category.image} 
                     alt={category.name} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    onError={(e) => { 
-                      console.error(`❌ Image load failed for ${category.name}:`, category.image);
-                      e.currentTarget.src = "/assets/placeholder-jewelry.jpg"; 
-                    }} 
-                    onLoad={() => {
-                      console.log(`✅ Image loaded successfully for ${category.name}`);
-                    }}
-                    loading="eager"
+                    onError={(e) => { e.currentTarget.src = "/assets/placeholder-jewelry.jpg"; }} 
                   />
                   <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors" />
                 </div>
-                <p className="text-center py-3 font-medium text-gray-700 font-serif tracking-wide">
-                  {category.name}
-                </p>
+                <p className="text-center py-3 font-medium text-gray-700 font-serif tracking-wide">{category.name}</p>
               </div>
             ))}
           </div>
@@ -253,49 +136,23 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
           <div className="bg-white rounded-3xl p-8 shadow-sm mb-8 animate-in fade-in slide-in-from-bottom-4">
             <div className="flex flex-col md:flex-row gap-12 items-start justify-center">
               <div className="relative group w-full md:w-1/2 flex justify-center">
-                <button 
-                  onClick={() => { setSelectedFile(null); setHotspot({x:0, y:0}); }} 
-                  className="absolute -top-2 -right-2 md:top-0 md:right-0 p-2 text-gray-400 hover:text-red-500 hover:bg-gray-100 rounded-full transition z-10"
-                >
-                  <XIcon className="w-5 h-5"/>
+                <button onClick={() => { setSelectedFile(null); setHotspot({x:0, y:0}); }} className="absolute -top-2 -right-2 md:top-0 md:right-0 p-2 text-gray-400 hover:text-red-500 hover:bg-gray-100 rounded-full transition z-10">
+                    <XIcon className="w-5 h-5"/>
                 </button>
                 <div className="relative inline-block">
-                  <img 
-                    ref={imageRef} 
-                    src={previewUrl} 
-                    onClick={handleImageClick} 
-                    className="max-h-75 w-auto object-contain cursor-crosshair rounded-lg" 
-                    alt="Reference"
-                  />
+                  <img ref={imageRef} src={previewUrl} onClick={handleImageClick} className="max-h-75 w-auto object-contain cursor-crosshair rounded-lg" alt="Reference"/>
                   {hotspot.x > 0 && (
-                    <div 
-                      className="absolute w-5 h-5 bg-purple-600 rounded-full border-[3px] border-white shadow-lg pointer-events-none animate-pulse" 
-                      style={{ 
-                        left: `${(hotspot.x / (imageRef.current?.naturalWidth||1))*(imageRef.current?.width||1)}px`, 
-                        top: `${(hotspot.y / (imageRef.current?.naturalHeight||1))*(imageRef.current?.height||1)}px`, 
-                        transform: 'translate(-50%, -50%)' 
-                      }} 
-                    />
+                    <div className="absolute w-5 h-5 bg-purple-600 rounded-full border-[3px] border-white shadow-lg pointer-events-none animate-pulse" style={{ left: `${(hotspot.x / (imageRef.current?.naturalWidth||1))*(imageRef.current?.width||1)}px`, top: `${(hotspot.y / (imageRef.current?.naturalHeight||1))*(imageRef.current?.height||1)}px`, transform: 'translate(-50%, -50%)' }} />
                   )}
                 </div>
               </div>
               <div className="w-full md:w-1/2 flex flex-col justify-center space-y-6 pt-4">
-                <div className="bg-[#F9F5E8] py-3 px-6 rounded-lg shadow-sm border border-[#F0EAD6]">
-                  <p className="font-bold text-gray-800 text-sm text-center tracking-wide">
-                    Click on product to make precise edit
-                  </p>
-                </div>
-                <div className="bg-[#FDFBF7] p-6 rounded-xl border border-gray-100 space-y-4">
-                  <p className="text-gray-600 text-sm flex gap-3 items-center">
-                    <span className="font-bold text-gray-400">1.</span> Select part to edit
-                  </p>
-                  <p className="text-gray-600 text-sm flex gap-3 items-center">
-                    <span className="font-bold text-gray-400">2.</span> enter prompt to make precise edit
-                  </p>
-                  <p className="text-gray-600 text-sm flex gap-3 items-center">
-                    <span className="font-bold text-gray-400">3.</span> Generate Product
-                  </p>
-                </div>
+                 <div className="bg-[#F9F5E8] py-3 px-6 rounded-lg shadow-sm border border-[#F0EAD6]"><p className="font-bold text-gray-800 text-sm text-center tracking-wide">Click on product to make precise edit</p></div>
+                 <div className="bg-[#FDFBF7] p-6 rounded-xl border border-gray-100 space-y-4">
+                    <p className="text-gray-600 text-sm flex gap-3 items-center"><span className="font-bold text-gray-400">1.</span> Select part to edit</p>
+                    <p className="text-gray-600 text-sm flex gap-3 items-center"><span className="font-bold text-gray-400">2.</span> enter prompt to make precise edit</p>
+                    <p className="text-gray-600 text-sm flex gap-3 items-center"><span className="font-bold text-gray-400">3.</span> Generate Product</p>
+                 </div>
               </div>
             </div>
           </div>
@@ -303,38 +160,23 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
 
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100/50">
           <div className="relative">
-            <textarea
-              className="w-full p-4 pr-12 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-purple-200 min-h-30 resize-none text-gray-700 placeholder:text-gray-400 text-base"
-              placeholder={selectedFile ? "Describe your edit here..." : "Enter your jewellery detail here..."}
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-            />
-            {!selectedFile && (
-              <button 
-                onClick={() => fileInputRef.current?.click()} 
-                className="absolute bottom-4 right-4 p-2 text-gray-400 hover:text-purple-600 transition bg-white rounded-full hover:bg-gray-50 border border-transparent hover:border-gray-200"
-              >
-                <UploadIcon className="w-5 h-5" />
-              </button>
-            )}
-            <input 
-              ref={fileInputRef} 
-              type="file" 
-              accept="image/*" 
-              onChange={handleFileSelect} 
-              className="hidden" 
-            />
+             <textarea
+               className="w-full p-4 pr-12 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-purple-200 min-h-30 resize-none text-gray-700 placeholder:text-gray-400 text-base"
+               placeholder={selectedFile ? "Describe your edit here..." : "Enter your jewellery detail here..."}
+               value={prompt}
+               onChange={(e) => setPrompt(e.target.value)}
+             />
+             {!selectedFile && (
+               <button onClick={() => fileInputRef.current?.click()} className="absolute bottom-4 right-4 p-2 text-gray-400 hover:text-purple-600 transition bg-white rounded-full hover:bg-gray-50 border border-transparent hover:border-gray-200">
+                   <UploadIcon className="w-5 h-5" />
+               </button>
+             )}
+             <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
           </div>
         </div>
 
         <div className="mt-8 flex justify-center">
-          <button 
-            onClick={handleGenerate} 
-            disabled={!prompt.trim()} 
-            className="px-12 py-3 bg-[#E5E7EB] hover:bg-[#d1d5db] text-gray-700 rounded-lg font-medium transition-colors text-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Generate
-          </button>
+           <button onClick={handleGenerate} disabled={!prompt.trim()} className="px-12 py-3 bg-[#E5E7EB] hover:bg-[#d1d5db] text-gray-700 rounded-lg font-medium transition-colors text-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">Generate</button>
         </div>
 
         <TrendingDesigns 
@@ -346,25 +188,13 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
         />
         
         <div className="mt-20 border-t border-gray-200 pt-10">
-          <div className="flex items-center gap-4 mb-12 justify-center">
-            <div className="h-px bg-gray-200 w-20"></div>
-            <h2 className="text-2xl font-serif text-gray-800">How it works</h2>
-            <div className="h-px bg-gray-200 w-20"></div>
-          </div>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-white p-8 rounded-3xl text-center shadow-sm">
-              <h3 className="text-xl font-serif font-bold text-[#7D3C98] mb-4">Step 1: Generate</h3>
-              <p className="text-gray-500 text-sm">
-                Create your favourite jewellery with just a prompt and save it in your wishlist.
-              </p>
+            <div className="flex items-center gap-4 mb-12 justify-center">
+              <div className="h-px bg-gray-200 w-20"></div><h2 className="text-2xl font-serif text-gray-800">How it works</h2><div className="h-px bg-gray-200 w-20"></div>
             </div>
-            <div className="bg-white p-8 rounded-3xl text-center shadow-sm">
-              <h3 className="text-xl font-serif font-bold text-[#7D3C98] mb-4">Step 2: Consultation</h3>
-              <p className="text-gray-500 text-sm">
-                We'll help you to bring your imagination into reality with free discussion.
-              </p>
+            <div className="grid md:grid-cols-2 gap-8">
+               <div className="bg-white p-8 rounded-3xl text-center shadow-sm"><h3 className="text-xl font-serif font-bold text-[#7D3C98] mb-4">Step 1: Generate</h3><p className="text-gray-500 text-sm">Create your favourite jewellery with just a prompt and save it in your wishlist.</p></div>
+               <div className="bg-white p-8 rounded-3xl text-center shadow-sm"><h3 className="text-xl font-serif font-bold text-[#7D3C98] mb-4">Step 2: Consultation</h3><p className="text-gray-500 text-sm">We'll help you to bring your imagination into reality with free discussion.</p></div>
             </div>
-          </div>
         </div>
 
       </div>
