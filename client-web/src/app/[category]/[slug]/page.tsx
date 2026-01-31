@@ -12,7 +12,17 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:30
 // ✅ This tells Next.js to generate static pages at build time
 export async function generateStaticParams() {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/products`);
+    // Set a short timeout so the build doesn't hang forever
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+    const res = await fetch(`${API_BASE_URL}/api/products`, { 
+      signal: controller.signal 
+    });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) throw new Error("Backend not reachable");
+
     const products = await res.json();
     
     return products.map((product: any) => ({
@@ -20,7 +30,8 @@ export async function generateStaticParams() {
       slug: `${product.product_name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${product.sku}`,
     }));
   } catch (error) {
-    console.error('Error generating static params:', error);
+    console.warn('⚠️ Backend down or sleeping during build. Skipping static generation for products.');
+    // Return empty array so build succeeds. Pages will be generated on-demand at runtime instead.
     return [];
   }
 }
