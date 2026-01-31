@@ -28,25 +28,33 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
   const imageRef = useRef<HTMLImageElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Update category images based on fetched products
   useEffect(() => {
-    if (!Array.isArray(productsData) || productsData.length === 0) return;
+    if (!productsData || !Array.isArray(productsData) || productsData.length === 0) return;
 
     const dynamicCategories = DEFAULT_CATEGORIES.map(cat => {
-        const matching = productsData.filter((p: any) => 
-            p.category?.toLowerCase() === cat.name.toLowerCase() && 
-            (p.final_image_url || p.image_url)
-        );
+      // Find products that match the category and have a valid image
+      const matching = productsData.filter((p: any) => {
+        const categoryMatch = p.category?.toLowerCase() === cat.name.toLowerCase();
+        const hasImage = !!(p.final_image_url || p.image_url);
+        return categoryMatch && hasImage;
+      });
 
-        if (matching.length > 0) {
-            const randomProduct = matching[Math.floor(Math.random() * matching.length)];
-            return { 
-                name: cat.name, 
-                image: randomProduct.final_image_url || randomProduct.image_url 
-            };
-        }
-        return cat;
+      // If we found matching products, pick a random one for the thumbnail
+      if (matching.length > 0) {
+        const randomProduct = matching[Math.floor(Math.random() * matching.length)];
+        const imageUrl = randomProduct.final_image_url || randomProduct.image_url;
+        
+        return { 
+          name: cat.name, 
+          image: imageUrl 
+        };
+      }
+      
+      // Fallback to default if no dynamic image found
+      return cat;
     });
-
+    
     setCategories(dynamicCategories);
   }, [productsData]);
 
@@ -120,7 +128,10 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
                     src={category.image} 
                     alt={category.name} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    onError={(e) => { e.currentTarget.src = "/assets/placeholder-jewelry.jpg"; }} 
+                    onError={(e) => { 
+                      e.currentTarget.src = "/assets/placeholder-jewelry.jpg"; 
+                    }} 
+                    loading="eager"
                   />
                   <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors" />
                 </div>
