@@ -25,25 +25,68 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [hotspot, setHotspot] = useState({ x: 0, y: 0 });
   
+  // Debug state - remove after fixing
+  const [showDebug, setShowDebug] = useState(false);
+  
   const imageRef = useRef<HTMLImageElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Update category images based on fetched products
+  // --- ENHANCED DEBUG LOGGING ---
   useEffect(() => {
-    if (!productsData || !Array.isArray(productsData) || productsData.length === 0) return;
+    console.log('=== DESIGN CLIENT DEBUG START ===');
+    console.log('Environment Check:', {
+      NEXT_PUBLIC_BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL,
+      isProduction: process.env.NODE_ENV === 'production',
+      timestamp: new Date().toISOString()
+    });
+    
+    // Check productsData validity
+    if (!productsData) {
+      console.error('❌ productsData is undefined/null');
+      return;
+    }
+    
+    if (!Array.isArray(productsData)) {
+      console.error('❌ productsData is not an array:', typeof productsData, productsData);
+      return;
+    }
+    
+    if (productsData.length === 0) {
+      console.warn('⚠️ productsData is empty array - no products received from API');
+      return;
+    }
 
+    console.log('✅ Products received:', productsData.length);
+    console.log('Sample product structure:', {
+      firstProduct: productsData[0],
+      hasCategory: !!productsData[0]?.category,
+      hasImageUrl: !!productsData[0]?.image_url,
+      hasFinalImageUrl: !!productsData[0]?.final_image_url
+    });
+
+    // Process categories
     const dynamicCategories = DEFAULT_CATEGORIES.map(cat => {
-      // Find products that match the category and have a valid image
       const matching = productsData.filter((p: any) => {
         const categoryMatch = p.category?.toLowerCase() === cat.name.toLowerCase();
         const hasImage = !!(p.final_image_url || p.image_url);
         return categoryMatch && hasImage;
       });
 
-      // If we found matching products, pick a random one for the thumbnail
+      console.log(`📂 Category "${cat.name}":`, {
+        totalMatching: matching.length,
+        sampleProduct: matching[0] || 'none',
+        sampleImageUrl: matching[0]?.final_image_url || matching[0]?.image_url || 'none'
+      });
+
       if (matching.length > 0) {
         const randomProduct = matching[Math.floor(Math.random() * matching.length)];
         const imageUrl = randomProduct.final_image_url || randomProduct.image_url;
+        
+        console.log(`✅ Assigning image to ${cat.name}:`, {
+          productId: randomProduct._id || randomProduct.id,
+          imageUrl: imageUrl,
+          urlStartsWith: imageUrl?.substring(0, 50)
+        });
         
         return { 
           name: cat.name, 
@@ -51,9 +94,12 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
         };
       }
       
-      // Fallback to default if no dynamic image found
+      console.log(`⚠️ No matching products for ${cat.name}, using fallback`);
       return cat;
     });
+
+    console.log('Final categories configuration:', dynamicCategories);
+    console.log('=== DESIGN CLIENT DEBUG END ===');
     
     setCategories(dynamicCategories);
   }, [productsData]);
@@ -104,11 +150,67 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
   };
 
   const handleCategoryClick = (categoryName: string) => {
+    console.log('Category clicked:', categoryName);
     router.push(`/catalogue?category=${encodeURIComponent(categoryName)}`);
   };
 
   return (
     <div className="min-h-screen bg-[#FAF8F3] py-10">
+      {/* DEBUG PANEL - REMOVE AFTER FIXING */}
+      {showDebug && (
+        <div className="fixed bottom-20 right-4 bg-black text-white p-4 rounded-lg max-w-md max-h-96 overflow-auto z-50 text-xs font-mono">
+          <button 
+            onClick={() => setShowDebug(false)} 
+            className="float-right text-red-500 hover:text-red-300"
+          >
+            ❌ Close
+          </button>
+          <h3 className="font-bold mb-2 text-green-400">🐛 Debug Info</h3>
+          <div className="space-y-2">
+            <div>
+              <strong className="text-yellow-400">Products Data:</strong>
+              <div className="pl-2">
+                Length: {productsData?.length || 0}<br/>
+                Type: {Array.isArray(productsData) ? 'Array ✅' : typeof productsData + ' ❌'}
+              </div>
+            </div>
+            <div>
+              <strong className="text-yellow-400">Environment:</strong>
+              <div className="pl-2 break-all">
+                {process.env.NEXT_PUBLIC_BACKEND_URL || '❌ NOT SET'}
+              </div>
+            </div>
+            <div>
+              <strong className="text-yellow-400">Categories:</strong>
+              {categories.map((cat, idx) => (
+                <div key={idx} className="pl-2 mb-1">
+                  {cat.name}:<br/>
+                  <span className="text-green-300 break-all text-[10px]">
+                    {cat.image.substring(0, 60)}...
+                  </span>
+                </div>
+              ))}
+            </div>
+            {productsData?.[0] && (
+              <div>
+                <strong className="text-yellow-400">Sample Product:</strong>
+                <pre className="pl-2 text-[10px] overflow-auto">
+                  {JSON.stringify(productsData[0], null, 2).substring(0, 500)}
+                </pre>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
+      {/* DEBUG TOGGLE BUTTON - REMOVE AFTER FIXING */}
+      <button 
+        onClick={() => setShowDebug(!showDebug)} 
+        className="fixed bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg z-50 shadow-lg text-sm font-medium"
+      >
+        🐛 {showDebug ? 'Hide' : 'Show'} Debug
+      </button>
+
       <div className="max-w-5xl mx-auto px-6">
         
         <h1 className="text-4xl md:text-5xl font-serif text-center mb-12 text-gray-800">
@@ -129,8 +231,12 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
                     alt={category.name} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     onError={(e) => { 
+                      console.error(`❌ Image load failed for ${category.name}:`, category.image);
                       e.currentTarget.src = "/assets/placeholder-jewelry.jpg"; 
                     }} 
+                    onLoad={() => {
+                      console.log(`✅ Image loaded successfully for ${category.name}`);
+                    }}
                     loading="eager"
                   />
                   <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors" />
