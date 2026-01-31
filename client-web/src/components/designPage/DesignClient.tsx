@@ -33,22 +33,36 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
 
   // --- 1. PROCESS CATEGORIES (Instant - No Fetching needed) ---
   useEffect(() => {
-    if (!Array.isArray(productsData) || productsData.length === 0) return;
+    if (!Array.isArray(productsData) || productsData.length === 0) {
+      console.log('No products data available, using defaults');
+      return;
+    }
+
+    console.log('Processing products data:', productsData.length, 'products');
 
     const dynamicCategories = DEFAULT_CATEGORIES.map(cat => {
-        const matching = productsData.filter((p: any) => 
-            p.category?.toLowerCase() === cat.name.toLowerCase() && 
-            (p.final_image_url || p.image_url)
-        );
+        const matching = productsData.filter((p: any) => {
+            const categoryMatch = p.category?.toLowerCase() === cat.name.toLowerCase();
+            const hasImage = !!(p.final_image_url || p.image_url);
+            return categoryMatch && hasImage;
+        });
+
+        console.log(`Category ${cat.name}: Found ${matching.length} matching products`);
 
         if (matching.length > 0) {
             // Pick a random product
             const randomProduct = matching[Math.floor(Math.random() * matching.length)];
+            const imageUrl = randomProduct.final_image_url || randomProduct.image_url;
+            
+            console.log(`Using image for ${cat.name}:`, imageUrl);
+            
             return { 
                 name: cat.name, 
-                image: randomProduct.final_image_url || randomProduct.image_url 
+                image: imageUrl 
             };
         }
+        
+        console.log(`No products found for ${cat.name}, using fallback`);
         return cat;
     });
 
@@ -101,6 +115,12 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
     router.push(`/design/result?prompt=${cleanPrompt}`);
   };
 
+  // NEW: Handle category click to navigate to catalogue with filter
+  const handleCategoryClick = (categoryName: string) => {
+    // Navigate to catalogue page with category filter
+    router.push(`/catalogue?category=${encodeURIComponent(categoryName)}`);
+  };
+
   // --- RENDER ---
   return (
     <div className="min-h-screen bg-[#FAF8F3] py-10">
@@ -115,13 +135,21 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
         {!selectedFile && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-12">
             {categories.map((category) => (
-              <div key={category.name} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group cursor-default">
+              <div 
+                key={category.name} 
+                onClick={() => handleCategoryClick(category.name)}
+                className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all group cursor-pointer"
+              >
                 <div className="aspect-square overflow-hidden bg-gray-100 relative">
                   <img 
                     src={category.image} 
                     alt={category.name} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    onError={(e) => { e.currentTarget.src = "/assets/placeholder-jewelry.jpg"; }} 
+                    onError={(e) => { 
+                      console.error(`Failed to load image for ${category.name}:`, category.image);
+                      e.currentTarget.src = "/assets/placeholder-jewelry.jpg"; 
+                    }} 
+                    loading="eager"
                   />
                   <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors" />
                 </div>
