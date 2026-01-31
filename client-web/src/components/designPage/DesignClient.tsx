@@ -33,10 +33,22 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
     if (!productsData || !Array.isArray(productsData) || productsData.length === 0) return;
 
     const dynamicCategories = DEFAULT_CATEGORIES.map(cat => {
+      // Normalize category name for more flexible matching
+      const normalizedCatName = cat.name.toLowerCase().replace(/[-_\s]/g, '');
+      
       // Find products that match the category and have a valid image
       const matching = productsData.filter((p: any) => {
-        const categoryMatch = p.category?.toLowerCase() === cat.name.toLowerCase();
+        if (!p.category) return false;
+        
+        // Normalize product category name
+        const normalizedProductCat = p.category.toLowerCase().replace(/[-_\s]/g, '');
+        
+        // Check if categories match (with normalized comparison)
+        const categoryMatch = normalizedProductCat === normalizedCatName;
+        
+        // Check if product has a valid image URL
         const hasImage = !!(p.final_image_url || p.image_url);
+        
         return categoryMatch && hasImage;
       });
 
@@ -45,10 +57,13 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
         const randomProduct = matching[Math.floor(Math.random() * matching.length)];
         const imageUrl = randomProduct.final_image_url || randomProduct.image_url;
         
-        return { 
-          name: cat.name, 
-          image: imageUrl 
-        };
+        // Validate that the image URL is not empty or undefined
+        if (imageUrl && imageUrl.trim() !== '') {
+          return { 
+            name: cat.name, 
+            image: imageUrl 
+          };
+        }
       }
       
       // Fallback to default if no dynamic image found
