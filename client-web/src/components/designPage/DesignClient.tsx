@@ -4,11 +4,18 @@ import { useRouter } from 'next/navigation';
 import { XIcon, UploadIcon } from '@/components/Icons';
 import TrendingDesigns from '@/components/designPage/TrendingDesigns';
 
+// ✅ Swiper Imports
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { EffectCoverflow, Autoplay, Pagination } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/effect-coverflow';
+import 'swiper/css/pagination';
+
 const DEFAULT_CATEGORIES = [
   { name: 'Men-rings', image: '/assets/placeholder-men-ring.jpg' },
   { name: 'Bands', image: '/assets/placeholder-band.jpg' },
   { name: 'Ladies-rings', image: '/assets/placeholder-ladies-ring.jpg' },
-  { name: 'Earrings', image: '/assets/placeholder-earring.jpg' },
+  { name: 'Earrings', image: '/assets/placeholder-earring.jpg' }
 ];
 
 interface DesignClientProps {
@@ -28,49 +35,33 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
   const imageRef = useRef<HTMLImageElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Update category images based on fetched products
   useEffect(() => {
     if (!productsData || !Array.isArray(productsData) || productsData.length === 0) return;
 
     const dynamicCategories = DEFAULT_CATEGORIES.map(cat => {
-      // Normalize category name for more flexible matching
       const normalizedCatName = cat.name.toLowerCase().replace(/[-_\s]/g, '');
-      
-      // Find products that match the category and have a valid image
       const matching = productsData.filter((p: any) => {
         if (!p.category) return false;
-        
-        // Normalize product category name
         const normalizedProductCat = p.category.toLowerCase().replace(/[-_\s]/g, '');
-        
-        // Check if categories match (with normalized comparison)
-        const categoryMatch = normalizedProductCat === normalizedCatName;
-        
-        // Check if product has a valid image URL
-        const hasImage = !!(p.final_image_url || p.image_url);
-        
-        return categoryMatch && hasImage;
+        return normalizedProductCat === normalizedCatName && !!(p.final_image_url || p.image_url);
       });
 
-      // If we found matching products, pick a random one for the thumbnail
       if (matching.length > 0) {
         const randomProduct = matching[Math.floor(Math.random() * matching.length)];
-        const imageUrl = randomProduct.final_image_url || randomProduct.image_url;
-        
-        // Validate that the image URL is not empty or undefined
-        if (imageUrl && imageUrl.trim() !== '') {
-          return { 
-            name: cat.name, 
-            image: imageUrl 
-          };
-        }
+        return { 
+          name: cat.name, 
+          image: randomProduct.final_image_url || randomProduct.image_url 
+        };
       }
-      
-      // Fallback to default if no dynamic image found
       return cat;
     });
     
-    setCategories(dynamicCategories);
+    // Ensure we have enough slides for the loop
+    const loopedCategories = [...dynamicCategories];
+    while (loopedCategories.length < 6) {
+        loopedCategories.push(...dynamicCategories);
+    }
+    setCategories(loopedCategories.slice(0, 8)); 
   }, [productsData]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,24 +86,12 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
-
-    let base64Image = null;
-    if (selectedFile) {
-      base64Image = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.readAsDataURL(selectedFile);
-      });
-    }
-
     const pendingRequest = {
       prompt: prompt,
-      base64Image: base64Image,
       hotspot: hotspot,
       status: 'pending',
       timestamp: Date.now()
     };
-    
     localStorage.setItem('pendingDesignRequest', JSON.stringify(pendingRequest));
     const cleanPrompt = prompt.replace(/[^a-z0-9]/gi, '-').toLowerCase();
     router.push(`/design/result?prompt=${cleanPrompt}`);
@@ -122,160 +101,171 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
     router.push(`/catalogue?category=${encodeURIComponent(categoryName)}`);
   };
 
+  // ✅ COMPACT CARD: Removed heavy overlays so side items are clear
+  const CategoryCard = ({ category, isActive }: { category: any, isActive?: boolean }) => (
+    <div 
+      onClick={() => handleCategoryClick(category.name)}
+      className={`
+        relative overflow-hidden rounded-[1.5rem] transition-all duration-500 cursor-pointer 
+        ${isActive ? 'shadow-xl shadow-purple-100 border-2 border-white' : 'shadow-md brightness-95 hover:brightness-100'}
+        bg-white h-full w-full group
+      `}
+    >
+      <div className="w-full h-full relative">
+        <img 
+          src={category.image} 
+          alt={category.name} 
+          className="w-full h-full object-cover"
+          onError={(e) => { e.currentTarget.src = "/assets/placeholder-jewelry.jpg"; }} 
+          loading="eager"
+        />
+        {/* Removed the opacity layer so side images remain CLEAR */}
+      </div>
+      
+      {/* Label only appears on active (middle) slide to keep side ones clean */}
+      <div className={`
+        absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full backdrop-blur-md transition-all duration-300
+        ${isActive ? 'bg-white/90 text-[#7D3C98] opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}
+      `}>
+        <p className="font-serif tracking-wide text-xs md:text-sm font-bold whitespace-nowrap">
+          {category.name}
+        </p>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-[#FAF8F3] py-10">
-      <div className="max-w-5xl mx-auto px-6">
+    <div className="min-h-screen bg-[#FAF8F3] py-6 md:py-10 pb-[80px] md:pb-10 overflow-x-hidden">
+      <div className="max-w-[1440px] mx-auto">
         
-        <h1 className="text-4xl md:text-5xl font-serif text-center mb-12 text-gray-800">
+        <h1 className="text-3xl md:text-4xl font-serif text-center mb-8 text-gray-800 leading-tight px-4">
           {selectedFile ? "Edit Your Piece" : "Generate Your Personalized Jewellery"}
         </h1>
 
         {!selectedFile && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-12">
-            {categories.map((category) => (
-              <div 
-                key={category.name} 
-                onClick={() => handleCategoryClick(category.name)}
-                className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all group cursor-pointer"
-              >
-                <div className="aspect-square overflow-hidden bg-gray-100 relative">
-                  <img 
-                    src={category.image} 
-                    alt={category.name} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    onError={(e) => { 
-                      e.currentTarget.src = "/assets/placeholder-jewelry.jpg"; 
-                    }} 
-                    loading="eager"
-                  />
-                  <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors" />
-                </div>
-                <p className="text-center py-3 font-medium text-gray-700 font-serif tracking-wide">
-                  {category.name}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {selectedFile && (
-          <div className="bg-white rounded-3xl p-8 shadow-sm mb-8 animate-in fade-in slide-in-from-bottom-4">
-            <div className="flex flex-col md:flex-row gap-12 items-start justify-center">
-              <div className="relative group w-full md:w-1/2 flex justify-center">
-                <button 
-                  onClick={() => { setSelectedFile(null); setHotspot({x:0, y:0}); }} 
-                  className="absolute -top-2 -right-2 md:top-0 md:right-0 p-2 text-gray-400 hover:text-red-500 hover:bg-gray-100 rounded-full transition z-10"
-                >
-                  <XIcon className="w-5 h-5"/>
-                </button>
-                <div className="relative inline-block">
-                  <img 
-                    ref={imageRef} 
-                    src={previewUrl} 
-                    onClick={handleImageClick} 
-                    className="max-h-75 w-auto object-contain cursor-crosshair rounded-lg" 
-                    alt="Reference"
-                  />
-                  {hotspot.x > 0 && (
-                    <div 
-                      className="absolute w-5 h-5 bg-purple-600 rounded-full border-[3px] border-white shadow-lg pointer-events-none animate-pulse" 
-                      style={{ 
-                        left: `${(hotspot.x / (imageRef.current?.naturalWidth||1))*(imageRef.current?.width||1)}px`, 
-                        top: `${(hotspot.y / (imageRef.current?.naturalHeight||1))*(imageRef.current?.height||1)}px`, 
-                        transform: 'translate(-50%, -50%)' 
-                      }} 
-                    />
+          <div className="mb-12 relative w-full max-w-5xl mx-auto">
+            {/* ✅ SWIPER: Compact, 3 items visible, Middle Pops Out */}
+            <Swiper
+              effect={'coverflow'}
+              grabCursor={true}
+              centeredSlides={true}
+              loop={true}
+              slidesPerView={3} // ✅ Shows exactly 3 items
+              coverflowEffect={{
+                rotate: 0,
+                stretch: 0,
+                depth: 100,
+                modifier: 1,
+                slideShadows: false, // ✅ Disable shadows so side items are clear
+                scale: 0.6, // ✅ Side items are 60% size of middle (Big difference)
+              }}
+              pagination={{ clickable: true, dynamicBullets: true }}
+              autoplay={{ delay: 3000, disableOnInteraction: false }}
+              modules={[EffectCoverflow, Autoplay, Pagination]}
+              className="w-full !pb-10 pt-2"
+            >
+              {categories.map((category, index) => (
+                <SwiperSlide key={`${category.name}-${index}`} className="!h-[200px] md:!h-[320px]">
+                  {({ isActive }) => (
+                     <CategoryCard category={category} isActive={isActive} />
                   )}
-                </div>
-              </div>
-              <div className="w-full md:w-1/2 flex flex-col justify-center space-y-6 pt-4">
-                <div className="bg-[#F9F5E8] py-3 px-6 rounded-lg shadow-sm border border-[#F0EAD6]">
-                  <p className="font-bold text-gray-800 text-sm text-center tracking-wide">
-                    Click on product to make precise edit
-                  </p>
-                </div>
-                <div className="bg-[#FDFBF7] p-6 rounded-xl border border-gray-100 space-y-4">
-                  <p className="text-gray-600 text-sm flex gap-3 items-center">
-                    <span className="font-bold text-gray-400">1.</span> Select part to edit
-                  </p>
-                  <p className="text-gray-600 text-sm flex gap-3 items-center">
-                    <span className="font-bold text-gray-400">2.</span> enter prompt to make precise edit
-                  </p>
-                  <p className="text-gray-600 text-sm flex gap-3 items-center">
-                    <span className="font-bold text-gray-400">3.</span> Generate Product
-                  </p>
-                </div>
-              </div>
-            </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+            
+            <style jsx global>{`
+              .swiper-pagination-bullet { background: #ccc; opacity: 0.5; width: 6px; height: 6px; }
+              .swiper-pagination-bullet-active { background: #7D3C98; opacity: 1; width: 16px; border-radius: 4px; }
+            `}</style>
           </div>
         )}
 
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100/50">
-          <div className="relative">
-            <textarea
-              className="w-full p-4 pr-12 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-purple-200 min-h-30 resize-none text-gray-700 placeholder:text-gray-400 text-base"
-              placeholder={selectedFile ? "Describe your edit here..." : "Enter your jewellery detail here..."}
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-            />
-            {!selectedFile && (
-              <button 
-                onClick={() => fileInputRef.current?.click()} 
-                className="absolute bottom-4 right-4 p-2 text-gray-400 hover:text-purple-600 transition bg-white rounded-full hover:bg-gray-50 border border-transparent hover:border-gray-200"
-              >
-                <UploadIcon className="w-5 h-5" />
-              </button>
+        <div className="max-w-5xl mx-auto px-4 md:px-6">
+            {/* EDIT MODE */}
+            {selectedFile && (
+              <div className="bg-white rounded-3xl p-4 md:p-6 shadow-sm mb-6 animate-in fade-in slide-in-from-bottom-4 border border-gray-100">
+                <div className="flex flex-col md:flex-row gap-6 md:gap-12 items-start justify-center">
+                  <div className="relative group w-full md:w-1/2 flex justify-center">
+                    <button 
+                      onClick={() => { setSelectedFile(null); setHotspot({x:0, y:0}); }} 
+                      className="absolute -top-2 -right-2 p-2 text-gray-400 hover:text-red-500 bg-white rounded-full shadow-sm z-10"
+                    >
+                      <XIcon className="w-5 h-5"/>
+                    </button>
+                    <div className="relative inline-block">
+                      <img 
+                        ref={imageRef} 
+                        src={previewUrl} 
+                        onClick={handleImageClick} 
+                        className="max-h-52 md:max-h-64 w-auto object-contain cursor-crosshair rounded-lg" 
+                        alt="Reference"
+                      />
+                      {hotspot.x > 0 && (
+                        <div 
+                          className="absolute w-4 h-4 bg-purple-600 rounded-full border-[2px] border-white shadow-lg pointer-events-none animate-pulse" 
+                          style={{ 
+                            left: `${(hotspot.x / (imageRef.current?.naturalWidth||1))*(imageRef.current?.width||1)}px`, 
+                            top: `${(hotspot.y / (imageRef.current?.naturalHeight||1))*(imageRef.current?.height||1)}px`, 
+                            transform: 'translate(-50%, -50%)' 
+                          }} 
+                        />
+                      )}
+                    </div>
+                  </div>
+                  <div className="w-full md:w-1/2 pt-2">
+                    <div className="bg-[#F9F5E8] py-2 px-4 rounded-lg border border-[#F0EAD6] mb-4">
+                      <p className="font-bold text-gray-800 text-xs text-center">Click product to edit</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
-            <input 
-              ref={fileInputRef} 
-              type="file" 
-              accept="image/*" 
-              onChange={handleFileSelect} 
-              className="hidden" 
+
+            {/* PROMPT INPUT */}
+            <div className="bg-white rounded-3xl p-4 md:p-6 shadow-sm border border-gray-100/50">
+              <div className="relative">
+                <textarea
+                  className="w-full p-4 pr-12 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-purple-200 min-h-[80px] resize-none text-gray-700 placeholder:text-gray-400 text-sm md:text-base"
+                  placeholder={selectedFile ? "Describe your edit here..." : "Enter your jewellery detail here..."}
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                />
+                {!selectedFile && (
+                  <button 
+                    onClick={() => fileInputRef.current?.click()} 
+                    className="absolute bottom-3 right-3 p-2 text-gray-400 hover:text-purple-600 bg-white rounded-full hover:bg-gray-50 border border-transparent hover:border-gray-200"
+                  >
+                    <UploadIcon className="w-5 h-5" />
+                  </button>
+                )}
+                <input 
+                  ref={fileInputRef} 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleFileSelect} 
+                  className="hidden" 
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-center">
+              <button 
+                onClick={handleGenerate} 
+                disabled={!prompt.trim()} 
+                className="w-full md:w-auto px-10 py-3 bg-[#E5E7EB] hover:bg-[#d1d5db] text-gray-700 rounded-xl font-medium transition-colors text-base shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Generate
+              </button>
+            </div>
+
+            <TrendingDesigns 
+              trendingData={trendingData} 
+              onSelectPrompt={(newPrompt) => {
+                setPrompt(newPrompt);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }} 
             />
-          </div>
         </div>
-
-        <div className="mt-8 flex justify-center">
-          <button 
-            onClick={handleGenerate} 
-            disabled={!prompt.trim()} 
-            className="px-12 py-3 bg-[#E5E7EB] hover:bg-[#d1d5db] text-gray-700 rounded-lg font-medium transition-colors text-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Generate
-          </button>
-        </div>
-
-        <TrendingDesigns 
-          trendingData={trendingData} 
-          onSelectPrompt={(newPrompt) => {
-            setPrompt(newPrompt);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }} 
-        />
-        
-        <div className="mt-20 border-t border-gray-200 pt-10">
-          <div className="flex items-center gap-4 mb-12 justify-center">
-            <div className="h-px bg-gray-200 w-20"></div>
-            <h2 className="text-2xl font-serif text-gray-800">How it works</h2>
-            <div className="h-px bg-gray-200 w-20"></div>
-          </div>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-white p-8 rounded-3xl text-center shadow-sm">
-              <h3 className="text-xl font-serif font-bold text-[#7D3C98] mb-4">Step 1: Generate</h3>
-              <p className="text-gray-500 text-sm">
-                Create your favourite jewellery with just a prompt and save it in your wishlist.
-              </p>
-            </div>
-            <div className="bg-white p-8 rounded-3xl text-center shadow-sm">
-              <h3 className="text-xl font-serif font-bold text-[#7D3C98] mb-4">Step 2: Consultation</h3>
-              <p className="text-gray-500 text-sm">
-                We'll help you to bring your imagination into reality with free discussion.
-              </p>
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
   );

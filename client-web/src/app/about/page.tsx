@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { SparklesIcon } from '@/components/Icons';
 import TimelineSection from '@/components/TimelineSection'; 
 
-// ✅ 1. Define Base URL from Env with Fallback
+// ✅ 1. Define Base URL
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 interface Product {
@@ -12,18 +12,25 @@ interface Product {
   product_name: string;
   final_image_url: string;
   final_image_alt_text?: string;
-  
   sketch_image_url?: string;
   sketch_image_alt_text?: string;
-  
   wax_image_url?: string;
   wax_image_alt_text?: string;
-  
   cast_image_url?: string;
   cast_image_alt_text?: string;
-  
   final_description: string;
 }
+
+// ✅ 2. FALLBACK DATA (Prevents the page from breaking if Backend is down/sleeping)
+const FALLBACK_PRODUCT: Product = {
+    id: "fallback-1",
+    product_name: "Signature Diamond Ring",
+    final_image_url: "/assets/placeholder-jewelry.jpg",
+    sketch_image_url: "/assets/placeholder-jewelry.jpg", 
+    wax_image_url: "/assets/placeholder-jewelry.jpg",
+    cast_image_url: "/assets/placeholder-jewelry.jpg",
+    final_description: "A placeholder description for offline mode."
+};
 
 function shuffleArray<T>(array: T[]): T[] {
     const newArr = [...array];
@@ -36,33 +43,39 @@ function shuffleArray<T>(array: T[]): T[] {
 
 async function getAboutData() {
   try {
-    // ✅ 2. Use the dynamic API URL
-    // We use no-store or revalidate: 0 to ensure fresh random designs on reload.
-    // If you want static caching, change to revalidate: 60.
-    const res = await fetch(`${API_BASE_URL}/api/products`, { next: { revalidate: 0 } });
+    // ✅ 3. ENABLE CACHING (revalidate: 3600 = 1 Hour)
+    // This fixes the "Time to load" issue. The page loads instantly from cache.
+    // Next.js will only check the backend in the background once every hour.
+    const res = await fetch(`${API_BASE_URL}/api/products`, { 
+        next: { revalidate: 3600 } 
+    });
     
     if (!res.ok) throw new Error('Failed to fetch');
     const allProducts: Product[] = await res.json();
     
-    if (allProducts.length === 0) return { headerImages: [], lifecycleProduct: null };
+    if (allProducts.length === 0) throw new Error("No products found");
 
     const shuffled = shuffleArray(allProducts);
     const headerImages = shuffled.slice(0, 3);
     
-    // Find a product that has all images for the timeline, fallback to first item
+    // Find a product that has all images for the timeline
     const lifecycleProduct = shuffled.find(p => p.sketch_image_url && p.wax_image_url && p.cast_image_url) || shuffled[0];
 
     return { headerImages, lifecycleProduct };
   } catch (error) {
-    console.error("About page data fetch error:", error);
-    return { headerImages: [], lifecycleProduct: null };
+    console.warn("⚠️ Backend unavailable or sleeping. Using fallback data for About Page.");
+    
+    // ✅ 4. RETURN FALLBACKS (Fixes the "Error in loading" issue)
+    // Instead of returning null/empty, we return placeholders so the UI looks good.
+    return { 
+        headerImages: [FALLBACK_PRODUCT, FALLBACK_PRODUCT, FALLBACK_PRODUCT], 
+        lifecycleProduct: FALLBACK_PRODUCT 
+    };
   }
 }
 
 export default async function AboutUs() {
   const { headerImages, lifecycleProduct } = await getAboutData();
-  
-  // ✅ 3. Correct Path (Assuming file is in public/assets/placeholder-jewelry.jpg)
   const placeholderImg = "/assets/placeholder-jewelry.jpg";
 
   return (
@@ -79,17 +92,13 @@ export default async function AboutUs() {
 
         {/* Carousel Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
-            {headerImages.length > 0 ? headerImages.map((p, idx) => (
+            {headerImages.map((p, idx) => (
                 <div key={p.id || idx} className={`relative aspect-4/5 rounded-3xl overflow-hidden shadow-lg border border-gray-100 ${idx === 1 ? 'md:-mt-12 z-10 shadow-2xl' : 'scale-95 opacity-90'}`}>
                     <img 
                       src={p.final_image_url || placeholderImg} 
                       alt={p.final_image_alt_text || p.product_name} 
                       className="object-cover w-full h-full hover:scale-110 transition duration-700" 
                     />
-                </div>
-            )) : [1,2,3].map(i => (
-                <div key={i} className="aspect-4/5 bg-gray-50 rounded-3xl animate-pulse border border-gray-100 flex items-center justify-center">
-                    <span className="text-gray-300 font-medium">Loading Design...</span>
                 </div>
             ))}
         </div>
@@ -102,7 +111,8 @@ export default async function AboutUs() {
             <p className="text-gray-500">From your imagination to reality</p>
          </div>
          
-         <TimelineSection product={lifecycleProduct} mode="full" />
+         {/* Ensure lifecycleProduct is never null due to fallback */}
+         <TimelineSection product={lifecycleProduct || FALLBACK_PRODUCT} mode="full" />
       </section>
 
       {/* SECTION 3: CTA */}

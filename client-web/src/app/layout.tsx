@@ -1,9 +1,8 @@
 // src/app/layout.tsx
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google"; // Assuming fonts
+import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/infra/Navbar";
-// import FloatingButton from "@/components/infra/FloatingButton";
 import Footer from "@/components/infra/Footer";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -23,12 +22,13 @@ export default function RootLayout({
       <body className={inter.className}>
         <Navbar />
         
-        {/* Main Content */}
-        {children}
+        {/* ADDED: padding-bottom only on mobile (md:pb-0) so the bottom nav doesn't hide content */}
+        <div className="pb-[56px] md:pb-0 min-h-screen">
+           {children}
+        </div>
         
+        {/* Footer will now sit above the mobile nav */}
         <Footer/>
-        {/* Global Floating Button - Visible on ALL pages */}
-        {/* <FloatingButton />  */}
       </body>
     </html>
   );
