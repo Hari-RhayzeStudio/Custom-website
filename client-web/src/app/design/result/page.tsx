@@ -8,7 +8,7 @@ import FlashcardGrid from '@/components/designResult/FlashcardGrid';
 import DesignImagePreview from '@/components/designResult/DesignImagePreview';
 
 // ✅ Define Base URL from Env with Fallback
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 // --- LOCAL LOADER COMPONENT ---
 const SimpleLoader = () => (

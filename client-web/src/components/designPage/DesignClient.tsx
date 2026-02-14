@@ -16,8 +16,8 @@ const DEFAULT_CATEGORIES = [
   { name: 'Bands', image: '/assets/placeholder-band.jpg' },
   { name: 'Ladies-rings', image: '/assets/placeholder-ladies-ring.jpg' },
   { name: 'Earrings', image: '/assets/placeholder-earring.jpg' },
-  { name: 'Bracelets', image: '/assets/placeholder-jewelry.jpg' },
-  { name: 'Necklaces', image: '/assets/placeholder-jewelry.jpg' },
+  // { name: 'Bracelets', image: '/assets/placeholder-jewelry.jpg' },
+  // { name: 'Necklaces', image: '/assets/placeholder-jewelry.jpg' },
 ];
 
 interface DesignClientProps {

@@ -50,7 +50,7 @@ export default function Footer() {
             Your privacy matters. For details, see our <Link href="/privacy" className="underline hover:text-gray-800">Privacy Policy</Link>.
           </p>
 
-          <div className="flex items-center justify-center gap-6">
+          {/* <div className="flex items-center justify-center gap-6">
             <span className="text-sm font-medium text-gray-600">Follow Us:</span>
             <div className="flex gap-4">
                <Link href="#" className="hover:text-black transition"><FacebookIcon className="w-5 h-5" /></Link>
@@ -59,7 +59,7 @@ export default function Footer() {
                <Link href="#" className="hover:text-black transition"><PinIcon className="w-5 h-5" /></Link>
                <Link href="#" className="hover:text-black transition"><InstagramIcon className="w-5 h-5" /></Link>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
 
