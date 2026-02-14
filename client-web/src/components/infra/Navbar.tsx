@@ -6,6 +6,31 @@ import { UserIcon, BellIcon } from '@/components/Icons';
 import AuthModal from '../AuthModal';
 import NotificationPanel from '../infra/NotificationPanel';
 
+// --- QUOTATIONS DATA ---
+const QUOTES = [
+  "“Prudent crafting, stunning art, Rhayze Studio captures every heart”",
+  "“Where your imagination meets precious metals”",
+  "“Crafting memories, one stone at a time”",
+  "“Elegance is the only beauty that never fades”",
+  "“Jewelry that tells your unique story”",
+  "“Artistry in every detail, passion in every piece”",
+  "“Timeless designs for the modern soul”",
+  "“Transforming your dreams into sparkling reality”",
+  "“Precision meets passion in every design”",
+  "“Wearable art, designed exclusively by you”",
+  "“The ultimate expression of self-love and luxury”",
+  "“From sketch to shine, we guide the way”",
+  "“Adorn yourself in brilliance and confidence”",
+  "“Your vision, our expert craftsmanship”",
+  "“Luxury is found in the smallest details”",
+  "“Celebrate life's moments with eternal sparkle”",
+  "“Exquisite craftsmanship, infinite beauty”",
+  "“Designing the future of traditional jewellery”",
+  "“A touch of gold, a lifetime of memories”",
+  "“Rhayze Studio: Where art comes alive”",
+  "“Bespoke jewellery for the unique you”"
+];
+
 // --- SVG ICONS FOR NAVIGATION ---
 const DesignIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
@@ -14,7 +39,7 @@ const DesignIcon = ({ className }: { className?: string }) => (
 );
 const CatalogueIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1 13.5 18v-2.25Z" />
   </svg>
 );
 const WishlistIcon = ({ className }: { className?: string }) => (
@@ -32,6 +57,10 @@ export default function Navbar() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [user, setUser] = useState<{name: string} | null>(null); 
   
+  // ✅ Quote Animation State
+  const [quoteIndex, setQuoteIndex] = useState(0);
+  const [fadeQuote, setFadeQuote] = useState(true);
+  
   const navRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,6 +69,23 @@ export default function Navbar() {
     if (storedName && storedId) {
       setUser({ name: storedName });
     }
+  }, []);
+
+  // ✅ Quote Rotation Logic
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // 1. Fade out
+      setFadeQuote(false);
+      
+      // 2. Wait 500ms, change text, then fade in
+      setTimeout(() => {
+        setQuoteIndex((prevIndex) => (prevIndex + 1) % QUOTES.length);
+        setFadeQuote(true);
+      }, 500);
+      
+    }, 6000); // Change every 10 seconds
+
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -68,13 +114,11 @@ export default function Navbar() {
     { name: 'About us', href: '/about' },
   ];
 
-  // Helper for active styling (Mobile Bottom Nav & Desktop Nav)
-  // ✅ Updated Active Background Color to #F6ECF8
   const getLinkClasses = (href: string, isDesktop = false) => {
     const isActive = pathname === href;
     
     if (isDesktop) {
-        return `transition-colors px-4 py-2 rounded-full ${isActive ? 'text-[#722E85] bg-[#F6ECF8]' : 'text-[#808080] hover:text-[#7D3C98]'}`;
+        return `transition-colors px-4 py-2 rounded-full ${isActive ? 'text-[#722E85] bg-[#F6ECF8] font-bold' : 'text-[#808080] hover:text-[#7D3C98]'}`;
     }
 
     const baseClasses = "flex flex-col items-center justify-center h-full w-full transition-all duration-300 rounded-xl mx-1";
@@ -95,28 +139,29 @@ export default function Navbar() {
     <div ref={navRef} className="w-full bg-white">
       
       {/* ==============================================
-          1. QUOTATION HEADER
-          Desktop: Fixed height 68px (same as navbar)
-          Mobile: Auto height
+          1. QUOTATION HEADER (Animated)
          ============================================== */}
       <div className="w-full bg-[#F9F5E8] border-b border-[#ebdcb2]">
-        <div className="max-w-[1440px] mx-auto text-center px-4 flex items-center justify-center h-auto min-h-[40px] md:h-[68px]">
-          <p className="text-[#7D3C98] font-serif italic font-medium text-xs sm:text-sm md:text-lg">
-            “Prudent crafting, stunning art, Rhayze Studio captures every heart”
+        <div className="w-full text-center px-4 flex items-center justify-center h-auto min-h-10 md:h-17">
+          <p 
+            className={`text-[#7D3C98] font-serif italic font-medium text-xs sm:text-sm md:text-lg transition-opacity duration-500 ease-in-out ${fadeQuote ? 'opacity-100' : 'opacity-0'}`}
+          >
+            {QUOTES[quoteIndex]}
           </p>
         </div>
       </div>
       
       {/* ==============================================
           2. DESKTOP & TABLET NAVBAR 
-          Max Width: 1440px | Height: 68px
          ============================================== */}
       <div className="hidden md:block w-full shadow-sm sticky top-0 z-50 bg-white">
-        <nav className="max-w-[1440px] mx-auto flex justify-between items-center px-6 md:px-8 h-[68px]">
+        <nav className="w-full flex justify-between items-center px-6 md:px-10 xl:px-16 h-17">
+          {/* Logo (Left Panel) */}
           <Link href="/" className="text-xl md:text-2xl font-bold font-serif text-gray-900 shrink-0">
             Rhayze Studio
           </Link>
           
+          {/* Center Links */}
           <div className="flex gap-6 lg:gap-8 font-medium text-xs lg:text-sm uppercase tracking-wider">
             {desktopLinks.map((link) => (
               <Link 
@@ -129,8 +174,8 @@ export default function Navbar() {
             ))}
           </div>
           
+          {/* Icons & Profile (Right Panel) */}
           <div className="flex items-center gap-4 md:gap-6">
-            {/* Notification Bell */}
             <div className="relative">
               <button 
                 onClick={() => {
@@ -145,7 +190,6 @@ export default function Navbar() {
               <NotificationPanel isOpen={isNotificationOpen} onClose={() => setIsNotificationOpen(false)} />
             </div>
 
-            {/* User Profile */}
             <div className="relative">
                <button 
                  onClick={() => {
@@ -161,12 +205,11 @@ export default function Navbar() {
                   <div className={`p-2 rounded-full border transition-all duration-200 ${isProfileOpen ? 'bg-[#722E85] border-[#722E85]' : 'bg-purple-50 border-purple-100 group-hover:border-[#722E85]'}`}>
                      <UserIcon className={`w-6 h-6 transition-colors ${isProfileOpen ? 'text-white' : 'text-[#722E85]'}`} />
                   </div>
-                  <span className="text-sm font-bold text-gray-700 max-w-[100px] truncate hidden lg:block">
+                  <span className="text-sm font-bold text-gray-700 max-w-25 truncate hidden lg:block">
                     {user ? user.name : "Sign in"}
                   </span>
                </button>
 
-               {/* Profile Dropdown */}
                {isProfileOpen && user && (
                  <div className="absolute right-0 mt-2 w-56 bg-white border rounded-xl shadow-xl z-50 overflow-hidden">
                    <Link href="/profile?tab=profile" onClick={() => setProfileOpen(false)} className="block px-4 py-3 text-sm hover:bg-gray-50 border-b">My Profile</Link>
@@ -181,14 +224,12 @@ export default function Navbar() {
 
       {/* ==============================================
           3. MOBILE HEADER (Below Quote)
-          Sticky Top | Height: 56px | Contains: Logo + Wishlist + Bell
          ============================================== */}
-      <div className="md:hidden flex justify-between items-center px-4 h-[56px] border-b bg-white sticky top-0 z-40">
+      <div className="md:hidden flex justify-between items-center px-4 h-14 border-b bg-white sticky top-0 z-40">
          <Link href="/" className="text-lg font-bold font-serif text-gray-900">
            Rhayze Studio
          </Link>
          
-         {/* Right Side: Wishlist & Notification */}
          <div className="flex items-center gap-3">
             <Link href="/wishlist" className="text-gray-500 hover:text-[#722E85] transition-colors">
               <WishlistIcon className="w-6 h-6" />
@@ -206,23 +247,19 @@ export default function Navbar() {
 
       {/* ==============================================
           4. MOBILE BOTTOM NAVIGATION 
-          Fixed Bottom | Height: 56px
          ============================================== */}
-      <div className="md:hidden fixed bottom-0 left-0 w-full h-[56px] bg-white border-t border-gray-200 z-50 flex justify-around items-center px-1 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+      <div className="md:hidden fixed bottom-0 left-0 w-full h-14 bg-white border-t border-gray-200 z-50 flex justify-around items-center px-1 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
         
-        {/* Design */}
         <Link href="/design" className={getLinkClasses('/design')}>
            <DesignIcon className="w-6 h-6 mb-0.5" />
            <span className="text-[10px] leading-none">Design</span>
         </Link>
 
-        {/* Catalogue */}
         <Link href="/catalogue" className={getLinkClasses('/catalogue')}>
            <CatalogueIcon className="w-6 h-6 mb-0.5" />
            <span className="text-[10px] leading-none">Catalogue</span>
         </Link>
 
-        {/* Consultation */}
         <Link href="/profile?tab=consultations" className={getLinkClasses('/profile?tab=consultations')}>
            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mb-0.5">
              <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
@@ -230,15 +267,13 @@ export default function Navbar() {
            <span className="text-[10px] leading-none">Consult</span>
         </Link>
 
-        {/* Profile */}
         <button onClick={handleProfileClick} className={getLinkClasses('/profile?tab=profile')}>
            <UserIcon className="w-6 h-6 mb-0.5" />
            <span className="text-[10px] leading-none">{user ? 'Profile' : 'Sign In'}</span>
         </button>
       </div>
 
-      {/* Notification Panel Mobile (renders relatively if open) */}
-      <div className="md:hidden fixed top-[100px] right-0 z-40 w-full px-2">
+      <div className="md:hidden fixed top-25 right-0 z-40 w-full px-2">
          <NotificationPanel isOpen={isNotificationOpen} onClose={() => setIsNotificationOpen(false)} />
       </div>
 
