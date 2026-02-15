@@ -1,4 +1,3 @@
-// src/app/[category]/[slug]/page.tsx
 import React from 'react';
 import Link from 'next/link';
 import { ArrowLeftIcon } from '@/components/Icons';
@@ -6,60 +5,53 @@ import ProductDetailsClient from '@/components/cataloguePage/ProductDetailsClien
 import TimelineSection from '@/components/TimelineSection';
 import RecommendedProducts from '@/components/cataloguePage/RecommendedProducts';
 
-// ✅ Define Base URL from Env with Fallback
+// ✅ 1. Force Dynamic Rendering
+// This ensures the page is built when the user visits it, not at build time.
+// It effectively waits for the Backend to wake up.
+export const dynamic = 'force-dynamic';
+
+// ✅ 2. Define Base URL Securely
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
-// ✅ This tells Next.js to generate static pages at build time
-export async function generateStaticParams() {
-  try {
-    // Set a short timeout so the build doesn't hang forever
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-
-    const res = await fetch(`${API_BASE_URL}/api/products`, { 
-      signal: controller.signal 
-    });
-    clearTimeout(timeoutId);
-
-    if (!res.ok) throw new Error("Backend not reachable");
-
-    const products = await res.json();
-    
-    return products.map((product: any) => ({
-      category: product.category,
-      slug: `${product.product_name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${product.sku}`,
-    }));
-  } catch (error) {
-    console.warn('⚠️ Backend down or sleeping during build. Skipping static generation for products.');
-    // Return empty array so build succeeds. Pages will be generated on-demand at runtime instead.
-    return [];
-  }
-}
-
-// ✅ Fetch data at build time for SSG
+// ✅ 3. Fetch data at Request Time
 async function getProduct(slug: string) {
   try {
+    // Extract SKU from the end of the slug (e.g., "gold-ring-100002" -> "100002")
     const sku = slug.split('-').pop()?.trim();
-    if (!sku) return null;
+    
+    if (!sku) {
+      console.error("❌ Invalid Slug/SKU extraction:", slug);
+      return null;
+    }
 
+    console.log(`🔍 Fetching product SKU: ${sku} from ${API_BASE_URL}`);
+
+    // Disable caching (cache: 'no-store') so we don't cache a "404" if the backend sleeps
     const productRes = await fetch(`${API_BASE_URL}/api/products/${sku}`, {
-      next: { revalidate: 3600 } // Revalidate every hour
+      cache: 'no-store' 
     });
     
-    if (!productRes.ok) return null;
+    if (!productRes.ok) {
+      console.error(`❌ Backend Error ${productRes.status}:`, await productRes.text());
+      return null;
+    }
     
     return await productRes.json();
   } catch (error) {
-    console.error('Error fetching product:', error);
+    console.error('❌ Error fetching product:', error);
     return null;
   }
 }
 
 async function getRecommendations(category: string, currentSku: string) {
   try {
+    // Disable caching for recommendations too
     const res = await fetch(`${API_BASE_URL}/api/products`, {
-      next: { revalidate: 3600 }
+      cache: 'no-store'
     });
+    
+    if(!res.ok) return [];
+
     const allProducts = await res.json();
     
     return allProducts.filter(
@@ -71,7 +63,7 @@ async function getRecommendations(category: string, currentSku: string) {
   }
 }
 
-// ✅ Server Component (default in App Router)
+// ✅ Server Component
 export default async function ProductDetails({ 
   params 
 }: { 
@@ -82,8 +74,12 @@ export default async function ProductDetails({
   
   if (!product) {
     return (
-      <div className="p-20 text-center font-serif text-xl">
-        Product Not Found
+      <div className="min-h-screen flex flex-col items-center justify-center p-20 text-center">
+        <h1 className="font-serif text-2xl text-gray-800 mb-4">Product Not Found</h1>
+        <p className="text-gray-500 mb-6">The product could not be loaded. The server might be waking up.</p>
+        <Link href="/catalogue" className="px-6 py-2 bg-black text-white rounded-full text-sm">
+          Back to Catalogue
+        </Link>
       </div>
     );
   }
@@ -102,22 +98,22 @@ export default async function ProductDetails({
           </h1>
         </div>
 
-        {/* ✅ Client component handles interactive features */}
+        {/* Client component handles interactive features */}
         <ProductDetailsClient product={product} />
       </section>
 
-      {/* ✅ Timeline section with design-only mode */}
+      {/* Timeline section */}
       <section className="relative bg-white border-t border-gray-100 py-10">
         <TimelineSection product={product} mode="design-only" />
       </section>
 
-      {/* ✅ Recommended products */}
+      {/* Recommended products */}
       <RecommendedProducts products={recommended} currentSku={product.sku} />
     </main>
   );
 }
 
-// ✅ Generate metadata for SEO
+// ✅ Generate metadata for SEO (Dynamic)
 export async function generateMetadata({ 
   params 
 }: { 
@@ -128,7 +124,7 @@ export async function generateMetadata({
   
   if (!product) {
     return {
-      title: 'Product Not Found',
+      title: 'Product Not Found | Rhayze Studio',
     };
   }
 

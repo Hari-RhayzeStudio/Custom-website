@@ -14,7 +14,7 @@ import {
 type ViewType = 'sketch' | 'wax' | 'cast' | 'final';
 
 // ✅ Define Base URL from Env with Fallback
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export default function ProductDetailsClient({ product }: { product: any }) {
   const router = useRouter();

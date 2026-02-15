@@ -16,8 +16,8 @@ const DEFAULT_CATEGORIES = [
   { name: 'Bands', image: '/assets/placeholder-band.jpg' },
   { name: 'Ladies-rings', image: '/assets/placeholder-ladies-ring.jpg' },
   { name: 'Earrings', image: '/assets/placeholder-earring.jpg' },
-  // { name: 'Bracelets', image: '/assets/placeholder-jewelry.jpg' },
-  // { name: 'Necklaces', image: '/assets/placeholder-jewelry.jpg' },
+  { name: 'Bracelets', image: '/assets/placeholder-jewelry.jpg' },
+  { name: 'Necklaces', image: '/assets/placeholder-jewelry.jpg' },
 ];
 
 interface DesignClientProps {
@@ -33,8 +33,6 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [hotspot, setHotspot] = useState({ x: 0, y: 0 });
-  
-  // Added loading state for button feedback
   const [isNavigating, setIsNavigating] = useState(false);
   
   const imageRef = useRef<HTMLImageElement>(null);
@@ -69,7 +67,6 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
     setCategories(loopedCategories.slice(0, 9)); 
   }, [productsData]);
 
-  // Auto-Resize Textarea
   const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setPrompt(e.target.value);
     if (textAreaRef.current) {
@@ -102,8 +99,7 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
     if (!prompt.trim()) return;
     
     try {
-        setIsNavigating(true); // Disable button to prevent double clicks
-        
+        setIsNavigating(true); 
         let base64Image = null;
         if (selectedFile) {
           base64Image = await new Promise((resolve) => {
@@ -115,23 +111,19 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
 
         const pendingRequest = {
           prompt: prompt,
-          base64Image: base64Image, // Include image if present
+          base64Image: base64Image,
           hotspot: hotspot,
           status: 'pending',
           timestamp: Date.now()
         };
         
         localStorage.setItem('pendingDesignRequest', JSON.stringify(pendingRequest));
-        console.log("Request saved, redirecting...", pendingRequest);
-        
         const cleanPrompt = prompt.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-        
-        // Use standard push
         router.push(`/design/result?prompt=${cleanPrompt}`);
         
     } catch (error) {
         console.error("Navigation Error:", error);
-        setIsNavigating(false); // Re-enable button if error
+        setIsNavigating(false);
         alert("Something went wrong. Please try again.");
     }
   };
@@ -144,7 +136,7 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
     <div 
       onClick={() => handleCategoryClick(category.name)}
       className={`
-        relative overflow-hidden rounded-3xl transition-all duration-500 cursor-pointer 
+        relative overflow-hidden rounded-[1.5rem] transition-all duration-500 cursor-pointer 
         ${isActive ? 'shadow-xl border-2 border-[#7D3C98]' : 'shadow-md opacity-80 hover:opacity-100'}
         bg-white h-full w-full
       `}
@@ -168,19 +160,24 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
     </div>
   );
 
+  const isButtonDisabled = !prompt.trim() || isNavigating;
+  const buttonBaseClasses = "w-full md:w-auto px-12 py-3 rounded-xl font-medium transition-colors text-base shadow-sm flex items-center justify-center gap-2";
+  const buttonStateClasses = isButtonDisabled 
+    ? "bg-[#E5E7EB] text-gray-700 cursor-not-allowed opacity-70" 
+    : "bg-[#722E85] text-white hover:bg-[#5e256e] cursor-pointer";
+
   return (
-    // ✅ MAIN LAYOUT: Reduced top padding (md:py-2) to pull content up
-    <div className="min-h-screen bg-[#FAF8F3] pt-4 md:pt-4 pb-20 md:pb-4 overflow-x-hidden flex flex-col justify-start">
-      <div className="max-w-360 mx-auto w-full">
+    <div className="min-h-screen bg-[#FAF8F3] pt-2 md:pt-4 pb-12 md:pb-10 overflow-x-hidden flex flex-col justify-start">
+      <div className="max-w-[1440px] mx-auto w-full">
         
-        {/* ✅ TITLE: Smaller margins (mb-4) */}
-        <h1 className="text-2xl md:text-3xl font-serif text-center mb-4 text-gray-800 leading-tight px-4">
+        {/* Title: Tighter spacing */}
+        <h1 className="text-2xl md:text-3xl font-serif text-center mb-2 md:mb-4 text-gray-800 leading-tight px-4 mt-2">
           {selectedFile ? "Edit Your Piece" : "Generate Your Personalized Jewellery"}
         </h1>
 
         {!selectedFile && (
-          // ✅ CAROUSEL CONTAINER: Reduced bottom margin (mb-4)
-          <div className="mb-4 relative w-full max-w-4xl mx-auto">
+          // Carousel: Tighter spacing
+          <div className="mb-2 relative w-full max-w-4xl mx-auto">
             <Swiper
               effect={'coverflow'}
               grabCursor={true}
@@ -188,29 +185,19 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
               loop={true}
               slidesPerView={3}
               coverflowEffect={{
-                rotate: 0,
-                stretch: 0,
-                depth: 100,
-                modifier: 1,
-                slideShadows: false,
-                scale: 0.6,
+                rotate: 0, stretch: 0, depth: 100, modifier: 1, slideShadows: false, scale: 0.6,
               }}
               pagination={{ clickable: true, dynamicBullets: true }}
               autoplay={{ delay: 3000, disableOnInteraction: false }}
               modules={[EffectCoverflow, Autoplay, Pagination]}
-              // ✅ Reduced padding-bottom inside swiper
-              className="w-full pb-8! pt-2"
+              className="w-full !pb-6 pt-2" // Reduced padding-bottom
             >
               {categories.map((category, index) => (
-                // ✅ SLIDE HEIGHT: Reduced to 220px on Desktop to fit window
-                <SwiperSlide key={`${category.name}-${index}`} className="h-37.5! md:h-55!">
-                  {({ isActive }) => (
-                     <CategoryCard category={category} isActive={isActive} />
-                  )}
+                <SwiperSlide key={`${category.name}-${index}`} className="!h-[150px] md:!h-[220px]">
+                  {({ isActive }) => ( <CategoryCard category={category} isActive={isActive} /> )}
                 </SwiperSlide>
               ))}
             </Swiper>
-            
             <style jsx global>{`
               .swiper-pagination-bullet { background: #ccc; opacity: 0.5; width: 6px; height: 6px; }
               .swiper-pagination-bullet-active { background: #7D3C98; opacity: 1; width: 16px; border-radius: 4px; }
@@ -220,14 +207,14 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
 
         <div className="max-w-5xl mx-auto px-4 md:px-6">
             {selectedFile && (
-              <div className="bg-white rounded-3xl p-3 md:p-4 shadow-sm mb-4 animate-in fade-in slide-in-from-bottom-4 border border-gray-100">
+              <div className="bg-white rounded-3xl p-3 md:p-4 shadow-sm mb-3 animate-in fade-in slide-in-from-bottom-4 border border-gray-100">
                 <div className="flex flex-col md:flex-row gap-4 items-start justify-center">
                   <div className="relative group w-full md:w-1/2 flex justify-center">
                     <button onClick={() => { setSelectedFile(null); setHotspot({x:0, y:0}); }} className="absolute -top-2 -right-2 p-2 text-gray-400 hover:text-red-500 bg-white rounded-full shadow-sm z-10"><XIcon className="w-5 h-5"/></button>
                     <div className="relative inline-block">
                       <img ref={imageRef} src={previewUrl} onClick={handleImageClick} className="max-h-40 md:max-h-56 w-auto object-contain cursor-crosshair rounded-lg" alt="Reference"/>
                       {hotspot.x > 0 && (
-                        <div className="absolute w-4 h-4 bg-purple-600 rounded-full border-2 border-white shadow-lg pointer-events-none animate-pulse" style={{ left: `${(hotspot.x / (imageRef.current?.naturalWidth||1))*(imageRef.current?.width||1)}px`, top: `${(hotspot.y / (imageRef.current?.naturalHeight||1))*(imageRef.current?.height||1)}px`, transform: 'translate(-50%, -50%)' }} />
+                        <div className="absolute w-4 h-4 bg-purple-600 rounded-full border-[2px] border-white shadow-lg pointer-events-none animate-pulse" style={{ left: `${(hotspot.x / (imageRef.current?.naturalWidth||1))*(imageRef.current?.width||1)}px`, top: `${(hotspot.y / (imageRef.current?.naturalHeight||1))*(imageRef.current?.height||1)}px`, transform: 'translate(-50%, -50%)' }} />
                       )}
                     </div>
                   </div>
@@ -238,13 +225,12 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
               </div>
             )}
 
-            {/* ✅ INPUT CONTAINER: Compact padding */}
-            <div className="bg-white rounded-3xl p-3 md:p-4 shadow-sm border border-gray-100/50 mb-4">
+            {/* Input Container: Tighter spacing */}
+            <div className="bg-white rounded-3xl p-3 md:p-4 shadow-sm border border-gray-100/50 mb-3 md:mb-4">
               <div className="relative">
                 <textarea 
                   ref={textAreaRef}
                   className="w-full p-3 pr-10 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-purple-200 resize-none text-gray-700 placeholder:text-gray-400 text-sm md:text-base overflow-hidden"
-                  // ✅ HEIGHT: Starts very small (50px) to save space
                   style={{ minHeight: '50px', height: 'auto' }}
                   placeholder={selectedFile ? "Describe your edit here..." : "Enter your jewellery detail here..."} 
                   value={prompt} 
@@ -255,20 +241,16 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
               </div>
             </div>
 
-            {/* ✅ BUTTON: Visible immediately */}
+            {/* Generate Button */}
             <div className="flex justify-center mb-6">
-              <button 
-                onClick={handleGenerate} 
-                disabled={!prompt.trim() || isNavigating} 
-                className="w-full md:w-auto px-12 py-3 bg-[#E5E7EB] hover:bg-[#d1d5db] text-gray-700 rounded-xl font-medium transition-colors text-base shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {isNavigating && <span className="animate-spin h-4 w-4 border-2 border-gray-600 border-t-transparent rounded-full"></span>}
+              <button onClick={handleGenerate} disabled={isButtonDisabled} className={`${buttonBaseClasses} ${buttonStateClasses}`}>
+                {isNavigating && <span className="animate-spin h-4 w-4 border-2 border-white/80 border-t-transparent rounded-full"></span>}
                 {isNavigating ? 'Generating...' : 'Generate'}
               </button>
             </div>
 
-            {/* Trending Designs (Below fold is okay, but reachable) */}
-            <div className="w-full">
+            {/* Trending Designs */}
+            <div className="w-full flex flex-col items-center">
                <TrendingDesigns 
                  trendingData={trendingData} 
                  onSelectPrompt={(newPrompt) => { 
@@ -281,6 +263,30 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
                  }} 
                />
             </div>
+
+            {/* ✅ RESTORED: How it works Section */}
+            <div className="mt-8 border-t border-gray-200 pt-8 pb-10">
+              <div className="flex items-center gap-4 mb-8 justify-center">
+                <div className="h-px bg-gray-200 w-12 md:w-20"></div>
+                <h2 className="text-xl md:text-2xl font-serif text-gray-800">How it works</h2>
+                <div className="h-px bg-gray-200 w-12 md:w-20"></div>
+              </div>
+              <div className="grid md:grid-cols-2 gap-6 md:gap-8">
+                <div className="bg-white p-6 md:p-8 rounded-3xl text-center shadow-sm border border-gray-50">
+                  <h3 className="text-lg md:text-xl font-serif font-bold text-[#7D3C98] mb-2">Step 1: Generate</h3>
+                  <p className="text-gray-500 text-sm">
+                    Create your favourite jewellery with just a prompt and save it in your wishlist.
+                  </p>
+                </div>
+                <div className="bg-white p-6 md:p-8 rounded-3xl text-center shadow-sm border border-gray-50">
+                  <h3 className="text-lg md:text-xl font-serif font-bold text-[#7D3C98] mb-2">Step 2: Consultation</h3>
+                  <p className="text-gray-500 text-sm">
+                    We'll help you to bring your imagination into reality with free discussion.
+                  </p>
+                </div>
+              </div>
+            </div>
+
         </div>
       </div>
     </div>
