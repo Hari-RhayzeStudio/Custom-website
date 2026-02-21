@@ -16,8 +16,8 @@ const DEFAULT_CATEGORIES = [
   { name: 'Bands', image: '/assets/placeholder-band.jpg' },
   { name: 'Ladies-rings', image: '/assets/placeholder-ladies-ring.jpg' },
   { name: 'Earrings', image: '/assets/placeholder-earring.jpg' },
-  { name: 'Bracelets', image: '/assets/placeholder-jewelry.jpg' },
-  { name: 'Necklaces', image: '/assets/placeholder-jewelry.jpg' },
+  // { name: 'Bracelets', image: '/assets/placeholder-jewelry.jpg' },
+  // { name: 'Necklaces', image: '/assets/placeholder-jewelry.jpg' },
 ];
 
 interface DesignClientProps {
@@ -207,19 +207,37 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
 
         <div className="max-w-5xl mx-auto px-4 md:px-6">
             {selectedFile && (
-              <div className="bg-white rounded-3xl p-3 md:p-4 shadow-sm mb-3 animate-in fade-in slide-in-from-bottom-4 border border-gray-100">
-                <div className="flex flex-col md:flex-row gap-4 items-start justify-center">
+              <div className="bg-white rounded-3xl p-4 md:p-6 shadow-sm mb-4 animate-in fade-in slide-in-from-bottom-4 border border-gray-100">
+                <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start justify-center">
                   <div className="relative group w-full md:w-1/2 flex justify-center">
-                    <button onClick={() => { setSelectedFile(null); setHotspot({x:0, y:0}); }} className="absolute -top-2 -right-2 p-2 text-gray-400 hover:text-red-500 bg-white rounded-full shadow-sm z-10"><XIcon className="w-5 h-5"/></button>
-                    <div className="relative inline-block">
-                      <img ref={imageRef} src={previewUrl} onClick={handleImageClick} className="max-h-40 md:max-h-56 w-auto object-contain cursor-crosshair rounded-lg" alt="Reference"/>
+                    <button onClick={() => { setSelectedFile(null); setHotspot({x:0, y:0}); }} className="absolute -top-2 -right-2 md:-top-3 md:-right-3 p-2 text-gray-400 hover:text-red-500 bg-white rounded-full shadow-md z-10"><XIcon className="w-5 h-5"/></button>
+                    <div className="relative inline-block border border-gray-100 rounded-2xl p-2 bg-gray-50/50">
+                      <img ref={imageRef} src={previewUrl} onClick={handleImageClick} className="max-h-48 md:max-h-64 w-auto object-contain cursor-crosshair rounded-xl shadow-sm" alt="Reference"/>
                       {hotspot.x > 0 && (
-                        <div className="absolute w-4 h-4 bg-purple-600 rounded-full border-[2px] border-white shadow-lg pointer-events-none animate-pulse" style={{ left: `${(hotspot.x / (imageRef.current?.naturalWidth||1))*(imageRef.current?.width||1)}px`, top: `${(hotspot.y / (imageRef.current?.naturalHeight||1))*(imageRef.current?.height||1)}px`, transform: 'translate(-50%, -50%)' }} />
+                        <div className="absolute w-5 h-5 bg-purple-600 rounded-full border-[2.5px] border-white shadow-lg pointer-events-none animate-pulse" style={{ left: `${(hotspot.x / (imageRef.current?.naturalWidth||1))*(imageRef.current?.width||1) + 8}px`, top: `${(hotspot.y / (imageRef.current?.naturalHeight||1))*(imageRef.current?.height||1) + 8}px`, transform: 'translate(-50%, -50%)' }} />
                       )}
                     </div>
                   </div>
-                  <div className="w-full md:w-1/2 pt-2">
-                    <div className="bg-[#F9F5E8] py-2 px-4 rounded-lg border border-[#F0EAD6] mb-4"><p className="font-bold text-gray-800 text-xs text-center">Click product to edit</p></div>
+                  
+                  {/* ✅ ADDED: Instructions Box */}
+                  <div className="w-full md:w-1/2 flex flex-col justify-center">
+                    <div className="bg-[#FDFBF7] p-5 rounded-2xl border border-[#F0EAD6] shadow-sm mb-2">
+                      <p className="font-bold text-gray-800 text-sm text-center mb-4 font-serif">Click on product to make precise edit</p>
+                      <div className="space-y-3">
+                        <p className="text-gray-600 text-sm flex gap-3 items-center">
+                          <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 text-[#7D3C98] font-bold text-xs shrink-0">1</span> 
+                          Select part to edit
+                        </p>
+                        <p className="text-gray-600 text-sm flex gap-3 items-center">
+                          <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 text-[#7D3C98] font-bold text-xs shrink-0">2</span> 
+                          Enter prompt to make precise edit
+                        </p>
+                        <p className="text-gray-600 text-sm flex gap-3 items-center">
+                          <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 text-[#7D3C98] font-bold text-xs shrink-0">3</span> 
+                          Generate Product
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -264,7 +282,7 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
                />
             </div>
 
-            {/* ✅ RESTORED: How it works Section */}
+            {/* RESTORED: How it works Section */}
             <div className="mt-8 border-t border-gray-200 pt-8 pb-10">
               <div className="flex items-center gap-4 mb-8 justify-center">
                 <div className="h-px bg-gray-200 w-12 md:w-20"></div>

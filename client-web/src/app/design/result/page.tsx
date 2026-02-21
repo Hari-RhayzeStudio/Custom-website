@@ -1,25 +1,95 @@
 "use client";
 import { useEffect, useState, useRef, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-// Ensure these imports match your actual file structure
-import { ArrowLeftIcon, Undo2Icon, LoaderIcon } from '@/components/Icons'; 
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ArrowLeftIcon, Undo2Icon } from '@/components/Icons'; 
 import FlashcardGrid from '@/components/designResult/FlashcardGrid';
 import DesignImagePreview from '@/components/designResult/DesignImagePreview';
 
 // ✅ Define Base URL from Env with Fallback
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
-// --- LOCAL LOADER COMPONENT ---
-const SimpleLoader = () => (
-  <div className="min-h-screen flex flex-col items-center justify-center bg-white">
-    <LoaderIcon className="w-10 h-10 text-purple-600 animate-spin mb-4" />
-    <p className="text-gray-500 font-serif animate-pulse">Designing your jewellery...</p>
-  </div>
-);
+// --- ROYAL SKELETON LOADER ---
+const RoyalSkeletonLoader = () => {
+  // Cycle through elegant loading messages
+  const [loadingText, setLoadingText] = useState("Drafting your concept...");
+  
+  useEffect(() => {
+    const messages = [
+      "Selecting the finest metals...",
+      "Polishing the details...",
+      "Setting the gemstones...",
+      "Finalizing your masterpiece..."
+    ];
+    let i = 0;
+    const interval = setInterval(() => {
+      setLoadingText(messages[i]);
+      i = (i + 1) % messages.length;
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-white font-sans pb-20">
+      {/* Header Skeleton */}
+      <div className="max-w-6xl mx-auto px-6 py-8 flex items-center justify-between opacity-50">
+         <div className="flex items-center gap-4 w-full">
+            <div className="w-10 h-10 bg-[#FAF8F3] border border-[#EFE8D8] rounded-full"></div>
+            <div className="h-6 bg-[#FAF8F3] rounded w-1/3"></div>
+         </div>
+      </div>
+
+      {/* Main Content Skeleton */}
+      <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+         
+         {/* ROYAL IMAGE AREA */}
+         <div className="relative aspect-square bg-[#FAF8F3] rounded-[2rem] border border-[#F0EAD6] overflow-hidden shadow-sm flex flex-col items-center justify-center p-8">
+            {/* Shimmer Effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent w-full h-full -translate-x-full animate-[shimmer_2s_infinite]"></div>
+            
+            {/* Center Icon Pulse */}
+            <div className="relative z-10 flex flex-col items-center gap-6">
+                <div className="w-20 h-20 rounded-full border-4 border-[#E5DCC5] flex items-center justify-center animate-pulse">
+                    <div className="w-12 h-12 bg-[#D4C5A5] rounded-full animate-bounce"></div>
+                </div>
+                <div className="space-y-2 text-center">
+                    <p className="text-[#7D3C98] font-serif text-xl tracking-wide font-medium animate-pulse">
+                        {loadingText}
+                    </p>
+                    <div className="h-1 w-24 bg-gradient-to-r from-transparent via-[#D4C5A5] to-transparent mx-auto rounded-full"></div>
+                </div>
+            </div>
+         </div>
+
+         {/* Right Side Content */}
+         <div className="flex flex-col gap-6 pt-4">
+            <div className="h-8 bg-[#FAF8F3] border border-[#F0EAD6] rounded w-3/4 mb-4"></div>
+            
+            {/* Flashcard Grid Skeleton - Warm Tones */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+               {[1,2,3,4,5,6].map(i => (
+                  <div key={i} className="h-32 bg-[#FAF8F3] border border-[#F0EAD6] rounded-xl relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full animate-[shimmer_2s_infinite] delay-100"></div>
+                  </div>
+               ))}
+            </div>
+
+            <div className="h-14 bg-[#FAF8F3] border border-[#EFE8D8] rounded-full w-full mt-6"></div>
+         </div>
+      </div>
+      
+      <style jsx>{`
+        @keyframes shimmer {
+          100% { transform: translateX(100%); }
+        }
+      `}</style>
+    </div>
+  );
+};
 
 function DesignResultContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   
   // State
   const [data, setData] = useState<{ imageUrl: string; prompt: string } | null>(null);
@@ -40,7 +110,6 @@ function DesignResultContent() {
   const fetchFlashcards = async (promptText: string) => {
     setLoadingCards(true);
     try {
-      // ✅ Use API_BASE_URL
       const res = await fetch(`${API_BASE_URL}/api/generate-flashcards`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: promptText })
       });
@@ -64,7 +133,6 @@ function DesignResultContent() {
       formData.append('x', hotspot.x.toString()); 
       formData.append('y', hotspot.y.toString());
 
-      // ✅ Use API_BASE_URL
       const res = await fetch(`${API_BASE_URL}/api/edit-design`, { method: 'POST', body: formData });
       const result = await res.json();
 
@@ -82,7 +150,6 @@ function DesignResultContent() {
     if (!userId) return alert("Please log in.");
     setIsSaving(true);
     try {
-      // ✅ Use API_BASE_URL
       await fetch(`${API_BASE_URL}/api/wishlist`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: userId, product_sku: `gen-${Date.now()}`, product_name: `Custom: ${data?.prompt.substring(0, 15)}...`, product_image: data?.imageUrl })
@@ -94,15 +161,18 @@ function DesignResultContent() {
   // --- Init Logic ---
   useEffect(() => {
     const init = async () => {
+      const urlPrompt = searchParams.get('prompt');
       const pendingStr = localStorage.getItem('pendingDesignRequest');
+      
       if (pendingStr) {
         const req = JSON.parse(pendingStr);
         if (req.status === 'pending') {
-          fetchFlashcards(req.prompt);
+          const activePrompt = req.prompt;
+          
+          fetchFlashcards(activePrompt);
           try {
             const formData = new FormData();
-            formData.append('prompt', req.prompt);
-            // ✅ Use API_BASE_URL
+            formData.append('prompt', activePrompt);
             let url = `${API_BASE_URL}/api/generate-design`;
             
             if (req.base64Image) {
@@ -113,7 +183,7 @@ function DesignResultContent() {
             }
             const result = await (await fetch(url, { method: 'POST', body: formData })).json();
             if (result.imageUrl) {
-              const newState = { imageUrl: result.imageUrl, prompt: req.prompt };
+              const newState = { imageUrl: result.imageUrl, prompt: activePrompt };
               setHistory([newState]); setData(newState);
               localStorage.removeItem('pendingDesignRequest'); localStorage.setItem('designResult', JSON.stringify(newState));
             }
@@ -121,6 +191,7 @@ function DesignResultContent() {
           return;
         }
       }
+      
       // Fallback load
       const stored = localStorage.getItem('designResult');
       if (stored) {
@@ -142,25 +213,27 @@ function DesignResultContent() {
     fetchFlashcards(prev.prompt);
   };
 
-  const handleImageClick = (e: React.MouseEvent<HTMLImageElement>) => {
-    if (!isEditing || !imageRef.current) return;
-    const rect = imageRef.current.getBoundingClientRect();
-    const scaleX = imageRef.current.naturalWidth / imageRef.current.width;
-    const scaleY = imageRef.current.naturalHeight / imageRef.current.height;
-    setHotspot({ x: Math.round((e.clientX - rect.left) * scaleX), y: Math.round((e.clientY - rect.top) * scaleY) });
+  const handleImageClick = (x: number, y: number) => {
+    if (!isEditing) return;
+    console.log("Hotspot set at:", x, y); // Debug log
+    setHotspot({ x, y });
   };
 
-  if (loading) return <SimpleLoader />;
+  if (loading) return <RoyalSkeletonLoader />;
   if (!data) return <div className="text-center p-20">No design found.</div>;
 
   return (
     <div className="min-h-screen bg-white font-sans pb-20">
       <div className="max-w-6xl mx-auto px-6 py-8 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-              <Link href="/design" className="p-2 hover:bg-gray-100 rounded-full transition text-gray-600"><ArrowLeftIcon className="w-5 h-5" /></Link>
-              <h1 className="text-lg text-gray-700 font-medium truncate max-w-125 capitalize">{data.prompt}</h1>
+          <div className="flex items-center gap-4 flex-1">
+              <Link href="/design" className="p-2 hover:bg-gray-100 rounded-full transition text-gray-600 shrink-0"><ArrowLeftIcon className="w-5 h-5" /></Link>
+              
+              {/* HEADING: Line clamped and responsive */}
+              <h1 className="text-lg text-gray-700 font-medium capitalize leading-tight line-clamp-2 max-w-[70vw] md:max-w-[500px]">
+                {data.prompt}
+              </h1>
           </div>
-          {history.length > 1 && !isEditing && <button onClick={handleUndo} className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-gray-600 bg-gray-100 rounded-full hover:bg-gray-200"><Undo2Icon className="w-4 h-4" /> Undo</button>}
+          {history.length > 1 && !isEditing && <button onClick={handleUndo} className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-gray-600 bg-gray-100 rounded-full hover:bg-gray-200 shrink-0"><Undo2Icon className="w-4 h-4" /> Undo</button>}
       </div>
 
       <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
@@ -169,10 +242,10 @@ function DesignResultContent() {
             isEditing={isEditing} 
             setIsEditing={setIsEditing} 
             hotspot={hotspot} 
-            onImageClick={handleImageClick} 
+            onImageClick={handleImageClick} // Pass the simplified handler
             onSave={handleSave} 
             isSaving={isSaving} 
-            imageRef={imageRef} 
+            // imageRef={imageRef}  <-- REMOVE THIS PROP, it's handled internally now
         />
         
         <div className="flex flex-col justify-center pt-4 min-h-100">
@@ -187,7 +260,6 @@ function DesignResultContent() {
             <>
               <FlashcardGrid loading={loadingCards} cards={flashcards} />
               <button onClick={() => router.push('/bookings')} className="w-full py-3.5 rounded-full border border-purple-300 text-purple-700 font-bold hover:bg-purple-50 transition flex items-center justify-center gap-3 shadow-sm mt-6">
-                {/* Ensure this path is correct for your public folder */}
                 <img src="/assets/google-meet-icon.png" alt="Meet" className="w-6 h-6" /> Discuss Design
               </button>
             </>
@@ -200,7 +272,7 @@ function DesignResultContent() {
 
 export default function DesignResultPage() {
   return (
-    <Suspense fallback={<SimpleLoader />}>
+    <Suspense fallback={<RoyalSkeletonLoader />}>
         <DesignResultContent />
     </Suspense>
   );
