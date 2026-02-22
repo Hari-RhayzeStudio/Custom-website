@@ -12,13 +12,9 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:30
 
 async function getProduct(slug: string) {
   try {
-    // ✅ 2. Better SKU Extraction
-    // Splits by '-' and takes the last part.
     const parts = slug.split('-');
     const potentialSku = parts[parts.length - 1];
 
-    // ✅ 3. Validation: Check if SKU looks like a number (assuming your SKUs are numeric)
-    // If your SKUs are strings like "R-100", remove this !isNaN check.
     if (!potentialSku || isNaN(Number(potentialSku))) {
       console.error(`❌ Invalid SKU extracted from slug: "${slug}". Extracted: "${potentialSku}"`);
       return null;
@@ -33,7 +29,6 @@ async function getProduct(slug: string) {
     });
     
     if (!productRes.ok) {
-      // Log the actual error text from the backend to see WHY it crashed
       const errorText = await productRes.text();
       console.error(`❌ Backend Error ${productRes.status} at ${endpoint}:`, errorText);
       return null;
@@ -63,10 +58,7 @@ export default async function ProductDetails({
   params: Promise<{ category: string; slug: string }> 
 }) {
   const resolvedParams = await params;
-  
-  // Decodes URL characters (e.g., %20 -> space) to prevent slug mismatch
   const cleanSlug = decodeURIComponent(resolvedParams.slug);
-  
   const product = await getProduct(cleanSlug);
   
   if (!product) {
@@ -88,16 +80,18 @@ export default async function ProductDetails({
 
   return (
     <main className="min-h-screen bg-white font-sans">
-      <section className="max-w-7xl mx-auto px-6 py-10">
-        <div className="flex items-center gap-4 mb-8">
+      <section className="max-w-6xl mx-auto px-4 md:px-8 py-10">
+        <div className="flex items-center gap-4 mb-6">
           <Link href="/catalogue">
             <ArrowLeftIcon className="w-6 h-6 text-gray-600 hover:text-[#7D3C98] transition" />
           </Link>
-          <h1 className="text-3xl font-serif font-bold text-gray-900">
+          {/* ✅ UPDATED HEADING SIZE TO EXACTLY 20px */}
+          <h1 className="text-[20px] font-serif font-bold text-gray-900 leading-none">
             {product.product_name}
           </h1>
         </div>
 
+        {/* ✅ Product Details Client Component */}
         <ProductDetailsClient product={product} />
       </section>
 
@@ -110,7 +104,6 @@ export default async function ProductDetails({
   );
 }
 
-// ✅ Metadata generation with same safety checks
 export async function generateMetadata({ 
   params 
 }: { 

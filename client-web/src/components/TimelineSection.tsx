@@ -1,20 +1,17 @@
 "use client";
 import { useRef } from 'react';
-import { motion, useScroll, useSpring } from 'framer-motion';
+import { motion, useScroll, useSpring, useTransform } from 'framer-motion';
 import { MeetIcon, RequirementsIcon } from '@/components/Icons';
 
 interface LifecycleProduct {
   sketch_image_url?: string;
-  sketch_image_alt_text?: string; // ✅ Added
-  
+  sketch_image_alt_text?: string; 
   wax_image_url?: string;
-  wax_image_alt_text?: string;    // ✅ Added
-
+  wax_image_alt_text?: string;    
   cast_image_url?: string;
-  cast_image_alt_text?: string;   // ✅ Added
-
+  cast_image_alt_text?: string;   
   final_image_url?: string;
-  final_image_alt_text?: string;  // ✅ Added
+  final_image_alt_text?: string;  
 }
 
 interface TimelineProps {
@@ -27,7 +24,7 @@ export default function TimelineSection({ product, mode = 'full' }: TimelineProp
   
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start 20%", "end 80%"]
+    offset: ["start 30%", "end 70%"]
   });
 
   const scaleY = useSpring(scrollYProgress, {
@@ -36,12 +33,16 @@ export default function TimelineSection({ product, mode = 'full' }: TimelineProp
     restDelta: 0.001
   });
 
+  // Calculate the dot's position strictly alongside the scroll progress
+  const dotY = useTransform(scaleY, [0, 1], ["0%", "100%"]);
+
   const placeholderImg = "/placeholder-jewelry.jpg";
 
+  // Renamed steps for design-only mode
   const allSteps = [
     {
       id: "1",
-      label: "Step-1: Consultation",
+      label: "Consultation",
       title: "Book Consultation",
       desc: "Book free-consultation and discuss your requirement with us",
       icon: <MeetIcon className="w-10 h-10 text-blue-600" />,
@@ -49,7 +50,7 @@ export default function TimelineSection({ product, mode = 'full' }: TimelineProp
     },
     {
       id: "2",
-      label: "Step-2: Requirements",
+      label: "Requirements",
       title: "Choose Design or Custom Request",
       desc: "Browse our catalogue or share your unique vision for a 'Custom Design'.",
       icon: <RequirementsIcon className="w-10 h-10 text-purple-600" />,
@@ -57,43 +58,43 @@ export default function TimelineSection({ product, mode = 'full' }: TimelineProp
     },
     {
       id: "header",
-      label: "Step-3: Designing",
+      label: "Designing Phase",
       type: "header"
     },
     {
       id: "3.1",
-      label: "3.1: Rendering",
+      label: mode === 'design-only' ? "Step 1: Rendering" : "3.1: Rendering",
       title: "Design Render",
       desc: "Professional jewellery sketches with technical precision to communicate design intent.",
       img: product?.sketch_image_url,
-      alt: product?.sketch_image_alt_text, // ✅ Map Alt Text
+      alt: product?.sketch_image_alt_text,
       type: "image",
     },
     {
       id: "3.2",
-      label: "3.2: Wax Design",
+      label: mode === 'design-only' ? "Step 2: Wax Design" : "3.2: Wax Design",
       title: "Wax Model Creation",
       desc: "Shaping the design in wax, either hand-carved or 3D-printed from CAD.",
       img: product?.wax_image_url,
-      alt: product?.wax_image_alt_text, // ✅ Map Alt Text
+      alt: product?.wax_image_alt_text,
       type: "image",
     },
     {
       id: "3.3",
-      label: "3.3: Cast Design",
+      label: mode === 'design-only' ? "Step 3: Cast Design" : "3.3: Cast Design",
       title: "Casting Model",
       desc: "Molten gold or platinum is poured into the cavity, creating the raw metal form.",
       img: product?.cast_image_url,
-      alt: product?.cast_image_alt_text, // ✅ Map Alt Text
+      alt: product?.cast_image_alt_text,
       type: "image",
     },
     {
       id: "3.4",
-      label: "3.4: Polished Design",
+      label: mode === 'design-only' ? "Step 4: Polished Design" : "3.4: Polished Design",
       title: "Finished Piece",
       desc: "Final touches like setting stones, polishing, and engraving bring the piece to life.",
       img: product?.final_image_url,
-      alt: product?.final_image_alt_text, // ✅ Map Alt Text
+      alt: product?.final_image_alt_text,
       type: "image",
     }
   ];
@@ -105,14 +106,22 @@ export default function TimelineSection({ product, mode = 'full' }: TimelineProp
   return (
     <div ref={containerRef} className="relative max-w-6xl mx-auto px-4 py-10 md:py-24 overflow-hidden">
       
-      <div className={`absolute left-8 md:left-1/2 bottom-0 w-1 md:-ml-0.5 z-0 ${mode === 'design-only' ? 'top-8' : 'top-0'}`}>
+      {/* TIMELINE LINE & CIRCLE */}
+      <div className={`absolute left-8 md:left-1/2 bottom-0 w-1 md:-ml-0.5 z-0 h-[calc(100%-80px)] ${mode === 'design-only' ? 'top-10' : 'top-0'}`}>
+        {/* Background track */}
         <div className="absolute inset-0 w-full h-full bg-gray-100 rounded-full" />
+        
+        {/* Moving filled track */}
         <motion.div 
           style={{ scaleY, transformOrigin: "top" }}
-          className="absolute top-0 left-0 w-full h-full bg-linear-to-b from-[#7D3C98] to-purple-400 rounded-full origin-top"
-        >
-            <div className="absolute bottom-0 -left-1 w-3 h-3 bg-purple-400 rounded-full blur-md shadow-[0_0_10px_#7D3C98]"></div>
-        </motion.div>
+          className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-[#7D3C98] to-purple-400 rounded-full origin-top"
+        />
+
+        {/* ✅ Glowing moving circle at the end of the line */}
+        <motion.div 
+          style={{ top: dotY }}
+          className="absolute left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-4 border-[#7D3C98] rounded-full shadow-[0_0_12px_#7D3C98] z-10"
+        />
       </div>
 
       <div className="flex flex-col gap-24 relative z-10">
@@ -139,7 +148,7 @@ export default function TimelineSection({ product, mode = 'full' }: TimelineProp
                 className={`flex flex-col md:flex-row items-center w-full ${!isEven ? 'md:flex-row-reverse' : ''}`}
             >
               <div className={`w-full md:w-1/2 pl-20 md:pl-0 relative group ${isEven ? 'md:pr-12' : 'md:pl-12'}`}>
-                 <div className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2 text-left md:text-center">
+                 <div className="text-sm font-bold text-[#7D3C98] uppercase tracking-widest mb-2 text-left md:text-center">
                     {step.label}
                  </div>
 
@@ -150,11 +159,10 @@ export default function TimelineSection({ product, mode = 'full' }: TimelineProp
                         <div className="mb-5">
                             {step.type === 'image' ? (
                                 <div className="bg-[#FAF9F6] p-4 rounded-2xl inline-block shadow-inner border border-gray-50">
-                                    {/* ✅ UPDATED IMG TAG WITH DYNAMIC ALT */}
                                     <img 
                                       src={step.img || placeholderImg} 
-                                      alt={step.alt || step.title} // Uses DB alt text, fallback to title
-                                      className="w-40 h-40 object-contain mix-blend-multiply" 
+                                      alt={step.alt || step.title}
+                                      className="w-32 h-32 md:w-40 md:h-40 object-contain mix-blend-multiply" 
                                     />
                                 </div>
                             ) : (
@@ -163,8 +171,8 @@ export default function TimelineSection({ product, mode = 'full' }: TimelineProp
                                 </div>
                             )}
                         </div>
-                        <h3 className="text-2xl font-serif font-bold text-gray-900 mb-3">{step.title}</h3>
-                        <p className="text-gray-500 leading-relaxed max-w-sm">{step.desc}</p>
+                        <h3 className="text-xl md:text-2xl font-serif font-bold text-gray-900 mb-3">{step.title}</h3>
+                        <p className="text-gray-500 leading-relaxed max-w-sm text-sm md:text-base">{step.desc}</p>
                     </div>
                  </div>
               </div>
