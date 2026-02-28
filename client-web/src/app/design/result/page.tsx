@@ -43,9 +43,9 @@ const RoyalSkeletonLoader = () => {
       <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
          
          {/* ROYAL IMAGE AREA */}
-         <div className="relative aspect-square bg-[#FAF8F3] rounded-[2rem] border border-[#F0EAD6] overflow-hidden shadow-sm flex flex-col items-center justify-center p-8">
+         <div className="relative aspect-square bg-[#FAF8F3] rounded-4xl border border-[#F0EAD6] overflow-hidden shadow-sm flex flex-col items-center justify-center p-8">
             {/* Shimmer Effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent w-full h-full -translate-x-full animate-[shimmer_2s_infinite]"></div>
+            <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/60 to-transparent w-full h-full -translate-x-full animate-[shimmer_2s_infinite]"></div>
             
             {/* Center Icon Pulse */}
             <div className="relative z-10 flex flex-col items-center gap-6">
@@ -56,7 +56,7 @@ const RoyalSkeletonLoader = () => {
                     <p className="text-[#7D3C98] font-serif text-xl tracking-wide font-medium animate-pulse">
                         {loadingText}
                     </p>
-                    <div className="h-1 w-24 bg-gradient-to-r from-transparent via-[#D4C5A5] to-transparent mx-auto rounded-full"></div>
+                    <div className="h-1 w-24 bg-linear-to-r from-transparent via-[#D4C5A5] to-transparent mx-auto rounded-full"></div>
                 </div>
             </div>
          </div>
@@ -69,7 +69,7 @@ const RoyalSkeletonLoader = () => {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                {[1,2,3,4,5,6].map(i => (
                   <div key={i} className="h-32 bg-[#FAF8F3] border border-[#F0EAD6] rounded-xl relative overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full animate-[shimmer_2s_infinite] delay-100"></div>
+                      <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/40 to-transparent -translate-x-full animate-[shimmer_2s_infinite] delay-100"></div>
                   </div>
                ))}
             </div>
@@ -229,7 +229,7 @@ function DesignResultContent() {
               <Link href="/design" className="p-2 hover:bg-gray-100 rounded-full transition text-gray-600 shrink-0"><ArrowLeftIcon className="w-5 h-5" /></Link>
               
               {/* HEADING: Line clamped and responsive */}
-              <h1 className="text-lg text-gray-700 font-medium capitalize leading-tight line-clamp-2 max-w-[70vw] md:max-w-[500px]">
+              <h1 className="text-lg text-gray-700 font-medium capitalize leading-tight line-clamp-2 max-w-[70vw] md:max-w-125">
                 {data.prompt}
               </h1>
           </div>

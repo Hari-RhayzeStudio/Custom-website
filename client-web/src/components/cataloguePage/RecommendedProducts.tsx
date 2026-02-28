@@ -68,7 +68,7 @@ export default function RecommendedProducts({ products, currentSku }: { products
             <Link 
               key={p.sku} 
               href={`/${formatCategory(p.category)}/${generateSlug(p.product_name, p.sku)}`} 
-              className="group min-w-[160px] w-[160px] sm:min-w-[220px] sm:w-[220px] md:min-w-[280px] md:w-[280px] snap-center flex flex-col"
+              className="group min-w-40 w-40 sm:min-w-55 sm:w-55 md:min-w-70 md:w-70 snap-center flex flex-col"
             >
               <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-50 mb-4 border border-gray-100 shadow-sm shrink-0">
                 <Image 

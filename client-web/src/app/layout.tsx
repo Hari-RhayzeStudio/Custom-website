@@ -23,7 +23,7 @@ export default function RootLayout({
         <Navbar />
         
         {/* ADDED: padding-bottom only on mobile (md:pb-0) so the bottom nav doesn't hide content */}
-        <div className="pb-[56px] md:pb-0 min-h-screen">
+        <div className="pb-14 md:pb-0 min-h-screen">
            {children}
         </div>
         

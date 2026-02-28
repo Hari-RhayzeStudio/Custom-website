@@ -4,7 +4,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { EmptyStateIcon, HeartIcon, HeartFilledIcon } from '@/components/Icons';
-// ✅ Import AuthModal (Ensure the path is correct based on your project structure)
 import AuthModal from '@/components/AuthModal'; 
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
@@ -24,11 +23,9 @@ interface GridProps {
 export default function CatalogueGrid({ products, category }: GridProps) {
   const safeProducts = Array.isArray(products) ? products : [];
   
-  // ✅ Wishlist & Auth States
   const [wishlistedSkus, setWishlistedSkus] = useState<Set<string>>(new Set());
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   
-  // A helper to force re-fetch of wishlist after successful login
   const fetchWishlist = async () => {
     const userId = localStorage.getItem('user_id');
     if (!userId) {
@@ -46,60 +43,52 @@ export default function CatalogueGrid({ products, category }: GridProps) {
     }
   };
 
-  // Fetch on initial load
   useEffect(() => {
     fetchWishlist();
   }, []);
 
-  // ✅ Toggle Wishlist Handler
-  const toggleWishlist = async (e: React.MouseEvent, product: any) => {
-    e.preventDefault(); // Stop link navigation
+  // ✅ FIRE-AND-FORGET: No async/await blocking, instant UI update
+  const toggleWishlist = (e: React.MouseEvent, product: any) => {
+    e.preventDefault(); 
     e.stopPropagation();
 
     const userId = localStorage.getItem('user_id');
     if (!userId) {
-      // ✅ Show Login Pop-up if not logged in
       setIsAuthOpen(true);
       return; 
     }
 
     const isWishlisted = wishlistedSkus.has(product.sku);
     
-    // Optimistic UI Update
+    // 1. INSTANT UI UPDATE
     const newWishlist = new Set(wishlistedSkus);
     if (isWishlisted) newWishlist.delete(product.sku);
     else newWishlist.add(product.sku);
     setWishlistedSkus(newWishlist);
 
-    try {
-      if (isWishlisted) {
-        await fetch(`${API_BASE_URL}/api/wishlist`, {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: userId, product_sku: product.sku })
-        });
-      } else {
-        await fetch(`${API_BASE_URL}/api/wishlist`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_id: userId,
-            product_sku: product.sku,
-            product_name: product.product_name,
-            product_image: product.final_image_url
-          })
-        });
-      }
-    } catch (err) {
-      alert("Could not update wishlist");
-      // Revert on error
-      fetchWishlist();
+    // 2. BACKGROUND SERVER REQUEST (No await)
+    if (isWishlisted) {
+      fetch(`${API_BASE_URL}/api/wishlist`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, product_sku: product.sku })
+      }).catch(() => fetchWishlist()); // Revert if fails
+    } else {
+      fetch(`${API_BASE_URL}/api/wishlist`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userId,
+          product_sku: product.sku,
+          product_name: product.product_name,
+          product_image: product.final_image_url
+        })
+      }).catch(() => fetchWishlist()); // Revert if fails
     }
   };
 
   return (
     <div className="w-full relative">
-      {/* Summary Count */}
       <div className="flex justify-between items-center mb-4 sm:mb-6">
         <h2 className="text-lg sm:text-xl font-bold text-gray-800">
           {category || "All Designs"} 
@@ -124,7 +113,6 @@ export default function CatalogueGrid({ products, category }: GridProps) {
                 key={index} 
                 className="bg-white p-2.5 sm:p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col group hover:shadow-lg hover:border-purple-100 transition duration-300 h-full cursor-pointer relative"
               >
-                {/* Image Area */}
                 <div className="relative aspect-square w-full mb-3 sm:mb-4 overflow-hidden rounded-xl bg-gray-50 shrink-0">
                    {p.final_image_url ? (
                      <Image 
@@ -150,21 +138,17 @@ export default function CatalogueGrid({ products, category }: GridProps) {
                    )}
                 </div>
 
-                {/* WISHLIST HEART BUTTON */}
                 <button 
                   onClick={(e) => toggleWishlist(e, p)}
                   className="absolute top-4 right-4 sm:top-6 sm:right-6 p-1.5 sm:p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm hover:scale-110 transition-transform z-20"
                 >
                   {isFav ? (
-                    // ✅ Filled heart with #C282D4 color
                     <HeartFilledIcon className="w-4 h-4 sm:w-5 sm:h-5 text-[#C282D4]" />
                   ) : (
-                    // Empty heart that changes to #C282D4 on hover
                     <HeartIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 hover:text-[#C282D4] transition-colors" />
                   )}
                 </button>
                 
-                {/* Text Area */}
                 <div className="flex flex-col flex-1">
                   <h3 className="font-serif text-sm sm:text-lg font-bold text-gray-900 mb-1 line-clamp-1 group-hover:text-[#722E85] transition-colors" title={p.product_name}>
                       {p.product_name || 'Untitled Product'}
@@ -179,12 +163,10 @@ export default function CatalogueGrid({ products, category }: GridProps) {
         </div>
       )}
 
-      {/* ✅ AUTH MODAL COMPONENT */}
       <AuthModal 
         isOpen={isAuthOpen} 
         onClose={() => setIsAuthOpen(false)} 
-        onLoginSuccess={(user) => { 
-          // Once logged in, hide modal and fetch their wishlist immediately
+        onLoginSuccess={() => { 
           setIsAuthOpen(false); 
           fetchWishlist();
         }} 

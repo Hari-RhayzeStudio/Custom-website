@@ -42,7 +42,7 @@ export default function CatalogueHeader({ initialSearch }: { initialSearch: stri
       {/* Sticky Header */}
       <div className="bg-white/95 backdrop-blur-md border-b border-gray-100 sticky top-0 z-30 py-4 shadow-sm transition-all w-full">
         {/* ✅ MATCHED GRID PADDING & FULL WIDTH SEARCH */}
-        <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-20 xl:px-28 flex gap-3 sm:gap-4 items-center w-full">
+        <div className="max-w-360 mx-auto px-6 md:px-12 lg:px-20 xl:px-28 flex gap-3 sm:gap-4 items-center w-full">
           
           {/* ✅ SEARCH BAR NOW STRETCHES TO MATCH GRID LENGTH */}
           <form onSubmit={handleSearch} className="flex-1 flex gap-2 relative group w-full">

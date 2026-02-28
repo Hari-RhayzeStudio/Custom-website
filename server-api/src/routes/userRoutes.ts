@@ -1,6 +1,5 @@
 import express from 'express';
 import { prismaUser } from '../utils/prismaClients';
-
 const router = express.Router();
 
 // ==========================================
@@ -53,11 +52,26 @@ router.get('/bookings/user/:id', async (req, res) => {
 });
 
 // ==========================================
-// 3. WISHLIST (Optimized for Speed)
+// 3. WISHLIST (Instant & No Duplicates)
 // ==========================================
 router.post('/wishlist', async (req, res) => {
+  const { user_id, product_sku, product_name, product_image } = req.body;
+  
   try {
-    const item = await prismaUser.wishlistItem.create({ data: req.body });
+    // 1. MANUAL DUPLICATE CHECK: Prevent adding if it already exists
+    const existing = await prismaUser.wishlistItem.findFirst({
+        where: { user_id, product_sku }
+    });
+
+    if (existing) {
+        return res.json({ success: true, message: "Exists", item: existing });
+    }
+
+    // 2. CREATE ITEM
+    const item = await prismaUser.wishlistItem.create({ 
+        data: { user_id, product_sku, product_name, product_image } 
+    });
+    
     res.json({ success: true, item });
   } catch (e: any) {
     if (e.code === 'P2002') return res.json({ success: true, message: "Exists" });
@@ -75,25 +89,23 @@ router.delete('/wishlist', async (req, res) => {
   } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
-// ✅ UPDATED: Supports ?product_sku=... for instant lookup
 router.get('/wishlist/:userId', async (req, res) => {
   const { userId } = req.params;
   const { product_sku } = req.query;
-
   const whereClause: any = { user_id: userId };
+  
   if (product_sku) {
     whereClause.product_sku = String(product_sku);
   }
-
+  
   try {
     const items = await prismaUser.wishlistItem.findMany({ 
       where: whereClause, 
       orderBy: { created_at: 'desc' } 
     });
     
-    // ✅ ADD THIS: Cache for 60 seconds
-    // This tells the browser: "Don't ask the server again for 1 minute, just use what you have."
-    res.set('Cache-Control', 'public, max-age=60');
+    // ✅ FIX: REMOVED Cache-Control header. 
+    // This allows the frontend to fetch fresh data instantly when adding/removing.
     
     res.json(items);
   } catch (e) { res.status(500).json({ error: "Fetch Failed" }); }

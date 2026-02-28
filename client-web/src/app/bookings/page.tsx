@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { ArrowLeftIcon, LoaderIcon } from '@/components/Icons';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
 
@@ -15,6 +14,7 @@ import SuccessView from '@/components/bookingPage/SuccessView';
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 function BookingContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,11 +25,17 @@ function BookingContent() {
     name: "",
     email: "",
     date: "",
-    slot: "10:00 AM - 10:30 AM"
+    slot: "10:00 AM - 10:30 AM" // Default matches the first option in the list
   });
 
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [wishlistProducts, setWishlistProducts] = useState<any[]>([]);
+
+  // Derived state to check if all required fields are filled
+  const isFormComplete = formData.name.trim() !== "" && 
+                         formData.email.trim() !== "" && 
+                         formData.date.trim() !== "" && 
+                         formData.slot.trim() !== "";
 
   // 1. Data Loading Logic
   useEffect(() => {
@@ -56,7 +62,6 @@ function BookingContent() {
 
       try {
         if (userId) {
-          // ✅ Use API_BASE_URL
           const res = await axios.get(`${API_BASE_URL}/api/wishlist/${userId}`);
           combinedProducts = res.data.map((item: any) => ({
              sku: item.product_sku,
@@ -69,7 +74,6 @@ function BookingContent() {
           const alreadyExists = combinedProducts.some(p => p.sku === directSku);
           if (!alreadyExists) {
              try {
-               // ✅ Use API_BASE_URL
                const productRes = await axios.get(`${API_BASE_URL}/api/products/${directSku}`);
                combinedProducts.push(productRes.data);
              } catch (e) { console.error("Direct SKU error"); }
@@ -97,6 +101,8 @@ function BookingContent() {
 
   const handleConfirm = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isFormComplete) return; 
+
     const userId = localStorage.getItem('user_id');
     if (!userId) return alert("Please log in to book.");
 
@@ -106,7 +112,6 @@ function BookingContent() {
         .filter(p => selectedProducts.includes(p.sku))
         .map(p => p.final_image_url);
 
-      // ✅ Use API_BASE_URL
       const res = await axios.post(`${API_BASE_URL}/api/bookings`, {
         user_id: userId,
         expert_name: "Mr. Kamraann Rajjani",
@@ -126,15 +131,33 @@ function BookingContent() {
     }
   };
 
+  // ✅ Smart Back Navigation Logic
+  const handleBackNavigation = () => {
+    if (typeof window !== 'undefined') {
+      // Check if the user came from a page within your own website
+      if (document.referrer && document.referrer.includes(window.location.host)) {
+        router.back();
+      } else {
+        // Fallback if they opened the booking page directly or in a new tab
+        router.push('/catalogue');
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#fdfbf7] p-6 md:p-12 font-sans">
       <div className="max-w-4xl mx-auto">
         
         {/* Top Nav */}
         <div className="flex items-center gap-4 mb-8">
-          <Link href="/catalogue">
+          {/* ✅ UPDATED BACK BUTTON */}
+          <button 
+            type="button" 
+            onClick={handleBackNavigation}
+            className="focus:outline-none flex items-center justify-center p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors"
+          >
             <ArrowLeftIcon className="w-6 h-6 text-gray-600 cursor-pointer" />
-          </Link>
+          </button>
           <h1 className="text-2xl font-serif font-bold text-gray-800 text-center flex-1 pr-10">Consultation Booking</h1>
         </div>
 
@@ -155,8 +178,13 @@ function BookingContent() {
                 />
 
                 <button 
-                  disabled={isLoading}
-                  className="w-full bg-[#BFA3C6] hover:bg-[#7D3C98] text-white font-bold py-4 rounded-full transition shadow-md flex items-center justify-center gap-2 disabled:opacity-70"
+                  disabled={isLoading || !isFormComplete}
+                  className={`
+                    w-full font-bold py-4 rounded-full transition-all shadow-md flex items-center justify-center gap-2 mt-8
+                    ${isFormComplete 
+                        ? 'bg-[#7D3C98] hover:bg-[#6a3281] text-white cursor-pointer' 
+                        : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'}
+                  `}
                 >
                   {isLoading && <LoaderIcon className="w-5 h-5 animate-spin" />}
                   {isLoading ? "Confirming..." : "Confirm Booking"}

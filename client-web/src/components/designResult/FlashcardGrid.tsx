@@ -53,7 +53,7 @@ export default function FlashcardGrid({ loading, cards }: { loading: boolean; ca
                         */}
                         <div className="absolute inset-0 h-full w-full rounded-xl bg-purple-50 border border-purple-200 flex flex-col items-center justify-center text-center p-4 transform-[rotateY(180deg)] backface-hidden overflow-hidden">
                             <div className="w-full max-h-full overflow-y-auto no-scrollbar flex items-center justify-center">
-                                <p className="text-purple-900 text-xs font-medium leading-snug break-words px-1">
+                                <p className="text-purple-900 text-xs font-medium leading-snug wrap-break-word px-1">
                                   {card.definition}
                                 </p>
                             </div>
