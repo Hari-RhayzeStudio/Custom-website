@@ -33,7 +33,8 @@ export default function CatalogueGrid({ products, category }: GridProps) {
        return;
     }
     try {
-      const res = await fetch(`${API_BASE_URL}/api/wishlist/${userId}`);
+      // ✅ CACHE BUSTER ADDED HERE
+      const res = await fetch(`${API_BASE_URL}/api/wishlist/${userId}?_t=${Date.now()}`);
       if (!res.ok) throw new Error("Failed to fetch");
       const data = await res.json();
       const skus = new Set<string>(data.map((item: any) => item.product_sku));

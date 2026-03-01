@@ -34,7 +34,8 @@ export default function ProductDetailsClient({ product }: { product: any }) {
     }
 
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/wishlist/${userId}?product_sku=${product.sku}`);
+      // ✅ CACHE BUSTER ADDED HERE
+      const res = await axios.get(`${API_BASE_URL}/api/wishlist/${userId}?product_sku=${product.sku}&_t=${Date.now()}`);
       setIsWishlisted(res.data.length > 0);
     } catch (error) {
       console.error("Wishlist check error:", error);

@@ -1,148 +1,155 @@
 "use client";
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import useSWR from 'swr';
-import { XIcon } from '@/components/Icons';
+import { EmptyStateIcon, HeartFilledIcon, LoaderIcon } from '@/components/Icons';
 
-// ✅ 1. Define Base URL from Env with Fallback
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
-// ✅ 2. Define Fetcher for SWR
-const fetcher = (url: string) => axios.get(url).then(res => res.data);
+const formatCategory = (cat: string) => cat ? cat.toLowerCase().replace(/\s+/g, '-') : 'jewelry';
+
+const generateSlug = (name: string, sku: string) => {
+  const formattedName = (name || 'product').toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
+  return `${formattedName}-${sku}`;
+};
 
 export default function WishlistPage() {
-  const [userId, setUserId] = useState<string | null>(null);
+  const [wishlist, setWishlist] = useState<any[]>([]);
+  const [isFetching, setIsFetching] = useState(true);
 
-  // Get User ID on mount (Client-side only)
+  // 1. Fetch data on load
   useEffect(() => {
-    setUserId(localStorage.getItem('user_id'));
+    const userId = localStorage.getItem('user_id');
+    if (!userId) {
+      setIsFetching(false);
+      return;
+    }
+
+    const fetchWishlist = async () => {
+      try {
+        // Cache Buster ensures fresh data
+        const res = await axios.get(`${API_BASE_URL}/api/wishlist/${userId}?_t=${Date.now()}`);
+        setWishlist(res.data);
+      } catch (error) {
+        console.error("Failed to fetch wishlist", error);
+      } finally {
+        setIsFetching(false);
+      }
+    };
+
+    fetchWishlist();
+
+    const handleUpdate = () => fetchWishlist();
+    window.addEventListener('wishlistUpdated', handleUpdate);
+    return () => window.removeEventListener('wishlistUpdated', handleUpdate);
   }, []);
 
-  // ✅ 3. SWR Hook
-  // Use API_BASE_URL in the key
-  const { data: wishlistItems, error, isLoading, mutate } = useSWR(
-    userId ? `${API_BASE_URL}/api/wishlist/${userId}` : null,
-    fetcher,
-    {
-      revalidateOnFocus: true, // Auto-update when window gets focus
-      revalidateOnMount: true, // Check server immediately on mount
-      // dedupingInterval removed to ensure fresh data on mount
-    }
-  );
+  // 2. 🔥 INSTANT REMOVE LOGIC
+  const handleRemoveItem = (e: React.MouseEvent, product_sku: string) => {
+    // Crucial: Stops the click from opening the product link
+    e.preventDefault(); 
+    e.stopPropagation();
 
-  const generateSlug = (name: string, sku: string) => {
-    const formattedName = name?.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-');
-    return `${formattedName}-${sku}`;
-  };
+    const userId = localStorage.getItem('user_id');
+    if (!userId) return;
 
-  const removeItem = async (sku: string) => {
-    if (!userId || !wishlistItems) return;
+    const previousWishlist = [...wishlist];
 
-    // ✅ 4. Optimistic UI
-    const newItems = wishlistItems.filter((item: any) => item.product_sku !== sku);
+    // ✅ INSTANT UI UPDATE: Remove from screen immediately
+    setWishlist(prev => prev.filter(item => item.product_sku !== product_sku));
     
-    // Update local data immediately
-    mutate(newItems, false); 
+    // Update navbar bell/heart instantly
+    window.dispatchEvent(new Event('wishlistUpdated'));
 
-    try {
-      // Use API_BASE_URL for delete request
-      await axios.delete(`${API_BASE_URL}/api/wishlist`, {
-        data: { user_id: userId, product_sku: sku }
-      });
-      // Trigger a background re-fetch just to be safe
-      mutate();
-    } catch (error) {
-      console.error("Failed to remove item", error);
-      alert("Failed to remove item.");
-      mutate(); // Revert changes on error
-    }
+    // ✅ BACKGROUND SERVER REQUEST: Quietly deletes in the database
+    axios.delete(`${API_BASE_URL}/api/wishlist`, {
+      data: { user_id: userId, product_sku: product_sku }
+    }).catch(() => {
+      // Silently revert if the server actually fails
+      setWishlist(previousWishlist);
+    });
   };
-
-  // ✅ 5. Skeleton Loading State
-  if (isLoading) return (
-    <main className="bg-white min-h-screen py-10 px-6 max-w-7xl mx-auto">
-      <div className="h-8 w-48 bg-gray-100 rounded mb-8 animate-pulse"></div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="border border-gray-100 rounded-2xl p-4">
-             <div className="aspect-square bg-gray-100 rounded-xl mb-4 animate-pulse"></div>
-             <div className="h-4 w-3/4 bg-gray-100 rounded mb-2 animate-pulse"></div>
-             <div className="h-10 w-full bg-gray-100 rounded mt-4 animate-pulse"></div>
-          </div>
-        ))}
-      </div>
-    </main>
-  );
 
   return (
-    <main className="bg-white min-h-screen pb-20 relative">
-      {!wishlistItems || wishlistItems.length === 0 ? (
-        <section className="py-20 px-6 text-center">
-          <div className="max-w-2xl mx-auto animate-in fade-in zoom-in duration-500">
-            <h2 className="text-3xl md:text-4xl font-serif font-bold text-gray-900 mb-8">
-              Not added any design yet
-            </h2>
-            <Link href="/catalogue">
-              <button className="border-2 border-[#7D3C98] text-[#7D3C98] px-8 py-3 rounded-full font-semibold hover:bg-[#7D3C98] hover:text-white transition mb-16">
-                Explore Designs
-              </button>
+    <div className="min-h-screen bg-gray-50 font-sans">
+      {/* Container sizing perfectly matches CatalogueGrid */}
+      <div className="max-w-360 mx-auto px-6 md:px-12 lg:px-20 xl:px-28 py-8 md:py-12">
+        
+        <div className="flex items-center justify-center mb-6">
+          <h1 className="text-[24px] md:text-[28px] lg:text-[32px] xl:text-[36px] font-serif font-bold text-gray-900 text-center">Your Wishlist</h1>
+          {isFetching && <LoaderIcon className="w-5 h-5 text-[#7D3C98] animate-spin" />}
+        </div>
+
+        {!isFetching && wishlist.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-gray-400 bg-white rounded-3xl border border-dashed border-gray-200 animate-in fade-in duration-300">
+            <EmptyStateIcon className="w-16 h-16 mb-4 text-gray-300" />
+            <h2 className="text-lg font-medium text-gray-800 mb-2">Your wishlist is empty</h2>
+            <p className="text-sm text-gray-500 mb-6">Explore our catalogue and find something you love.</p>
+            <Link href="/catalogue" className="px-8 py-3 bg-[#1a1a1a] text-white rounded-full font-bold hover:bg-[#7D3C98] transition shadow-md cursor-pointer">
+              Browse Catalogue
             </Link>
-
-            <div className="mb-8">
-              <h3 className="text-xl font-bold text-gray-800 mb-2">No items saved yet</h3>
-              <p className="text-gray-600">
-                Save designs for later and make your wishlists based on favourite
-              </p>
-            </div>
-
-            <div className="relative h-64 md:h-80 w-full mx-auto opacity-80">
-              <Image
-                src="/assets/empty-wishlist-illustration.png" 
-                alt="No items in wishlist"
-                fill
-                className="object-contain"
-              />
-            </div>
           </div>
-        </section>
-      ) : (
-        <section className="py-10 px-6 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <h2 className="text-3xl font-serif font-bold text-gray-900 mb-8">Your Wishlist</h2>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {wishlistItems.map((item: any) => (
-              <div key={item.id} className="group relative bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-                {/* Remove Button */}
-                <button 
-                  onClick={() => removeItem(item.product_sku)}
-                  className="absolute top-4 right-4 z-10 w-8 h-8 bg-white/90 backdrop-blur rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 shadow-sm transition hover:scale-110"
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+            {wishlist.map((item) => {
+              const productUrl = `/${formatCategory(item.category)}/${generateSlug(item.product_name, item.product_sku)}`;
+
+              return (
+                <Link 
+                  href={productUrl}
+                  key={item.product_sku} 
+                  className="bg-white p-2.5 sm:p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col group hover:shadow-lg hover:border-purple-100 transition duration-300 h-full cursor-pointer relative animate-in fade-in zoom-in-95"
                 >
-                  <XIcon className="w-4 h-4" />
-                </button>
+                  {/* Image Area */}
+                  <div className="relative aspect-square w-full mb-3 sm:mb-4 overflow-hidden rounded-xl bg-gray-50 shrink-0">
+                     {item.product_image ? (
+                       <Image 
+                         src={item.product_image} 
+                         alt={item.product_name || 'Jewelry Item'} 
+                         fill
+                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                         className="object-cover transition duration-700 group-hover:scale-105"
+                         onError={(e) => {
+                           const target = e.target as HTMLImageElement;
+                           target.style.display = 'none'; 
+                           target.parentElement!.style.backgroundColor = '#f3f4f6'; 
+                         }}
+                       />
+                     ) : (
+                       <div className="w-full h-full flex items-center justify-center text-gray-300 bg-gray-100 text-xs">No Image</div>
+                     )}
+                     
+                     {/* <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-white/90 backdrop-blur text-[9px] sm:text-[10px] font-bold px-2 py-0.5 sm:py-1 rounded-md uppercase tracking-wider text-gray-600 group-hover:text-[#722E85] transition-colors z-10">
+                       {item.category || 'Jewelry'}
+                     </div> */}
+                  </div>
 
-                <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-50 mb-4">
-                  <img 
-                    src={item.product_image || '/placeholder.jpg'} 
-                    alt={item.product_name} 
-                    className="w-full h-full object-cover transition duration-700 group-hover:scale-110"
-                  />
-                </div>
-
-                <h3 className="font-serif font-bold text-gray-900 truncate mb-1">{item.product_name}</h3>
-                
-                <Link href={`/jewelry/${generateSlug(item.product_name, item.product_sku)}`}>
-                  <button className="w-full mt-4 border border-[#7D3C98] text-[#7D3C98] py-2.5 rounded-xl font-bold text-sm hover:bg-[#7D3C98] hover:text-white transition-colors">
-                    View Details
+                  {/* INSTANT REMOVE (HEART) BUTTON */}
+                  <button 
+                    onClick={(e) => handleRemoveItem(e, item.product_sku)}
+                    className="absolute top-4 right-4 sm:top-6 sm:right-6 p-1.5 sm:p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm hover:scale-110 transition-transform z-20 cursor-pointer"
+                    title="Remove from wishlist"
+                  >
+                     <HeartFilledIcon className="w-4 h-4 sm:w-5 sm:h-5 text-[#C282D4]" />
                   </button>
+                  
+                  {/* Text Area */}
+                  <div className="flex flex-col flex-1">
+                    <h3 className="font-serif text-sm sm:text-lg font-bold text-gray-900 mb-1 line-clamp-1 group-hover:text-[#722E85] transition-colors" title={item.product_name}>
+                        {item.product_name || `Product SKU: ${item.product_sku}`}
+                    </h3>
+                    <p className="text-[10px] sm:text-xs text-gray-500 line-clamp-2">
+                      {item.final_description || 'Exquisite custom design from Rhayze Studio.'}
+                    </p>
+                  </div>
                 </Link>
-              </div>
-            ))}
+              );
+            })}
           </div>
-        </section>
-      )}
-    </main>
+        )}
+      </div>
+    </div>
   );
 }

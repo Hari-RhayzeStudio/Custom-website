@@ -137,7 +137,7 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
     <div 
       onClick={() => handleCategoryClick(category.name)}
       className={`
-        relative overflow-hidden rounded-[1.5rem] transition-all duration-500 cursor-pointer 
+        relative overflow-hidden rounded-3xl transition-all duration-500 cursor-pointer 
         ${isActive ? 'shadow-xl border-2 border-[#7D3C98]' : 'shadow-md opacity-80 hover:opacity-100'}
         bg-white h-full w-full
       `}
@@ -169,7 +169,7 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
 
   return (
     <div className="min-h-screen bg-[#FAF8F3] pt-2 md:pt-4 pb-12 md:pb-10 overflow-x-hidden flex flex-col justify-start">
-      <div className="max-w-[1440px] mx-auto w-full">
+      <div className="max-w-360 mx-auto w-full">
         
         {/* Title */}
         <h1 className="text-2xl md:text-3xl font-serif text-center mb-2 md:mb-4 text-gray-800 leading-tight px-4 mt-2">
@@ -191,10 +191,10 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
               pagination={{ clickable: true, dynamicBullets: true }}
               autoplay={{ delay: 3000, disableOnInteraction: false }}
               modules={[EffectCoverflow, Autoplay, Pagination]}
-              className="w-full !pb-6 pt-2"
+              className="w-full pb-6! pt-2"
             >
               {categories.map((category, index) => (
-                <SwiperSlide key={`${category.name}-${index}`} className="!h-[150px] md:!h-[220px]">
+                <SwiperSlide key={`${category.name}-${index}`} className="h-37.5! md:h-55!">
                   {({ isActive }) => ( <CategoryCard category={category} isActive={isActive} /> )}
                 </SwiperSlide>
               ))}

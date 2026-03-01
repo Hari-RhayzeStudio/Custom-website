@@ -48,7 +48,7 @@ export default async function CataloguePage({
       {/* ✅ ADDED MORE LEFT/RIGHT SPACE: 
           Increased px-4 to px-6 (mobile), md:px-12 (tablet), lg:px-20, xl:px-28 (desktops) 
       */}
-      <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-20 xl:px-28 py-8 md:py-12">
+      <div className="max-w-360 mx-auto px-6 md:px-12 lg:px-20 xl:px-28 py-8 md:py-12">
           <CatalogueGrid products={products} category={category} />
       </div>
     </div>
