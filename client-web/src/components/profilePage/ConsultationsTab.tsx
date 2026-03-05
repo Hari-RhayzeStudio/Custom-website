@@ -1,150 +1,128 @@
 "use client";
-
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import useSWR from 'swr'; 
-import { CalendarIcon, MeetIcon } from '@/components/Icons';
+import { useRouter } from 'next/navigation';
 
-interface Booking {
-  id: string;
-  expert_name: string;
-  consultation_date: string;
-  slot: string;
-  status: string;
-  product_images: string[];
-}
-
-// ✅ Define Base URL from Env with Fallback
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
-// ✅ Define fetcher outside component
-const fetcher = (url: string) => axios.get(url).then(res => res.data);
+export default function ConsultationsTab({ userId, userEmail }: { userId: string, userEmail: string }) {
+  const router = useRouter();
+  const [bookings, setBookings] = useState<any[]>([]);
 
-export default function ConsultationsTab({ userId }: { userId: string }) {
-  const [filter, setFilter] = useState<'upcoming' | 'past'>('upcoming');
+  useEffect(() => {
+    axios.get(`${API_BASE_URL}/api/bookings/user/${userId}`)
+      .then(res => setBookings(res.data))
+      .catch(console.error);
+  }, [userId]);
 
-  // ✅ SWR Hook: Uses API_BASE_URL now
-  const { data: bookings = [], isLoading } = useSWR<Booking[]>(
-    userId ? `${API_BASE_URL}/api/bookings/user/${userId}` : null,
-    fetcher,
-    {
-      revalidateOnFocus: false, 
-      dedupingInterval: 60000, 
-    }
-  );
-
-  // Logic to separate Upcoming vs Past
+  // Separate bookings
   const now = new Date();
-  now.setHours(0, 0, 0, 0); 
-
-  const upcomingBookings = bookings.filter(b => new Date(b.consultation_date) >= now);
+  const recentBookings = bookings.filter(b => new Date(b.consultation_date) >= now);
   const pastBookings = bookings.filter(b => new Date(b.consultation_date) < now);
 
-  const displayedBookings = filter === 'upcoming' ? upcomingBookings : pastBookings;
-
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
-    });
-  };
-
-  // ✅ Skeleton Loader
-  if (isLoading) return (
-    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 min-h-100">
-      <div className="h-8 w-48 bg-gray-100 rounded mb-8 animate-pulse"></div>
-      <div className="space-y-4">
-        {[1, 2].map(i => (
-           <div key={i} className="h-40 bg-gray-50 rounded-2xl animate-pulse border border-gray-100"></div>
-        ))}
-      </div>
-    </div>
-  );
-
   return (
-    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden min-h-125 animate-in fade-in slide-in-from-bottom-2 duration-300">
-      {/* Header & Tabs */}
-      <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h2 className="text-xl font-bold font-serif text-gray-800">My Consultations</h2>
-        
-        <div className="flex bg-gray-50 p-1 rounded-xl">
-          <button 
-            onClick={() => setFilter('upcoming')}
-            className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${filter === 'upcoming' ? 'bg-white text-[#7D3C98] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-          >
-            Upcoming
-          </button>
-          <button 
-            onClick={() => setFilter('past')}
-            className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${filter === 'past' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-          >
-            Past History
-          </button>
+    <div className="w-full max-w-4xl">
+      
+      {/* EXPERT CARD */}
+      <div className="bg-[#FCF9F2] p-6 rounded-lg border border-[#F0EAD6] mb-12">
+        <div className="flex items-center gap-4 mb-4">
+            {/* Placeholder for Expert Image */}
+            <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
+                <img src="/assets/placeholder-expert.jpg" alt="Expert" className="w-full h-full object-cover" onError={(e) => e.currentTarget.style.display='none'}/>
+            </div>
+            <div>
+                <h3 className="font-bold text-gray-900">Mr. Kamraann Rajjani</h3>
+                <p className="text-xs text-gray-500">12+ years in Jewellery design</p>
+            </div>
         </div>
+        <p className="text-sm text-gray-600 leading-relaxed mb-6">
+            With 12 years of experience in jewellery design, I bring a deep understanding of craftsmanship, aesthetics, and modern design trends. I specialise in transforming client ideas into custom concepts that blend creativity with technical precision. From concept sketches to detailed design planning, I ensure every piece reflects personal style, emotional value, and long-lasting quality.
+        </p>
+        <button 
+            onClick={() => router.push('/bookings')}
+            className="w-full py-3 bg-[#722E85] text-white text-sm font-bold rounded-md hover:bg-[#5b246a] transition flex justify-center items-center gap-2"
+        >
+            <img src="/assets/google-meet-icon.png" alt="Meet" className="w-4 h-4" onError={(e) => e.currentTarget.style.display='none'} />
+            Book Consultation
+        </button>
       </div>
 
-      {/* Content Area */}
-      <div className="p-6">
-        {displayedBookings.length === 0 ? (
-          <div className="text-center py-20">
-             <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
-               <CalendarIcon className="w-8 h-8" />
-             </div>
-             <p className="text-gray-500 font-medium">No {filter} consultations found.</p>
-          </div>
+      {/* RECENT TABLE */}
+      <div className="mb-10">
+        <div className="flex items-center gap-4 mb-6">
+            <h3 className="text-lg font-medium text-gray-800">Recent</h3>
+            <div className="h-px bg-gray-200 flex-1"></div>
+        </div>
+        
+        {recentBookings.length === 0 ? (
+            <div className="text-sm text-gray-500 pb-4">No recent consultations found.</div>
         ) : (
-          <div className="grid gap-4">
-            {displayedBookings.map((booking) => (
-              <div key={booking.id} className="flex flex-col md:flex-row gap-6 p-6 rounded-2xl border border-gray-100 hover:border-purple-100 hover:shadow-md transition-all group bg-white">
-                
-                {/* Date & Time Badge */}
-                <div className="flex flex-col items-center justify-center bg-[#F9F5E8] rounded-xl p-4 min-w-25 text-center border border-[#ebdcb2]">
-                   <span className="text-xs font-bold text-gray-400 uppercase">Date</span>
-                   <span className="text-lg font-bold text-gray-900 leading-tight mb-1">{formatDate(booking.consultation_date)}</span>
-                   <span className="text-xs font-bold text-[#7D3C98] bg-white px-2 py-0.5 rounded-md">{booking.slot}</span>
-                </div>
-
-                {/* Details */}
-                <div className="flex-1 flex flex-col justify-center">
-                   <div className="flex items-center gap-2 mb-2">
-                      <span className={`w-2 h-2 rounded-full ${booking.status === 'confirmed' ? 'bg-green-500' : 'bg-gray-400'}`}></span>
-                      <span className="text-xs font-bold uppercase tracking-wider text-gray-500">{booking.status}</span>
-                   </div>
-                   <h3 className="text-lg font-bold text-gray-800 mb-1">Consultation with {booking.expert_name}</h3>
-                   <p className="text-sm text-gray-500">Discussing Custom Jewelry Design</p>
-                   
-                   {/* Product Previews */}
-                   {booking.product_images && booking.product_images.length > 0 && (
-                     <div className="flex items-center gap-2 mt-4">
-                        <span className="text-xs text-gray-400 mr-1">Products:</span>
-                        <div className="flex -space-x-3">
-                          {booking.product_images.slice(0, 4).map((img, idx) => (
-                            <div key={idx} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden bg-gray-100">
-                              <img src={img} alt="Product" className="w-full h-full object-cover" />
-                            </div>
-                          ))}
+            <div className="flex flex-col gap-6">
+                {recentBookings.map((b, i) => (
+                    <div key={i} className="flex flex-wrap justify-between items-center text-sm border-b border-gray-100 pb-4">
+                        <div className="w-1/3">
+                            <p className="font-bold text-gray-700 mb-1">Email</p>
+                            <p className="text-gray-500">{userEmail}</p>
                         </div>
-                     </div>
-                   )}
-                </div>
-
-                {/* Action Button */}
-                <div className="flex items-center">
-                  {filter === 'upcoming' ? (
-                     <button className="w-full md:w-auto flex items-center justify-center gap-2 bg-[#7D3C98] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#6a3281] transition shadow-lg shadow-purple-100">
-                        <MeetIcon className="w-5 h-5" /> Join Meet
-                     </button>
-                  ) : (
-                     <button className="w-full md:w-auto px-6 py-3 rounded-xl font-bold text-gray-500 bg-gray-50 cursor-not-allowed">
-                        Completed
-                     </button>
-                  )}
-                </div>
-
-              </div>
-            ))}
-          </div>
+                        <div className="w-1/3">
+                            <p className="font-bold text-gray-700 mb-1">Consultation date</p>
+                            <p className="text-gray-500 flex items-center gap-2">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                {new Date(b.consultation_date).toLocaleDateString('en-GB').replace(/\//g, '-')}
+                            </p>
+                        </div>
+                        <div className="w-1/3 text-right">
+                            <p className="font-bold text-gray-700 mb-1">Product selected</p>
+                            {b.product_images && b.product_images.length > 0 ? (
+                                <img src={b.product_images[0]} alt="Product" className="w-8 h-8 object-contain ml-auto mix-blend-multiply" />
+                            ) : (
+                                <p className="text-gray-500">NA</p>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
         )}
       </div>
+
+      {/* PAST TABLE */}
+      <div>
+        <div className="flex items-center gap-4 mb-6">
+            <h3 className="text-lg font-medium text-gray-800">Past</h3>
+            <div className="h-px bg-gray-200 flex-1"></div>
+        </div>
+        
+        {pastBookings.length === 0 ? (
+            <div className="text-sm text-gray-500">No past consultations found.</div>
+        ) : (
+            <div className="flex flex-col gap-6">
+                {pastBookings.map((b, i) => (
+                    <div key={i} className="flex flex-wrap justify-between items-center text-sm border-b border-gray-100 pb-4">
+                        <div className="w-1/3">
+                            <p className="font-bold text-gray-700 mb-1">Email</p>
+                            <p className="text-gray-500">{userEmail}</p>
+                        </div>
+                        <div className="w-1/3">
+                            <p className="font-bold text-gray-700 mb-1">Date</p>
+                            <p className="text-gray-500 flex items-center gap-2">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                {new Date(b.consultation_date).toLocaleDateString('en-GB').replace(/\//g, '-')}
+                            </p>
+                        </div>
+                        <div className="w-1/3 text-right">
+                            <p className="font-bold text-gray-700 mb-1">Product selected</p>
+                            {b.product_images && b.product_images.length > 0 ? (
+                                <img src={b.product_images[0]} alt="Product" className="w-8 h-8 object-contain ml-auto mix-blend-multiply" />
+                            ) : (
+                                <p className="text-gray-500">NA</p>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        )}
+      </div>
+
     </div>
   );
 }

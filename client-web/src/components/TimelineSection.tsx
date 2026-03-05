@@ -51,14 +51,12 @@ export default function TimelineSection({ product, mode = 'full' }: TimelineProp
 
   const placeholderImg = "/placeholder-jewelry.jpg";
 
-  // ✅ Updated Text Content & Icons to match your screenshot
   const allSteps = [
     {
       id: "1",
       label: "Step-1: Consultation",
       title: "Book Consultation",
       desc: "Book free-consultation and discuss your requirement with us",
-      // ✅ Using stored Google Meet image instead of SVG
       icon: <img src="/assets/google-meet-icon.png" alt="Meet" className="w-12 h-12 object-contain" />,
       type: "card",
     },
@@ -147,7 +145,10 @@ export default function TimelineSection({ product, mode = 'full' }: TimelineProp
              );
           }
 
-          const isEven = index % 2 === 0;
+          // ✅ FIX: Calculate visual index by ignoring the 'header' items in the array.
+          // This ensures the cards strictly alternate Left/Right seamlessly!
+          const visualIndex = displayedSteps.slice(0, index).filter(s => s.type !== 'header').length;
+          const isEven = visualIndex % 2 === 0;
 
           return (
             <motion.div 
@@ -161,12 +162,12 @@ export default function TimelineSection({ product, mode = 'full' }: TimelineProp
               
               <div className={`w-full md:w-1/2 pl-16 md:pl-0 relative group ${isEven ? 'md:pr-12' : 'md:pl-12'}`}>
                  
-                 {/* ✅ STEP LABEL: Montaga, 32px, #722E85 */}
+                 {/* STEP LABEL */}
                  <div className={`${montaga.className} text-[24px] md:text-[32px] text-[#722E85] mb-4 text-center`}>
                     {step.label}
                  </div>
 
-                 {/* ✅ CARD: Soft background matching design */}
+                 {/* CARD */}
                  <div className="bg-[#FAF9F6] p-8 md:p-10 rounded-4xl border border-transparent transition-all duration-300 relative overflow-hidden flex flex-col items-center text-center">
                     
                     <div className="mb-6">
@@ -185,12 +186,12 @@ export default function TimelineSection({ product, mode = 'full' }: TimelineProp
                         )}
                     </div>
                     
-                    {/* ✅ STEP TITLE: Montserrat, 20px, Bold */}
+                    {/* STEP TITLE */}
                     <h3 className={`${montserrat.className} text-[20px] font-semibold text-gray-900 mb-3`}>
                         {step.title}
                     </h3>
                     
-                    {/* ✅ STEP DESCRIPTION: Montserrat, 16px */}
+                    {/* STEP DESCRIPTION */}
                     <p className={`${montserrat.className} text-[16px] text-gray-500 leading-relaxed max-w-sm`}>
                         {step.desc}
                     </p>

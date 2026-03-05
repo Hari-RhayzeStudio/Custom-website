@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, Suspense } from 'react';
-import { ArrowLeftIcon, ShoppingBagIcon, SettingsIcon } from '@/components/Icons'; 
+import { ArrowLeftIcon } from '@/components/Icons'; 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
@@ -9,7 +9,6 @@ import ProfileDetails from '@/components/profilePage/ProfileDetails';
 import EmptyTab from '@/components/profilePage/EmptyTab';
 import ConsultationsTab from '@/components/profilePage/ConsultationsTab';
 
-// ✅ Define Base URL from Env with Fallback
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 function ProfileContent() {
@@ -21,19 +20,13 @@ function ProfileContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [userData, setUserData] = useState({ id: "", name: "", email: "", phone: "", age: "" });
 
-  // 1. Listen for URL changes to switch tabs automatically
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab === 'consultations') {
-      setActiveTab('consultations');
-    } else if (tab === 'settings') {
-      setActiveTab('settings');
-    } else {
-      setActiveTab('profile');
-    }
+    if (tab === 'consultations') setActiveTab('consultations');
+    else if (tab === 'settings') setActiveTab('settings');
+    else setActiveTab('profile');
   }, [searchParams]);
 
-  // 2. Fetch User Data
   useEffect(() => {
     const userId = localStorage.getItem('user_id');
     if (!userId) { 
@@ -41,7 +34,6 @@ function ProfileContent() {
         return; 
     }
 
-    // ✅ UPDATED: Use API_BASE_URL variable
     axios.get(`${API_BASE_URL}/api/user/${userId}`)
       .then(res => {
         const d = res.data;
@@ -62,7 +54,6 @@ function ProfileContent() {
 
   const handleSave = async () => {
     try {
-      // ✅ UPDATED: Use API_BASE_URL variable
       await axios.put(`${API_BASE_URL}/api/user/${userData.id}`, {
         name: userData.name, email: userData.email, age: userData.age ? parseInt(userData.age) : null
       });
@@ -72,47 +63,63 @@ function ProfileContent() {
     } catch { alert("Failed to save changes"); }
   };
 
-  if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-[#fdfbf7]"><div className="w-8 h-8 border-4 border-[#7D3C98] border-t-transparent rounded-full animate-spin"></div></div>;
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-white"><div className="w-8 h-8 border-4 border-[#722E85] border-t-transparent rounded-full animate-spin"></div></div>;
+
+  // Dynamic Title based on tab
+  const getTitle = () => {
+    if (activeTab === 'consultations') return 'My Consultation';
+    if (activeTab === 'settings') return 'Settings';
+    return 'Your Profile';
+  };
 
   return (
-    <div className="min-h-screen bg-[#fdfbf7] pb-20 font-sans">
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center gap-4">
-          <Link href="/"><ArrowLeftIcon className="w-6 h-6 text-gray-600 hover:text-[#7D3C98] transition" /></Link>
-          <h1 className="text-xl font-bold font-serif text-gray-800">My Account</h1>
-        </div>
-      </header>
+    <div className="min-h-screen bg-white font-sans">
 
-      <main className="max-w-6xl mx-auto px-6 py-8 flex flex-col md:flex-row gap-8 items-start">
-        <ProfileSidebar 
-            user={userData} 
-            activeTab={activeTab} 
-            setActiveTab={(tab) => {
-                setActiveTab(tab);
-                router.push(`/profile?tab=${tab}`, { scroll: false });
-            }} 
-            onLogout={() => { localStorage.clear(); router.push('/'); }} 
-        />
+      {/* Main Content Container - Aligned with your standard site margins */}
+      <div className="max-w-300 mx-auto px-6 md:px-12 py-8 md:py-12">
         
-        <section className="flex-1 w-full">
-          {activeTab === 'profile' && (
-            <ProfileDetails userData={userData} setUserData={setUserData} isEditing={isEditing} setIsEditing={setIsEditing} onSave={handleSave} />
-          )}
-          
-          {activeTab === 'consultations' && (
-            <ConsultationsTab userId={userData.id} />
-          )}
+        {/* Header */}
+        <header className="mb-8 md:mb-12">
+          <div className="flex items-center gap-4">
+            <button onClick={() => router.back()} className="cursor-pointer">
+              <ArrowLeftIcon className="w-5 h-5 text-gray-800 hover:text-[#722E85] transition" />
+            </button>
+            <h1 className="text-2xl font-medium text-gray-800">{getTitle()}</h1>
+          </div>
+        </header>
 
-          {activeTab === 'settings' && <EmptyTab icon={SettingsIcon} title="Account Settings" desc="Manage notifications and privacy settings here." />}
-        </section>
-      </main>
+        {/* Content Area */}
+        <main className="flex flex-col md:flex-row gap-8 md:gap-16 items-start">
+          <ProfileSidebar 
+              activeTab={activeTab} 
+              setActiveTab={(tab) => {
+                  setActiveTab(tab);
+                  router.push(`/profile?tab=${tab}`, { scroll: false });
+              }} 
+              onLogout={() => { localStorage.clear(); router.push('/'); }} 
+          />
+          
+          <section className="flex-1 w-full">
+            {activeTab === 'profile' && (
+              <ProfileDetails userData={userData} setUserData={setUserData} isEditing={isEditing} setIsEditing={setIsEditing} onSave={handleSave} />
+            )}
+            
+            {activeTab === 'consultations' && (
+              <ConsultationsTab userId={userData.id} userEmail={userData.email} />
+            )}
+
+            {activeTab === 'settings' && <EmptyTab icon={null} title="Account Settings" desc="Manage notifications and privacy settings here." />}
+          </section>
+        </main>
+
+      </div>
     </div>
   );
 }
 
 export default function ProfilePage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-white">Loading...</div>}>
       <ProfileContent />
     </Suspense>
   );

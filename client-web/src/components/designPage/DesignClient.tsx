@@ -3,8 +3,23 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { XIcon, UploadIcon } from '@/components/Icons';
 import TrendingDesigns from '@/components/designPage/TrendingDesigns';
+// ✅ Import Fonts
+import { Montaga, Montserrat } from 'next/font/google';
 
-// ✅ Swiper Imports (Required for the images to load properly in the carousel)
+// ✅ Initialize Fonts
+const montaga = Montaga({ 
+  weight: '400', 
+  subsets: ['latin'],
+  display: 'swap',
+});
+
+const montserrat = Montserrat({
+  weight: ['400', '500', '600', '700'],
+  subsets: ['latin'],
+  display: 'swap',
+});
+
+// ✅ Swiper Imports
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { EffectCoverflow, Autoplay, Pagination } from 'swiper/modules';
 import 'swiper/css';
@@ -16,8 +31,6 @@ const DEFAULT_CATEGORIES = [
   { name: 'Bands', image: '/assets/placeholder-band.jpg' },
   { name: 'Ladies-rings', image: '/assets/placeholder-ladies-ring.jpg' },
   { name: 'Earrings', image: '/assets/placeholder-earring.jpg' },
-  // { name: 'Bracelets', image: '/assets/placeholder-jewelry.jpg' },
-  // { name: 'Necklaces', image: '/assets/placeholder-jewelry.jpg' },
 ];
 
 interface DesignClientProps {
@@ -60,7 +73,6 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
       return cat;
     });
     
-    // Duplicate categories to ensure swiper has enough slides to loop infinitely
     const loopedCategories = [...dynamicCategories];
     while (loopedCategories.length < 6) {
         loopedCategories.push(...dynamicCategories);
@@ -168,16 +180,14 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
     : "bg-[#722E85] text-white hover:bg-[#5e256e] cursor-pointer";
 
   return (
-    <div className="min-h-screen bg-[#FAF8F3] pt-2 md:pt-4 pb-12 md:pb-10 overflow-x-hidden flex flex-col justify-start">
+    <div className="min-h-screen bg-[#FEFEFE] pt-2 md:pt-4 pb-12 md:pb-10 overflow-x-hidden flex flex-col justify-start">
       <div className="max-w-360 mx-auto w-full">
         
-        {/* Title */}
         <h1 className="text-2xl md:text-3xl font-serif text-center mb-2 md:mb-4 text-gray-800 leading-tight px-4 mt-2">
           {selectedFile ? "Edit Your Piece" : "Generate Your Personalized Jewellery"}
         </h1>
 
         {!selectedFile && (
-          // ✅ CAROUSEL RESTORED HERE
           <div className="mb-2 relative w-full max-w-4xl mx-auto">
             <Swiper
               effect={'coverflow'}
@@ -207,12 +217,10 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
         )}
 
         <div className="max-w-5xl mx-auto px-4 md:px-6">
-            {/* Edit Image & Instructions UI */}
             {selectedFile && (
               <div className="bg-white rounded-3xl p-4 md:p-6 shadow-sm mb-4 animate-in fade-in slide-in-from-bottom-4 border border-gray-100">
                 <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start justify-center">
                   
-                  {/* Image with Hotspot */}
                   <div className="relative group w-full md:w-1/2 flex justify-center">
                     <button onClick={() => { setSelectedFile(null); setHotspot({x:0, y:0}); }} className="absolute -top-2 -right-2 md:-top-3 md:-right-3 p-2 text-gray-400 hover:text-red-500 bg-white rounded-full shadow-md z-10"><XIcon className="w-5 h-5"/></button>
                     <div className="relative inline-block border border-gray-100 rounded-2xl p-2 bg-gray-50/50">
@@ -223,7 +231,6 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
                     </div>
                   </div>
                   
-                  {/* ✅ ADDED Instructions Box */}
                   <div className="w-full md:w-1/2 flex flex-col justify-center">
                     <div className="bg-[#FDFBF7] p-5 rounded-2xl border border-[#F0EAD6] shadow-sm mb-2">
                       <p className="font-bold text-gray-800 text-sm text-center mb-4 font-serif">Click on product to make precise edit</p>
@@ -248,7 +255,6 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
               </div>
             )}
 
-            {/* Input Container */}
             <div className="bg-white rounded-3xl p-3 md:p-4 shadow-sm border border-gray-100/50 mb-3 md:mb-4">
               <div className="relative">
                 <textarea 
@@ -264,7 +270,6 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
               </div>
             </div>
 
-            {/* Generate Button */}
             <div className="flex justify-center mb-6">
               <button onClick={handleGenerate} disabled={isButtonDisabled} className={`${buttonBaseClasses} ${buttonStateClasses}`}>
                 {isNavigating && <span className="animate-spin h-4 w-4 border-2 border-white/80 border-t-transparent rounded-full"></span>}
@@ -272,7 +277,6 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
               </button>
             </div>
 
-            {/* Trending Designs */}
             <div className="w-full flex flex-col items-center">
                <TrendingDesigns 
                  trendingData={trendingData} 
@@ -287,29 +291,43 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
                />
             </div>
 
-            {/* How it works Section */}
+            {/* ✅ How it works Section - Fonts applied here */}
+            {/* ✅ How it works Section - Responsive Fonts applied here */}
             <div className="mt-8 border-t border-gray-200 pt-8 pb-10">
               <div className="flex items-center gap-4 mb-8 justify-center">
                 <div className="h-px bg-gray-200 w-12 md:w-20"></div>
-                <h2 className="text-xl md:text-2xl font-serif text-gray-800">How it works</h2>
+                {/* Responsive scaling for the Main Heading: 
+                  Mobile(24px) -> Tablet(28px) -> Desktop(32px) -> PC(40px) 
+                */}
+                <h2 className={`${montserrat.className} font-bold text-[24px] md:text-[28px] lg:text-[32px] xl:text-[40px] text-gray-800 transition-all duration-300`}>
+                  How it works
+                </h2>
                 <div className="h-px bg-gray-200 w-12 md:w-20"></div>
               </div>
+              
               <div className="grid md:grid-cols-2 gap-6 md:gap-8">
                 <div className="bg-white p-6 md:p-8 rounded-3xl text-center shadow-sm border border-gray-50">
-                  <h3 className="text-lg md:text-xl font-serif font-bold text-[#7D3C98] mb-2">Step 1: Generate</h3>
-                  <p className="text-gray-500 text-sm">
+                  {/* Responsive scaling for the Step Headings:
+                    Mobile(20px) -> Tablet(24px) -> Desktop(28px) -> PC(32px) 
+                  */}
+                  <h3 className={`${montaga.className} text-[20px] md:text-[24px] lg:text-[28px] xl:text-[32px] text-[#7D3C98] mb-2 transition-all duration-300`}>
+                    Step 1: Generate
+                  </h3>
+                  <p className={`${montserrat.className} text-gray-500 text-sm md:text-base`}>
                     Create your favourite jewellery with just a prompt and save it in your wishlist.
                   </p>
                 </div>
+                
                 <div className="bg-white p-6 md:p-8 rounded-3xl text-center shadow-sm border border-gray-50">
-                  <h3 className="text-lg md:text-xl font-serif font-bold text-[#7D3C98] mb-2">Step 2: Consultation</h3>
-                  <p className="text-gray-500 text-sm">
+                  <h3 className={`${montaga.className} text-[20px] md:text-[24px] lg:text-[28px] xl:text-[32px] text-[#7D3C98] mb-2 transition-all duration-300`}>
+                    Step 2: Consultation
+                  </h3>
+                  <p className={`${montserrat.className} text-gray-500 text-sm md:text-base`}>
                     We'll help you to bring your imagination into reality with free discussion.
                   </p>
                 </div>
               </div>
             </div>
-
         </div>
       </div>
     </div>

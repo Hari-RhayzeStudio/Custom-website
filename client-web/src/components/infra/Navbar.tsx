@@ -118,11 +118,11 @@ export default function Navbar() {
     const isActive = pathname === href;
     
     if (isDesktop) {
-        return `transition-colors px-4 py-2 rounded-full ${isActive ? 'text-[#722E85] bg-[#F6ECF8] font-bold' : 'text-[#808080] hover:text-[#7D3C98]'}`;
+        return `transition-colors px-4 py-2 rounded-full ${isActive ? 'text-[#722E85] bg-[#F6ECF8]' : 'text-[#808080] hover:text-[#7D3C98]'}`;
     }
 
     const baseClasses = "flex flex-col items-center justify-center h-full w-full transition-all duration-300 rounded-xl mx-1";
-    const activeClasses = "text-[#722E85] bg-[#F6ECF8] font-bold";
+    const activeClasses = "text-[#722E85] bg-[#F6ECF8]";
     const inactiveClasses = "text-[#808080] hover:text-[#7D3C98]";
     return `${baseClasses} ${isActive ? activeClasses : inactiveClasses}`;
   };
@@ -141,7 +141,7 @@ export default function Navbar() {
       {/* ==============================================
           1. QUOTATION HEADER (Animated)
          ============================================== */}
-      <div className="w-full bg-[#F9F5E8] border-b border-[#ebdcb2]">
+      <div className="w-full bg-[#F9F5E8] border-b border-[#F5EED6]">
         <div className="w-full text-center px-4 flex items-center justify-center h-auto min-h-10 md:h-17">
           <p 
             className={`text-[#7D3C98] font-serif italic font-medium text-xs sm:text-sm md:text-lg transition-opacity duration-500 ease-in-out ${fadeQuote ? 'opacity-100' : 'opacity-0'}`}
@@ -154,7 +154,7 @@ export default function Navbar() {
       {/* ==============================================
           2. DESKTOP & TABLET NAVBAR 
          ============================================== */}
-      <div className="hidden md:block w-full shadow-sm sticky top-0 z-50 bg-white">
+      <div className="hidden md:block w-full shadow-sm sticky top-0 z-50 bg-[#F4F4F3]">
         <nav className="w-full flex justify-between items-center px-6 md:px-10 xl:px-16 h-17">
           {/* Logo (Left Panel) */}
           <Link href="/" className="text-xl md:text-2xl font-bold font-serif text-gray-900 shrink-0">
@@ -205,7 +205,7 @@ export default function Navbar() {
                   <div className={`p-2 rounded-full border transition-all duration-200 ${isProfileOpen ? 'bg-[#722E85] border-[#722E85]' : 'bg-purple-50 border-purple-100 group-hover:border-[#722E85]'}`}>
                      <UserIcon className={`w-6 h-6 transition-colors ${isProfileOpen ? 'text-white' : 'text-[#722E85]'}`} />
                   </div>
-                  <span className="text-sm font-bold text-gray-700 max-w-25 truncate hidden lg:block">
+                  <span className="text-sm font-semibold text-gray-700 max-w-25 truncate hidden lg:block">
                     {user ? user.name : "Sign in"}
                   </span>
                </button>
