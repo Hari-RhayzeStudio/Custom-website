@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { XIcon, UploadIcon } from '@/components/Icons';
 import TrendingDesigns from '@/components/designPage/TrendingDesigns';
+
 // ✅ Import Fonts
 import { Montaga, Montserrat } from 'next/font/google';
 
@@ -145,6 +146,18 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
     router.push(`/catalogue?category=${encodeURIComponent(categoryName)}`);
   };
 
+  // ✅ Click handlers for the "How it works" cards
+  const handleStep1Click = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (textAreaRef.current) {
+      textAreaRef.current.focus();
+    }
+  };
+
+  const handleStep2Click = () => {
+    router.push('/bookings');
+  };
+
   const CategoryCard = ({ category, isActive }: { category: any, isActive?: boolean }) => (
     <div 
       onClick={() => handleCategoryClick(category.name)}
@@ -180,10 +193,10 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
     : "bg-[#722E85] text-white hover:bg-[#5e256e] cursor-pointer";
 
   return (
-    <div className="min-h-screen bg-[#FEFEFE] pt-2 md:pt-4 pb-12 md:pb-10 overflow-x-hidden flex flex-col justify-start">
+    <div className="min-h-screen bg-[#FEFEFE] pt-2 md:pt-4 pb-12 md:pb-10 overflow-x-hidden flex flex-col justify-start border-t border-gray-200 md:border-t-0">
       <div className="max-w-360 mx-auto w-full">
         
-        <h1 className="text-2xl md:text-3xl font-serif text-center mb-2 md:mb-4 text-gray-800 leading-tight px-4 mt-2">
+        <h1 className="text-[24px] md:text-3xl font-serif text-center py-6 md:py-10 text-gray-800 leading-tight px-4">
           {selectedFile ? "Edit Your Piece" : "Generate Your Personalized Jewellery"}
         </h1>
 
@@ -216,7 +229,8 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
           </div>
         )}
 
-        <div className="max-w-5xl mx-auto px-4 md:px-6">
+        <div className="max-w-4xl mx-auto px-4 md:px-6">
+            
             {selectedFile && (
               <div className="bg-white rounded-3xl p-4 md:p-6 shadow-sm mb-4 animate-in fade-in slide-in-from-bottom-4 border border-gray-100">
                 <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start justify-center">
@@ -291,26 +305,22 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
                />
             </div>
 
-            {/* ✅ How it works Section - Fonts applied here */}
-            {/* ✅ How it works Section - Responsive Fonts applied here */}
-            <div className="mt-8 border-t border-gray-200 pt-8 pb-10">
+            <div className="mt-8 pt-4 pb-10">
               <div className="flex items-center gap-4 mb-8 justify-center">
                 <div className="h-px bg-gray-200 w-12 md:w-20"></div>
-                {/* Responsive scaling for the Main Heading: 
-                  Mobile(24px) -> Tablet(28px) -> Desktop(32px) -> PC(40px) 
-                */}
-                <h2 className={`${montserrat.className} font-bold text-[24px] md:text-[28px] lg:text-[32px] xl:text-[40px] text-gray-800 transition-all duration-300`}>
+                <h2 className={`${montserrat.className} font-medium text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[28px] text-gray-800 transition-all duration-300`}>
                   How it works
                 </h2>
                 <div className="h-px bg-gray-200 w-12 md:w-20"></div>
               </div>
               
               <div className="grid md:grid-cols-2 gap-6 md:gap-8">
-                <div className="bg-white p-6 md:p-8 rounded-3xl text-center shadow-sm border border-gray-50">
-                  {/* Responsive scaling for the Step Headings:
-                    Mobile(20px) -> Tablet(24px) -> Desktop(28px) -> PC(32px) 
-                  */}
-                  <h3 className={`${montaga.className} text-[20px] md:text-[24px] lg:text-[28px] xl:text-[32px] text-[#7D3C98] mb-2 transition-all duration-300`}>
+                {/* ✅ Added click handler, cursor-pointer, and hover styling */}
+                <div 
+                  onClick={handleStep1Click}
+                  className="bg-white p-6 md:p-8 rounded-3xl text-center shadow-sm border border-gray-50 cursor-pointer hover:shadow-md hover:-translate-y-1 transition-all duration-300 group"
+                >
+                  <h3 className={`${montaga.className} text-[20px] md:text-[24px] lg:text-[28px] xl:text-[32px] text-[#7D3C98] mb-2 group-hover:text-[#5e256e] transition-colors`}>
                     Step 1: Generate
                   </h3>
                   <p className={`${montserrat.className} text-gray-500 text-sm md:text-base`}>
@@ -318,8 +328,12 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
                   </p>
                 </div>
                 
-                <div className="bg-white p-6 md:p-8 rounded-3xl text-center shadow-sm border border-gray-50">
-                  <h3 className={`${montaga.className} text-[20px] md:text-[24px] lg:text-[28px] xl:text-[32px] text-[#7D3C98] mb-2 transition-all duration-300`}>
+                {/* ✅ Added click handler, cursor-pointer, and hover styling */}
+                <div 
+                  onClick={handleStep2Click}
+                  className="bg-white p-6 md:p-8 rounded-3xl text-center shadow-sm border border-gray-50 cursor-pointer hover:shadow-md hover:-translate-y-1 transition-all duration-300 group"
+                >
+                  <h3 className={`${montaga.className} text-[20px] md:text-[24px] lg:text-[28px] xl:text-[32px] text-[#7D3C98] mb-2 group-hover:text-[#5e256e] transition-colors`}>
                     Step 2: Consultation
                   </h3>
                   <p className={`${montserrat.className} text-gray-500 text-sm md:text-base`}>
@@ -328,6 +342,7 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
                 </div>
               </div>
             </div>
+
         </div>
       </div>
     </div>

@@ -34,7 +34,6 @@ export default function ProductDetailsClient({ product }: { product: any }) {
     }
 
     try {
-      // ✅ CACHE BUSTER ADDED HERE
       const res = await axios.get(`${API_BASE_URL}/api/wishlist/${userId}?product_sku=${product.sku}&_t=${Date.now()}`);
       setIsWishlisted(res.data.length > 0);
     } catch (error) {
@@ -48,7 +47,6 @@ export default function ProductDetailsClient({ product }: { product: any }) {
     checkStatus();
   }, [product]);
 
-  // ✅ FIRE-AND-FORGET: No async/await blocking, instant UI update
   const handleWishlistToggle = () => {
     const userId = localStorage.getItem('user_id');
     
@@ -57,15 +55,13 @@ export default function ProductDetailsClient({ product }: { product: any }) {
       return; 
     }
 
-    // 1. INSTANT UI FEEDBACK
     const previousState = isWishlisted;
     setIsWishlisted(!previousState);
 
-    // 2. BACKGROUND SERVER REQUEST (No await)
     if (previousState) {
       axios.delete(`${API_BASE_URL}/api/wishlist`, { 
         data: { user_id: userId, product_sku: product.sku } 
-      }).catch(() => setIsWishlisted(previousState)); // Revert if fails
+      }).catch(() => setIsWishlisted(previousState));
     } else {
       axios.post(`${API_BASE_URL}/api/wishlist`, {
         user_id: userId, 
@@ -73,7 +69,6 @@ export default function ProductDetailsClient({ product }: { product: any }) {
         product_name: product.product_name, 
         product_image: product.final_image_url
       }).catch((e) => {
-        // Ignore duplicate conflict error, otherwise revert
         if (e.response?.status !== 409) setIsWishlisted(previousState);
       });
     }
@@ -83,10 +78,20 @@ export default function ProductDetailsClient({ product }: { product: any }) {
     const imageUrl = product[`${activeView}_image_url`];
     if (!imageUrl) return alert("Image not available");
     
-    const filename = `${product.product_name.replace(/[^a-z0-9]/gi, '-')}-${activeView}.jpg`;
-    const proxyUrl = `${API_BASE_URL}/api/download-proxy?url=${encodeURIComponent(imageUrl)}&filename=${encodeURIComponent(filename)}`;
+    // Create timestamp in format: YYYYMMDD_HHMMSS
+    const now = new Date();
+    const timestamp = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
+    
+    const cleanProductName = product.product_name ? product.product_name.replace(/[^a-z0-9]/gi, '-') : 'Jewelry';
+    
+    // Filename: Rhayze-Studio_ProductName_View_Timestamp.jpg
+    const filename = `Rhayze-Studio_${cleanProductName}_${activeView}_${timestamp}.jpg`;
+
+    // ✅ Route to the new proxy we just created in productRoutes.ts
+    const proxyUrl = `${API_BASE_URL}/api/products/download-proxy?url=${encodeURIComponent(imageUrl)}&filename=${encodeURIComponent(filename)}`;
 
     try {
+      // Trigger native browser download via the proxy
       const link = document.createElement('a'); 
       link.href = proxyUrl; 
       link.setAttribute('download', filename);
@@ -129,7 +134,6 @@ export default function ProductDetailsClient({ product }: { product: any }) {
               className="w-full h-full object-contain p-8 transition-transform duration-500 hover:scale-105" 
             />
             
-            {/* ✅ CLEAN HEART BUTTON - No disabling, no locks */}
             <button 
               onClick={handleWishlistToggle}
               className="absolute top-4 right-4 lg:top-6 lg:right-6 p-2.5 lg:p-3 rounded-full bg-white/90 backdrop-blur-sm shadow-md transition-all hover:scale-110 z-10 flex items-center justify-center cursor-pointer"
@@ -147,13 +151,13 @@ export default function ProductDetailsClient({ product }: { product: any }) {
           <div className="flex gap-2 justify-end w-full mt-4">
             <button 
               onClick={handleShare} 
-              className="flex shrink-0 items-center justify-center aspect-square w-10 lg:w-12 bg-white border border-gray-200 rounded-full text-gray-700 hover:text-[#7D3C98] hover:border-[#7D3C98] transition shadow-sm"
+              className="flex shrink-0 items-center justify-center aspect-square w-10 lg:w-12 bg-white border border-gray-200 rounded-full text-gray-700 hover:text-[#7D3C98] hover:border-[#7D3C98] transition shadow-sm cursor-pointer"
             >
               <ShareIcon className="w-4 h-4 lg:w-5 lg:h-5" />
             </button>
             <button 
               onClick={handleDownload} 
-              className="flex items-center justify-center gap-2 px-5 lg:px-6 py-2 lg:py-3 bg-[#7D3C98] text-white rounded-full font-bold text-xs lg:text-sm shadow-md hover:bg-[#6a3281] transition"
+              className="flex items-center justify-center gap-2 px-5 lg:px-6 py-2 lg:py-3 bg-[#7D3C98] text-white rounded-full font-bold text-xs lg:text-sm shadow-md hover:bg-[#6a3281] transition cursor-pointer"
             >
               <DownloadIcon className="w-4 h-4 lg:w-5 lg:h-5" /> 
               <span>Download</span>
@@ -176,7 +180,7 @@ export default function ProductDetailsClient({ product }: { product: any }) {
                   key={view} 
                   onClick={() => setActiveView(view as ViewType)} 
                   className={`
-                    flex flex-col items-center gap-1.5 p-1.5 rounded-xl transition 
+                    flex flex-col items-center gap-1.5 p-1.5 rounded-xl transition cursor-pointer
                     ${activeView === view ? 'bg-purple-100 ring-2 ring-[#7D3C98]' : 'hover:bg-gray-100'}
                   `}
                 >
@@ -201,7 +205,7 @@ export default function ProductDetailsClient({ product }: { product: any }) {
 
           <button 
             onClick={handleDiscussDesign}
-            className="w-full py-3.5 lg:py-4 rounded-full border border-purple-300 text-purple-700 font-bold text-sm lg:text-base hover:bg-purple-50 transition flex items-center justify-center gap-2 shadow-sm bg-white mt-auto"
+            className="w-full py-3.5 lg:py-4 rounded-full border border-purple-300 text-purple-700 font-bold text-sm lg:text-base hover:bg-purple-50 transition flex items-center justify-center gap-2 shadow-sm bg-white mt-auto cursor-pointer"
           >
             <img src="/assets/google-meet-icon.png" alt="Meet" className="w-5 h-5 lg:w-6 lg:h-6" /> 
             Discuss Design

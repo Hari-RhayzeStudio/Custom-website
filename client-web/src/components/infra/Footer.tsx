@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FacebookIcon, TwitterIcon, YoutubeIcon, InstagramIcon, PinIcon, PhoneIcon, MailIcon } from '@/components/Icons'; 
+import { PhoneIcon, MailIcon } from '@/components/Icons'; 
 
 // Simple Chevron Icon for the accordion
 const ChevronDownIcon = ({ className }: { className?: string }) => (
@@ -12,10 +12,15 @@ const ChevronDownIcon = ({ className }: { className?: string }) => (
 );
 
 export default function Footer() {
-  // State to track expanded sections on mobile
-  // We use an object to allow multiple sections to be open at once, 
-  // or you could use a string to allow only one.
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('');
+
+  useEffect(() => {
+    // 1. Check if user is signed in to hide the component
+    const userId = localStorage.getItem('user_id');
+    setIsSignedIn(!!userId);
+  }, []);
 
   const toggleSection = (section: string) => {
     setOpenSections(prev => ({
@@ -24,44 +29,57 @@ export default function Footer() {
     }));
   };
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // 5. User can ONLY enter numbers (strips out any letters/symbols)
+    const value = e.target.value.replace(/\D/g, '');
+    setPhoneNumber(value);
+  };
+
+  // US phone numbers are 10 digits long
+  const isValidPhone = phoneNumber.length === 10;
+
   return (
     <footer className="bg-[#f9f9f9] text-gray-700 font-sans border-t border-gray-100">
       
-      {/* SECTION 1: NEWSLETTER (Stays visible on all screens) */}
-      <div className="py-16 px-6 border-b border-gray-200">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl font-medium mb-8 text-black">
-            Get <span className="text-[#D4AF37] font-bold">Free consultation</span> on your sign up
-          </h2>
-          
-          <form className="flex flex-col sm:flex-row gap-0 max-w-lg mx-auto mb-4">
-            <input 
-              type="email" 
-              placeholder="Enter Phone number*" 
-              className="flex-1 p-4 border border-gray-300 outline-none focus:border-gray-500 bg-white text-sm"
-              required
-            />
-            <button className="bg-[#111111] text-white px-8 py-4 text-sm font-bold tracking-wide hover:bg-black transition">
-              SIGN UP
-            </button>
-          </form>
-          
-          <p className="text-xs text-gray-500 mb-8">
-            Your privacy matters. For details, see our <Link href="/privacy" className="underline hover:text-gray-800">Privacy Policy</Link>.
-          </p>
-
-          {/* <div className="flex items-center justify-center gap-6">
-            <span className="text-sm font-medium text-gray-600">Follow Us:</span>
-            <div className="flex gap-4">
-               <Link href="#" className="hover:text-black transition"><FacebookIcon className="w-5 h-5" /></Link>
-               <Link href="#" className="hover:text-black transition"><TwitterIcon className="w-5 h-5" /></Link>
-               <Link href="#" className="hover:text-black transition"><YoutubeIcon className="w-5 h-5" /></Link>
-               <Link href="#" className="hover:text-black transition"><PinIcon className="w-5 h-5" /></Link>
-               <Link href="#" className="hover:text-black transition"><InstagramIcon className="w-5 h-5" /></Link>
-            </div>
-          </div> */}
+      {/* SECTION 1: NEWSLETTER (Hidden if signed in) */}
+      {!isSignedIn && (
+        <div className="py-16 px-6 border-b border-gray-200">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-2xl font-medium mb-8 text-black">
+              Get <span className="text-[#D4AF37] font-bold">Free consultation</span> on your sign up
+            </h2>
+            
+            {/* 3 & 4. Perfectly curved container wrapper */}
+            <form className="flex w-full max-w-lg mx-auto mb-4 border border-gray-300 rounded-full overflow-hidden bg-white focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500 transition-all shadow-sm">
+              <input 
+                type="tel" 
+                placeholder="Enter Phone number*" 
+                value={phoneNumber}
+                onChange={handlePhoneChange}
+                maxLength={10} 
+                className="flex-1 px-6 py-4 outline-none bg-transparent text-sm w-full"
+                required
+              />
+              <button 
+                type="submit"
+                disabled={!isValidPhone}
+                className={`px-8 py-4 text-sm font-bold tracking-wide transition-colors h-full
+                  ${isValidPhone 
+                    ? 'bg-[#333333] text-white hover:bg-black cursor-pointer' // 2. Light black when valid
+                    : 'bg-[#E5E7EB] text-gray-400 cursor-not-allowed'         // 2. GREY when invalid
+                  }
+                `}
+              >
+                SIGN UP
+              </button>
+            </form>
+            
+            <p className="text-xs text-gray-500 mb-8">
+              Your privacy matters. For details, see our <Link href="/privacy" className="underline hover:text-gray-800">Privacy Policy</Link>.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* SECTION 2: LINKS & CONTACT (Accordion on Mobile, Grid on Desktop) */}
       <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 md:py-16">

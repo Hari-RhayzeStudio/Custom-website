@@ -155,9 +155,9 @@ export default function Navbar() {
           2. DESKTOP & TABLET NAVBAR 
          ============================================== */}
       <div className="hidden md:block w-full shadow-sm sticky top-0 z-50 bg-[#F4F4F3]">
-        <nav className="w-full flex justify-between items-center px-6 md:px-10 xl:px-16 h-17">
+        <nav className="w-full flex justify-between items-center px-6 md:px-10 xl:px-16 h-15">
           {/* Logo (Left Panel) */}
-          <Link href="/" className="text-xl md:text-2xl font-bold font-serif text-gray-900 shrink-0">
+          <Link href="/" className="text-xl md:text-2xl font-semibold font-serif text-gray-900 shrink-0">
             Rhayze Studio
           </Link>
           
@@ -225,8 +225,8 @@ export default function Navbar() {
       {/* ==============================================
           3. MOBILE HEADER (Below Quote)
          ============================================== */}
-      <div className="md:hidden flex justify-between items-center px-4 h-14 border-b bg-white sticky top-0 z-40">
-         <Link href="/" className="text-lg font-bold font-serif text-gray-900">
+      <div className="md:hidden flex justify-between items-center px-4 h-14 bg-[#F4F4F3] sticky top-0 z-40">
+         <Link href="/" className="text-lg font-semibold font-serif text-gray-900">
            Rhayze Studio
          </Link>
          

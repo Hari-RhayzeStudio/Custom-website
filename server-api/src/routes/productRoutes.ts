@@ -8,6 +8,7 @@ const router = express.Router();
 // ==========================================
 router.get('/trending', async (req, res) => {
   try {
+    // 1. Get the top 3 most wishlisted SKUs
     const stats = await prismaUser.wishlistItem.groupBy({
       by: ['product_sku'],
       _count: { product_sku: true },
@@ -15,14 +16,19 @@ router.get('/trending', async (req, res) => {
       take: 3
     });
     
-    // ✅ FIX: Added ': any' to the parameter
+    // 2. Fetch the ACTUAL product details for these SKUs from the Product Database
     const trending = await Promise.all(stats.map(async (stat: any) => {
-      const item = await prismaUser.wishlistItem.findFirst({ where: { product_sku: stat.product_sku } });
-      return item ? {
-        sku: item.product_sku, 
-        product_name: item.product_name, 
-        final_image_url: item.product_image,
-        final_description: `Trending ${item.product_name}`
+      // ✅ FIX: Querying the actual Product table, not the Wishlist table
+      const product = await prismaProduct.productAsset.findUnique({ 
+        where: { sku: stat.product_sku } 
+      });
+      
+      return product ? {
+        sku: product.sku, 
+        product_name: product.product_name, 
+        final_image_url: product.final_image_url,
+        // ✅ FIX: Now passing the real description from your database
+        final_description: product.final_description 
       } : null;
     }));
     
