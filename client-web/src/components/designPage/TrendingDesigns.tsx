@@ -29,7 +29,7 @@ export default function TrendingDesigns({ onSelectPrompt, trendingData }: Trendi
         
         {/* LEFT SIDE: Big Image */}
         <div className="w-full md:w-1/2 flex items-center justify-center order-1 md:order-1">
-           <div className="w-full h-full min-h-[300px] md:min-h-[400px] rounded-[2rem] overflow-hidden bg-[#F6F3E6] relative shadow-sm">
+           <div className="w-full h-full min-h-75 md:min-h-100 rounded-4xl overflow-hidden bg-[#F6F3E6] relative shadow-sm">
               <img 
                 src="/assets/trending-model.png" 
                 alt="Trending Jewellery Model" 
@@ -78,7 +78,7 @@ export default function TrendingDesigns({ onSelectPrompt, trendingData }: Trendi
                   {/* TRY NOW BUTTON */}
                   <button 
                     onClick={() => onSelectPrompt(promptText)}
-                    className="w-full max-w-[198px] h-[46px] flex items-center justify-center bg-[#F9F5E8] text-[#7D3C98] rounded-lg text-sm font-semibold hover:bg-[#7D3C98] hover:text-white transition-all shadow-sm cursor-pointer"
+                    className="w-full max-w-49.5 h-11.5 flex items-center justify-center bg-[#F9F5E8] text-[#7D3C98] rounded-lg text-sm font-semibold hover:bg-[#7D3C98] hover:text-white transition-all shadow-sm cursor-pointer"
                   >
                     try now
                   </button>

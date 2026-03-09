@@ -37,18 +37,27 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
     }
   }, [isOpen]);
 
+  // ✅ Strict phone input handler: Only numbers, max 10
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const numericValue = e.target.value.replace(/\D/g, '').slice(0, 10);
+    setPhone(numericValue);
+  };
+
+  // ✅ Form Validation Logic for Button Activation
+  const isFormValid = isLoginMode 
+    ? phone.length === 10 
+    : (phone.length === 10 && name.trim().length >= 3);
+
   // --- 1. SEND OTP ---
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (phone.length < 10) return alert("Please enter a valid phone number");
-    if (!isLoginMode && !name.trim()) return alert("Please enter your name");
+    if (!isFormValid) return;
 
     setIsLoading(true);
-    const formattedNumber = `${countryCode}${phone.replace(/\D/g, '')}`;
+    const formattedNumber = `${countryCode}${phone}`;
     
     try {
-      // ✅ Updated to use dynamic API_BASE_URL
       const res = await axios.post(`${API_BASE_URL}/api/auth/send-otp`, {
         phoneNumber: formattedNumber
       });
@@ -72,10 +81,9 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
     if (enteredCode.length !== 6) return alert("Enter full 6-digit code");
 
     setIsLoading(true);
-    const formattedNumber = `${countryCode}${phone.replace(/\D/g, '')}`;
+    const formattedNumber = `${countryCode}${phone}`;
 
     try {
-      // ✅ Updated to use dynamic API_BASE_URL
       const res = await axios.post(`${API_BASE_URL}/api/auth/verify-otp`, {
         phoneNumber: formattedNumber,
         code: enteredCode,
@@ -119,8 +127,9 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-white rounded-3xl p-8 w-full max-w-md relative shadow-2xl transition-all">
+    // ✅ Added px-4 here so the modal has margins on mobile screens
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in px-4">
+      <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md relative shadow-2xl transition-all">
         <button onClick={onClose} className="absolute right-5 top-5 text-gray-400 hover:text-gray-800 transition">
           <XIcon className="w-6 h-6" />
         </button>
@@ -142,9 +151,12 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
               <div className="space-y-2 animate-in slide-in-from-top-2 fade-in duration-300">
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Full Name</label>
                 <input 
-                  type="text" placeholder="Enter your name" 
+                  type="text" 
+                  placeholder="Enter your name" 
                   className="w-full p-4 bg-gray-50 rounded-xl outline-none border focus:border-purple-300 transition"
-                  value={name} onChange={(e) => setName(e.target.value)} required 
+                  value={name} 
+                  onChange={(e) => setName(e.target.value)} 
+                  required 
                 />
               </div>
             )}
@@ -159,13 +171,28 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
                    </select>
                    <ChevronDownIcon className="w-4 h-4 text-gray-400"/>
                 </div>
-                <input type="tel" placeholder="99999 88888" className="w-full p-4 bg-transparent outline-none"
-                  value={phone} onChange={(e) => setPhone(e.target.value)} required 
+                <input 
+                  type="tel" 
+                  placeholder="99999 88888" 
+                  className="w-full p-4 bg-transparent outline-none"
+                  value={phone} 
+                  onChange={handlePhoneChange} // ✅ Uses the restricted handler
+                  maxLength={10} 
+                  required 
                 />
               </div>
             </div>
 
-            <button disabled={isLoading} className="w-full bg-[#7D3C98] text-white py-4 rounded-xl font-bold shadow-lg hover:bg-[#6a3281] transition flex justify-center items-center gap-2 disabled:opacity-70">
+            {/* ✅ Smart Button: Disabled state handling & color toggle */}
+            <button 
+              disabled={isLoading || !isFormValid} 
+              className={`w-full py-4 rounded-xl font-bold shadow-lg flex justify-center items-center gap-2 transition-all duration-300
+                ${isFormValid 
+                  ? 'bg-[#7D3C98] text-white hover:bg-[#6a3281] cursor-pointer' 
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }
+              `}
+            >
               {isLoading && <LoaderIcon className="w-5 h-5 animate-spin" />}
               {isLoading ? "Sending OTP..." : "Continue"}
             </button>
@@ -200,7 +227,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
               ))}
             </div>
 
-            <button onClick={handleVerifyOTP} disabled={isLoading} className="w-full bg-[#7D3C98] text-white py-4 rounded-xl font-bold shadow-lg flex justify-center items-center gap-2 disabled:opacity-70">
+            <button onClick={handleVerifyOTP} disabled={isLoading || otp.join("").length !== 6} className="w-full bg-[#7D3C98] text-white py-4 rounded-xl font-bold shadow-lg flex justify-center items-center gap-2 disabled:bg-gray-200 disabled:text-gray-400 transition-colors">
               {isLoading && <LoaderIcon className="w-5 h-5 animate-spin" />}
               {isLoading ? "Verifying..." : "Verify & Login"}
             </button>

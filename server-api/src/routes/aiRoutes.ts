@@ -3,14 +3,11 @@ import multer from 'multer';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const router = express.Router();
-// Use memory storage for file uploads
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Ensure API Key exists
 const API_KEY = process.env.GEMINI_API_KEY || process.env.API_KEY || "";
 const genAI = new GoogleGenerativeAI(API_KEY);
 
-// Helper: Convert Buffer to Gemini Part
 function bufferToPart(buffer: Buffer, mimeType: string) {
   return {
     inlineData: {
@@ -20,7 +17,6 @@ function bufferToPart(buffer: Buffer, mimeType: string) {
   };
 }
 
-// Helper: Handle response safely
 async function handleApiResponse(result: any, context: string): Promise<string> {
   try {
       const response = await result.response;
@@ -46,18 +42,33 @@ async function handleApiResponse(result: any, context: string): Promise<string> 
 }
 
 // ==========================================
-// 1. EDIT DESIGN
+// 1. EDIT DESIGN - FIXED
 // ==========================================
 router.post('/edit-design', upload.single('image'), async (req, res) => {
   try {
     const { prompt, x, y } = req.body;
     if (!req.file || !prompt) return res.status(400).json({ error: "Image and prompt required" });
 
-    console.log(`🎨 Processing Edit: "${prompt}" at ${x},${y}`);
+    console.log(`🎨 Processing Edit: "${prompt}" at (${x}, ${y})`);
 
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-image" });
     
-    const promptText = `Act as an expert jewelry designer. Edit this image based on: "${prompt}". Focus on area X:${x}, Y:${y}.`;
+    // ✅ IMPROVED PROMPT with better context
+    const promptText = `You are an expert jewelry image editor. Edit this jewelry image based on the following request:
+
+EDIT REQUEST: "${prompt}"
+
+LOCATION: The user wants to edit the area near pixel coordinates (${x}, ${y}). Focus your changes on that specific part of the jewelry.
+
+INSTRUCTIONS:
+1. Identify what jewelry element is at coordinates (${x}, ${y})
+2. Apply this change: "${prompt}" to that specific area
+3. Keep everything else EXACTLY the same
+4. Maintain photorealistic quality and lighting
+5. Make edits blend naturally
+
+Return ONLY the edited image - no text.`;
+
     const imagePart = bufferToPart(req.file.buffer, req.file.mimetype);
     
     const result = await model.generateContent([promptText, imagePart]);
@@ -82,7 +93,21 @@ router.post('/generate-design', upload.none(), async (req, res) => {
     console.log(`🎨 Generating Design for: "${prompt}"`);
 
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-image" });
-    const result = await model.generateContent(`Create a photorealistic image of jewelry: ${prompt}`);
+    
+    const fullPrompt = `Create a photorealistic professional jewelry photograph:
+
+"${prompt}"
+
+Requirements:
+- Studio lighting with proper shadows
+- Clean background (black velvet or white seamless)
+- High-quality product photography style
+- Show realistic metal shine and gemstone reflections
+- Professional composition
+
+Return ONLY the image.`;
+    
+    const result = await model.generateContent(fullPrompt);
     const imageUrl = await handleApiResponse(result, 'generation');
     
     res.json({ imageUrl });
@@ -104,7 +129,7 @@ router.post('/filter-design', upload.single('image'), async (req, res) => {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-image" });
     const imagePart = bufferToPart(req.file.buffer, req.file.mimetype);
     
-    const result = await model.generateContent([`Apply filter: ${prompt}`, imagePart]);
+    const result = await model.generateContent([`Apply this filter style to the entire image: ${prompt}. Keep the jewelry design the same, only change the visual style/mood. Return only the image.`, imagePart]);
     const imageUrl = await handleApiResponse(result, 'filter');
     
     res.json({ imageUrl });
@@ -126,7 +151,7 @@ router.post('/adjust-design', upload.single('image'), async (req, res) => {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-image" });
     const imagePart = bufferToPart(req.file.buffer, req.file.mimetype);
     
-    const result = await model.generateContent([`Adjust image: ${prompt}`, imagePart]);
+    const result = await model.generateContent([`Adjust this image: ${prompt}. Keep the jewelry design, adjust the image qualities. Return only the image.`, imagePart]);
     const imageUrl = await handleApiResponse(result, 'adjustment');
     
     res.json({ imageUrl });
@@ -138,7 +163,7 @@ router.post('/adjust-design', upload.single('image'), async (req, res) => {
 });
 
 // ==========================================
-// 5. FLASHCARDS (Text Generation)
+// 5. FLASHCARDS
 // ==========================================
 router.post('/generate-flashcards', upload.none(), async (req, res) => {
   const { prompt } = req.body;
@@ -147,7 +172,6 @@ router.post('/generate-flashcards', upload.none(), async (req, res) => {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     
-    // ✅ PROMPT: Asking for very short definitions (10 words max)
     const instruction = `
       You are a jewelry educator. Based on this design: "${prompt}", 
       generate 6 educational flashcards.
@@ -174,12 +198,9 @@ router.post('/generate-flashcards', upload.none(), async (req, res) => {
             const cleanTerm = t.trim().replace(/[\*\-]/g, '');
             let cleanDef = d.join(':').trim().replace(/[\*\-]/g, '');
             
-            // ✅ HARD ENFORCEMENT LOGIC
             if (cleanDef.length > 0) {
-                // 1. Force Capitalization
                 cleanDef = cleanDef.charAt(0).toUpperCase() + cleanDef.slice(1);
                 
-                // 2. Strict 70 Char Limit (Hard Cut)
                 if (cleanDef.length > 70) {
                     cleanDef = cleanDef.substring(0, 67).trim() + "...";
                 }

@@ -100,8 +100,22 @@ export default async function AboutUs() {
             </div>
         </div>
 
+        {/* <div className="flex flex-row items-center justify-center gap-2 md:gap-6 mb-10 h-45 md:h-62.5">
+            <div className="relative w-[28%] md:w-39.25 h-[70%] md:h-42 rounded-2xl overflow-hidden opacity-90 shrink-0">
+                <img src={headerImages[0]?.final_image_url || placeholderImg} alt={headerImages[0]?.final_image_alt_text || "Left Product"} className="object-cover w-full h-full hover:scale-110 transition duration-700" />
+            </div>
+            
+            <div className="relative w-[44%] md:w-83.75 h-[95%] md:h-55.25 rounded-3xl overflow-hidden z-10 shrink-0">
+                <img src={headerImages[1]?.final_image_url || placeholderImg} alt={headerImages[1]?.final_image_alt_text || "Center Product"} className="object-cover w-full h-full hover:scale-110 transition duration-700" />
+            </div>
+            
+            <div className="relative w-[28%] md:w-39.25 h-[70%] md:h-42 rounded-2xl overflow-hidden opacity-90 shrink-0">
+                <img src={headerImages[2]?.final_image_url || placeholderImg} alt={headerImages[2]?.final_image_alt_text || "Right Product"} className="object-cover w-full h-full hover:scale-110 transition duration-700" />
+            </div>
+        </div>
+         */}
         {/* ✅ Applied montserrat.className here */}
-        <p className={`${montserrat.className} text-base md:text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed mb-4`}>
+        <p className={`${montserrat.className} text-base md:text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed mb-4 text-justify`}>
           We are a jewellery design–first studio that blends advanced AI with real craftsmanship to help you create pieces that are truly yours. Our platform is built with jewellers, not instead of them, so every design can travel from a simple prompt to a piece you can actually wear.
         </p>
 
