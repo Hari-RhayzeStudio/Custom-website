@@ -111,12 +111,10 @@ export default function ProductDetailsClient({ product }: { product: any }) {
     const imageUrl = product[`${activeView}_image_url`];
     if (!imageUrl) return alert("Image not available");
     
-    const now = new Date();
-    const timestamp = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
-    const cleanProductName = product.product_name ? product.product_name.replace(/[^a-z0-9]/gi, '-') : 'Jewelry';
-    const filename = `Rhayze-Studio_${cleanProductName}_${activeView}_${timestamp}.jpg`;
+    const cleanProductName = product.product_name ? product.product_name.replace(/[^a-z0-9]/gi, '-').toLowerCase() : 'jewelry';
+    const filename = `rhayze-studio-${cleanProductName}-${activeView}.png`;
     const proxyUrl = `${API_BASE_URL}/api/products/download-proxy?url=${encodeURIComponent(imageUrl)}&filename=${encodeURIComponent(filename)}`;
-
+    
     try {
       const link = document.createElement('a'); 
       link.href = proxyUrl; 
