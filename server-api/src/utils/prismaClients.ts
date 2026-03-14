@@ -1,12 +1,15 @@
 import { PrismaClient } from '@prisma/client';
 
-// Create a SINGLE client instance for the entire app
-const globalPrisma = new PrismaClient();
+// Prevent multiple instances of Prisma Client in development
+const globalForPrisma = globalThis as unknown as {
+  prismaProduct: PrismaClient | undefined;
+  prismaUser: PrismaClient | undefined;
+};
 
-// Export the same client for both variables
-// This prevents errors in other files that import 'prismaProduct' or 'prismaUser'
-export const prismaProduct = globalPrisma;
-export const prismaUser = globalPrisma;
+export const prismaProduct = globalForPrisma.prismaProduct ?? new PrismaClient();
+export const prismaUser = globalForPrisma.prismaUser ?? new PrismaClient();
 
-// Fix BigInt JSON serialization (required for BigInt IDs)
-(BigInt.prototype as any).toJSON = function () { return this.toString(); };
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prismaProduct = prismaProduct;
+  globalForPrisma.prismaUser = prismaUser;
+}

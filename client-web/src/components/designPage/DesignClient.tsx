@@ -179,7 +179,7 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
         absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full backdrop-blur-md transition-all duration-300
         ${isActive ? 'bg-white/90 text-[#7D3C98] opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}
       `}>
-        <p className="font-serif tracking-wide text-xs md:text-sm font-bold whitespace-nowrap">
+        <p className="font-serif tracking-wide text-xs md:text-sm font-semibold whitespace-nowrap">
           {category.name}
         </p>
       </div>
@@ -247,18 +247,18 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
                   
                   <div className="w-full md:w-1/2 flex flex-col justify-center">
                     <div className="bg-[#FDFBF7] p-5 rounded-2xl border border-[#F0EAD6] shadow-sm mb-2">
-                      <p className="font-bold text-gray-800 text-sm text-center mb-4 font-serif">Click on product to make precise edit</p>
+                      <p className="font-semibold text-gray-800 text-sm text-center mb-4 font-serif">Click on product to make precise edit</p>
                       <div className="space-y-3">
                         <p className="text-gray-600 text-sm flex gap-3 items-center">
-                          <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 text-[#7D3C98] font-bold text-xs shrink-0">1</span> 
+                          <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 text-[#7D3C98] font-semibold text-xs shrink-0">1</span> 
                           Select part to edit
                         </p>
                         <p className="text-gray-600 text-sm flex gap-3 items-center">
-                          <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 text-[#7D3C98] font-bold text-xs shrink-0">2</span> 
+                          <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 text-[#7D3C98] font-semibold text-xs shrink-0">2</span> 
                           Enter prompt to make precise edit
                         </p>
                         <p className="text-gray-600 text-sm flex gap-3 items-center">
-                          <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 text-[#7D3C98] font-bold text-xs shrink-0">3</span> 
+                          <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 text-[#7D3C98] font-semibold text-xs shrink-0">3</span> 
                           Generate Product
                         </p>
                       </div>

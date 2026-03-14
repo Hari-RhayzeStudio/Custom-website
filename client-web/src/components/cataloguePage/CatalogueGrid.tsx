@@ -91,7 +91,7 @@ export default function CatalogueGrid({ products, category }: GridProps) {
   return (
     <div className="w-full relative">
       <div className="flex justify-between items-center mb-4 sm:mb-6">
-        <h2 className="text-lg sm:text-xl font-bold text-gray-800">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
           {category || "All Designs"} 
           <span className="text-gray-400 font-normal text-xs sm:text-sm ml-2">({safeProducts.length} found)</span>
         </h2>
@@ -133,7 +133,7 @@ export default function CatalogueGrid({ products, category }: GridProps) {
                    )}
                    
                    {p.category && (
-                     <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-white/90 backdrop-blur text-[9px] sm:text-[10px] font-bold px-2 py-0.5 sm:py-1 rounded-md uppercase tracking-wider text-gray-600 group-hover:text-[#722E85] transition-colors z-10">
+                     <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-white/90 backdrop-blur text-[9px] sm:text-[10px] font-medium px-2 py-0.5 sm:py-1 rounded-md uppercase tracking-wider text-gray-600 group-hover:text-[#722E85] transition-colors z-10">
                        {p.category}
                      </div>
                    )}
@@ -151,7 +151,7 @@ export default function CatalogueGrid({ products, category }: GridProps) {
                 </button>
                 
                 <div className="flex flex-col flex-1">
-                  <h3 className="font-serif text-sm sm:text-lg font-bold text-gray-900 mb-1 line-clamp-1 group-hover:text-[#722E85] transition-colors" title={p.product_name}>
+                  <h3 className="font-serif text-sm sm:text-lg font-medium text-gray-900 mb-1 line-clamp-1 group-hover:text-[#722E85] transition-colors" title={p.product_name}>
                       {p.product_name || 'Untitled Product'}
                   </h3>
                   <p className="text-[10px] sm:text-xs text-gray-500 line-clamp-2">

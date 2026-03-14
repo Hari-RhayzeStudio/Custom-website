@@ -4,7 +4,6 @@ import { motion, useScroll, useSpring, useTransform } from 'framer-motion';
 import { RequirementsIcon } from '@/components/Icons';
 import { Montaga, Montserrat } from 'next/font/google';
 
-// ✅ Initialize Fonts
 const montaga = Montaga({ 
   weight: '400', 
   subsets: ['latin'],
@@ -48,9 +47,9 @@ export default function TimelineSection({ product, mode = 'full' }: TimelineProp
   });
 
   const dotY = useTransform(scaleY, [0, 1], ["0%", "100%"]);
-
   const placeholderImg = "/placeholder-jewelry.jpg";
 
+  // ✅ Dynamically generate steps so the labels change based on the mode
   const allSteps = [
     {
       id: "1",
@@ -75,7 +74,7 @@ export default function TimelineSection({ product, mode = 'full' }: TimelineProp
     },
     {
       id: "3.1",
-      label: "3.1: Rendering",
+      label: mode === 'design-only' ? "Step-1: Rendering" : "3.1: Rendering",
       title: "Design Render",
       desc: "Professional jewellery sketches with technical precision to communicate design intent clearly.",
       img: product?.sketch_image_url,
@@ -84,7 +83,7 @@ export default function TimelineSection({ product, mode = 'full' }: TimelineProp
     },
     {
       id: "3.2",
-      label: "3.2: Wax Design",
+      label: mode === 'design-only' ? "Step-2: Wax Design" : "3.2: Wax Design",
       title: "Wax Model Creation",
       desc: "Shaping the design in wax, either hand-carved or 3D-printed from CAD.",
       img: product?.wax_image_url,
@@ -93,7 +92,7 @@ export default function TimelineSection({ product, mode = 'full' }: TimelineProp
     },
     {
       id: "3.3",
-      label: "3.3: Cast Design",
+      label: mode === 'design-only' ? "Step-3: Cast Design" : "3.3: Cast Design",
       title: "Casting Model",
       desc: "Molten gold or platinum is poured into the cavity, creating the raw metal form.",
       img: product?.cast_image_url,
@@ -102,7 +101,7 @@ export default function TimelineSection({ product, mode = 'full' }: TimelineProp
     },
     {
       id: "3.4",
-      label: "3.4: Polished Design",
+      label: mode === 'design-only' ? "Step-4: Polished Design" : "3.4: Polished Design",
       title: "Finished Piece",
       desc: "Final touches like setting stones, polishing, and engraving bring the piece to life.",
       img: product?.final_image_url,
@@ -145,8 +144,6 @@ export default function TimelineSection({ product, mode = 'full' }: TimelineProp
              );
           }
 
-          // ✅ FIX: Calculate visual index by ignoring the 'header' items in the array.
-          // This ensures the cards strictly alternate Left/Right seamlessly!
           const visualIndex = displayedSteps.slice(0, index).filter(s => s.type !== 'header').length;
           const isEven = visualIndex % 2 === 0;
 
@@ -161,15 +158,11 @@ export default function TimelineSection({ product, mode = 'full' }: TimelineProp
             >
               
               <div className={`w-full md:w-1/2 pl-16 md:pl-0 relative group ${isEven ? 'md:pr-12' : 'md:pl-12'}`}>
-                 
-                 {/* STEP LABEL */}
                  <div className={`${montaga.className} text-[24px] md:text-[32px] text-[#722E85] mb-4 text-center`}>
                     {step.label}
                  </div>
 
-                 {/* CARD */}
                  <div className="bg-[#FAF9F6] p-8 md:p-10 rounded-4xl border border-transparent transition-all duration-300 relative overflow-hidden flex flex-col items-center text-center">
-                    
                     <div className="mb-6">
                         {step.type === 'image' ? (
                             <div className="bg-white p-4 rounded-2xl inline-block shadow-sm border border-gray-50">
@@ -186,16 +179,13 @@ export default function TimelineSection({ product, mode = 'full' }: TimelineProp
                         )}
                     </div>
                     
-                    {/* STEP TITLE */}
                     <h3 className={`${montserrat.className} text-[20px] font-semibold text-gray-900 mb-3`}>
                         {step.title}
                     </h3>
                     
-                    {/* STEP DESCRIPTION */}
                     <p className={`${montserrat.className} text-[16px] text-gray-500 leading-relaxed max-w-sm`}>
                         {step.desc}
                     </p>
-                    
                  </div>
               </div>
 

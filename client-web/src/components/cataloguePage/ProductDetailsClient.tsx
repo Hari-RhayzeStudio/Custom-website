@@ -20,13 +20,44 @@ export default function ProductDetailsClient({ product }: { product: any }) {
   const router = useRouter();
   const [activeView, setActiveView] = useState<ViewType>('final');
   
+  // ✅ State for dynamic description
+  const [currentDescription, setCurrentDescription] = useState(product.final_description);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
 
+  // ✅ Function to handle stage changes and update description dynamically
+  const handleViewChange = (view: ViewType) => {
+    setActiveView(view);
+    
+    // Debugging: Uncomment the line below to see if data exists in your browser console
+    // console.log(`Switching to ${view}. Data available:`, product[`${view}_description`]);
+
+    switch (view) {
+      case 'sketch':
+        // ✅ Explicitly check if sketch_description exists and has text
+        if (product.sketch_description && product.sketch_description.trim() !== "") {
+          setCurrentDescription(product.sketch_description);
+        } else {
+          setCurrentDescription(product.final_description);
+        }
+        break;
+      case 'wax':
+        setCurrentDescription(product.wax_description || product.final_description);
+        break;
+      case 'cast':
+        setCurrentDescription(product.cast_description || product.final_description);
+        break;
+      case 'final':
+        setCurrentDescription(product.final_description);
+        break;
+      default:
+        setCurrentDescription(product.final_description);
+    }
+  };
+
   const checkStatus = async () => {
     const userId = localStorage.getItem('user_id');
-    
     if (!userId || !product?.sku) {
       setIsChecking(false);
       setIsWishlisted(false);
@@ -45,11 +76,13 @@ export default function ProductDetailsClient({ product }: { product: any }) {
 
   useEffect(() => {
     checkStatus();
+    // ✅ Reset to final description whenever the product prop changes
+    setCurrentDescription(product.final_description);
+    setActiveView('final');
   }, [product]);
 
   const handleWishlistToggle = () => {
     const userId = localStorage.getItem('user_id');
-    
     if (!userId) {
       setIsAuthOpen(true);
       return; 
@@ -78,20 +111,13 @@ export default function ProductDetailsClient({ product }: { product: any }) {
     const imageUrl = product[`${activeView}_image_url`];
     if (!imageUrl) return alert("Image not available");
     
-    // Create timestamp in format: YYYYMMDD_HHMMSS
     const now = new Date();
     const timestamp = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
-    
     const cleanProductName = product.product_name ? product.product_name.replace(/[^a-z0-9]/gi, '-') : 'Jewelry';
-    
-    // Filename: Rhayze-Studio_ProductName_View_Timestamp.jpg
     const filename = `Rhayze-Studio_${cleanProductName}_${activeView}_${timestamp}.jpg`;
-
-    // ✅ Route to the new proxy we just created in productRoutes.ts
     const proxyUrl = `${API_BASE_URL}/api/products/download-proxy?url=${encodeURIComponent(imageUrl)}&filename=${encodeURIComponent(filename)}`;
 
     try {
-      // Trigger native browser download via the proxy
       const link = document.createElement('a'); 
       link.href = proxyUrl; 
       link.setAttribute('download', filename);
@@ -123,17 +149,14 @@ export default function ProductDetailsClient({ product }: { product: any }) {
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 w-full items-stretch">
-        
         {/* LEFT: Main Image & Toolbar */}
         <div className="flex flex-col w-full h-full">
-          
           <div className="relative bg-gray-50 rounded-3xl overflow-hidden border border-gray-100 shadow-sm w-full aspect-square">
             <img 
               src={currentImage} 
               alt={currentAlt} 
               className="w-full h-full object-contain p-8 transition-transform duration-500 hover:scale-105" 
             />
-            
             <button 
               onClick={handleWishlistToggle}
               className="absolute top-4 right-4 lg:top-6 lg:right-6 p-2.5 lg:p-3 rounded-full bg-white/90 backdrop-blur-sm shadow-md transition-all hover:scale-110 z-10 flex items-center justify-center cursor-pointer"
@@ -157,7 +180,7 @@ export default function ProductDetailsClient({ product }: { product: any }) {
             </button>
             <button 
               onClick={handleDownload} 
-              className="flex items-center justify-center gap-2 px-5 lg:px-6 py-2 lg:py-3 bg-[#7D3C98] text-white rounded-full font-bold text-xs lg:text-sm shadow-md hover:bg-[#6a3281] transition cursor-pointer"
+              className="flex items-center justify-center gap-2 px-5 lg:px-6 py-2 lg:py-3 bg-[#EEE1B5] text-black rounded-full font-semibold text-xs lg:text-sm shadow-md hover:bg-[#d8cc9d] transition cursor-pointer"
             >
               <DownloadIcon className="w-4 h-4 lg:w-5 lg:h-5" /> 
               <span>Download</span>
@@ -178,7 +201,7 @@ export default function ProductDetailsClient({ product }: { product: any }) {
               {['sketch', 'wax', 'cast', 'final'].map((view) => (
                 <button 
                   key={view} 
-                  onClick={() => setActiveView(view as ViewType)} 
+                  onClick={() => handleViewChange(view as ViewType)} 
                   className={`
                     flex flex-col items-center gap-1.5 p-1.5 rounded-xl transition cursor-pointer
                     ${activeView === view ? 'bg-purple-100 ring-2 ring-[#7D3C98]' : 'hover:bg-gray-100'}
@@ -191,21 +214,22 @@ export default function ProductDetailsClient({ product }: { product: any }) {
                       className="w-full h-full object-contain" 
                     />
                   </div>
-                  <span className="text-[8px] lg:text-[10px] font-bold uppercase text-gray-700 leading-none mt-1">
+                  <span className="text-[8px] lg:text-[10px] font-semibold uppercase text-gray-700 leading-none mt-1">
                     {view === 'sketch' ? 'Render' : view}
                   </span>
                 </button>
               ))}
             </div>
             
-            <p className="text-gray-700 leading-relaxed font-medium text-xs lg:text-[15px] mb-6 line-clamp-4">
-              {product.final_description}
+            {/* ✅ Dynamic Description Area */}
+            <p className="text-gray-700 leading-relaxed font-medium text-xs lg:text-[15px] mb-6 line-clamp-6 transition-opacity duration-300">
+              {currentDescription}
             </p>
           </div>
 
           <button 
             onClick={handleDiscussDesign}
-            className="w-full py-3.5 lg:py-4 rounded-full border border-purple-300 text-purple-700 font-bold text-sm lg:text-base hover:bg-purple-50 transition flex items-center justify-center gap-2 shadow-sm bg-white mt-auto cursor-pointer"
+            className="w-full py-3.5 lg:py-4 rounded-full border border-purple-300 text-purple-700 font-semibold text-sm lg:text-base hover:bg-purple-50 transition flex items-center justify-center gap-2 shadow-sm bg-white mt-auto cursor-pointer"
           >
             <img src="/assets/google-meet-icon.png" alt="Meet" className="w-5 h-5 lg:w-6 lg:h-6" /> 
             Discuss Design
@@ -228,7 +252,7 @@ export default function ProductDetailsClient({ product }: { product: any }) {
 const Row = ({ label, value }: { label: string, value: string }) => (
   <div className="flex justify-between items-center py-2 lg:py-2.5 border-b border-[#ebdcb2]">
     <span className="text-gray-600 font-medium text-sm lg:text-base">{label}-</span>
-    <span className="bg-purple-100 px-3 py-1 rounded-full text-[#7D3C98] font-bold text-[10px] lg:text-[11px] uppercase tracking-wide">
+    <span className="bg-purple-100 px-3 py-1 rounded-full text-[#7D3C98] font-semibold text-[10px] lg:text-[11px] uppercase tracking-wide">
       {value}
     </span>
   </div>

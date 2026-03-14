@@ -26,6 +26,9 @@ export default function CatalogueHeader({ initialSearch }: { initialSearch: stri
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    // Only search if there is actual text
+    if (!searchValue.trim()) return;
+
     const params = new URLSearchParams(searchParams.toString());
     if (searchValue) params.set('search', searchValue);
     else params.delete('search');
@@ -42,7 +45,7 @@ export default function CatalogueHeader({ initialSearch }: { initialSearch: stri
       {/* Sticky Header */}
       <div className="bg-white/95 backdrop-blur-md border-b border-gray-100 sticky top-0 z-30 py-4 shadow-sm transition-all w-full">
         {/* ✅ MATCHED GRID PADDING & FULL WIDTH SEARCH */}
-        <div className="max-w-360 mx-auto px-6 md:px-12 lg:px-20 xl:px-28 flex gap-3 sm:gap-4 items-center w-full">
+        <div className="max-w-[1440px] mx-auto px-6 md:px-12 lg:px-20 xl:px-28 flex gap-3 sm:gap-4 items-center w-full">
           
           {/* ✅ SEARCH BAR NOW STRETCHES TO MATCH GRID LENGTH */}
           <form onSubmit={handleSearch} className="flex-1 flex gap-2 relative group w-full">
@@ -56,7 +59,18 @@ export default function CatalogueHeader({ initialSearch }: { initialSearch: stri
                 />
                 <SearchIcon className="absolute left-4 top-3.5 w-5 h-5 text-gray-400 group-focus-within:text-[#7D3C98] transition-colors" />
             </div>
-            <button type="submit" className="bg-[#1a1a1a] text-white px-8 rounded-full font-medium hover:bg-[#7D3C98] transition-colors duration-300 hidden sm:block shrink-0">
+            
+            {/* ✅ SMART BUTTON: Greyed out until text is entered */}
+            <button 
+              type="submit" 
+              disabled={!searchValue.trim()}
+              className={`px-8 rounded-full font-medium transition-all duration-300 hidden sm:block shrink-0
+                ${searchValue.trim() 
+                  ? 'bg-[#1a1a1a] text-white hover:bg-[#7D3C98] cursor-pointer' 
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }
+              `}
+            >
                 Search
             </button>
           </form>
@@ -89,11 +103,11 @@ export default function CatalogueHeader({ initialSearch }: { initialSearch: stri
       />
 
       <div 
-        className={`fixed top-0 right-0 h-full w-full sm:w-112.5 bg-white z-50 shadow-2xl transform transition-transform duration-300 cubic-bezier(0.16, 1, 0.3, 1) ${isFilterOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`fixed top-0 right-0 h-full w-full sm:w-[450px] bg-white z-50 shadow-2xl transform transition-transform duration-300 cubic-bezier(0.16, 1, 0.3, 1) ${isFilterOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
         <div className="h-full flex flex-col">
           <div className="flex justify-between items-center px-8 py-6 border-b border-gray-100">
-            <h2 className="text-2xl font-serif font-bold text-gray-900">Filter Designs</h2>
+            <h2 className="text-2xl font-serif font-semibold text-gray-900">Filter Designs</h2>
             <button 
               onClick={() => setIsFilterOpen(false)}
               className="p-2 -mr-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all"
@@ -112,13 +126,13 @@ export default function CatalogueHeader({ initialSearch }: { initialSearch: stri
                 router.push('/catalogue');
                 setIsFilterOpen(false);
               }}
-              className="flex-1 py-4 text-gray-500 font-bold hover:text-gray-900 transition underline-offset-4 hover:underline"
+              className="flex-1 py-4 text-gray-500 font-semibold hover:text-gray-900 transition underline-offset-4 hover:underline"
             >
               Clear All
             </button>
             <button 
               onClick={() => setIsFilterOpen(false)}
-              className="flex-2 py-4 bg-[#1a1a1a] text-white rounded-xl font-bold hover:bg-[#7D3C98] shadow-lg hover:shadow-purple-200 transition-all transform hover:-translate-y-0.5"
+              className="flex-[2] py-4 bg-[#1a1a1a] text-white rounded-xl font-semibold hover:bg-[#7D3C98] shadow-lg hover:shadow-purple-200 transition-all transform hover:-translate-y-0.5"
             >
               Show Results
             </button>

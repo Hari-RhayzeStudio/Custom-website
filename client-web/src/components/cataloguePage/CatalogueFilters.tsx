@@ -44,7 +44,7 @@ export default function CatalogueFilters() {
       
       {/* --- CATEGORIES (Clean List Style) --- */}
       <div className="space-y-4">
-        <h3 className="font-serif font-bold text-gray-900 text-xl tracking-wide">Category</h3>
+        <h3 className="font-serif font-semibold text-gray-900 text-xl tracking-wide">Category</h3>
         <div className="flex flex-col space-y-1">
           {CATEGORIES.map((cat) => {
             const isActive = currentCategory === cat;
@@ -57,7 +57,7 @@ export default function CatalogueFilters() {
                   ${isActive ? 'bg-purple-50 text-[#7D3C98]' : 'hover:bg-gray-50 text-gray-600'}
                 `}
               >
-                <span className={`text-base ${isActive ? 'font-bold' : 'font-medium group-hover:text-gray-900'}`}>
+                <span className={`text-base ${isActive ? 'font-semibold' : 'font-medium group-hover:text-gray-900'}`}>
                   {cat}
                 </span>
                 
@@ -75,7 +75,7 @@ export default function CatalogueFilters() {
 
       {/* --- MATERIALS (Visual Swatch Style) --- */}
       <div className="space-y-5">
-        <h3 className="font-serif font-bold text-gray-900 text-xl tracking-wide">Material</h3>
+        <h3 className="font-serif font-semibold text-gray-900 text-xl tracking-wide">Material</h3>
         <div className="flex flex-wrap gap-3">
           {MATERIALS.map((mat) => {
             const isActive = currentMaterial === mat;
@@ -97,7 +97,7 @@ export default function CatalogueFilters() {
                   <span className={`w-4 h-4 rounded-full border shadow-sm ${getMaterialStyle(mat)}`} />
                 )}
                 
-                <span className={`text-sm ${isActive ? 'font-bold text-[#7D3C98]' : 'font-medium text-gray-600'}`}>
+                <span className={`text-sm ${isActive ? 'font-semibold text-[#7D3C98]' : 'font-medium text-gray-600'}`}>
                   {mat}
                 </span>
               </button>

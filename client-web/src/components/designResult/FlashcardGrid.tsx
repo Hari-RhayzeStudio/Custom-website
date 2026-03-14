@@ -23,11 +23,11 @@ export default function FlashcardGrid({ loading, cards }: { loading: boolean; ca
          <AlertTriangleIcon className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
          <div>
             <p className="font-bold text-gray-700 text-sm">Disclaimer:</p>
-            <p className="text-gray-500 text-xs">We are not saving this design.</p>
+            <p className="text-gray-500 text-xs">We are not saving this design, if you like so please download it</p>
          </div>
       </div>
 
-      <h2 className="text-xl font-bold text-gray-800 mb-6">Flashcard Guide</h2>
+      <h2 className="text-xl font-semibold text-gray-800 mb-6">Flashcard Guide</h2>
       
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-2">
           {loading ? (
@@ -43,7 +43,7 @@ export default function FlashcardGrid({ loading, cards }: { loading: boolean; ca
                         
                         {/* Front Side */}
                         <div className="absolute inset-0 h-full w-full rounded-xl bg-[#F3EFE0] border border-transparent hover:border-[#7D3C98] flex items-center justify-center text-center p-4 backface-hidden shadow-sm">
-                            <span className="text-gray-800 text-sm font-bold font-serif leading-tight">{card.term}</span>
+                            <span className="text-gray-800 text-sm font-medium font-serif leading-tight">{card.term}</span>
                         </div>
 
                         {/* Back Side - FIXED ALIGNMENT */}

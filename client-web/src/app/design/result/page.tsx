@@ -349,7 +349,7 @@ function DesignResultContent() {
                <button 
                  onClick={handleGenerateEdit} 
                  disabled={!editPrompt.trim()} 
-                 className="w-full px-8 py-3 bg-[#7D3C98] hover:bg-[#6a3281] text-white rounded-lg font-medium disabled:opacity-50 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
+                 className="w-full px-8 py-3 bg-[#7D3C98] hover:bg-[#6a3281] text-white rounded-lg font-medium disabled:opacity-50 disabled:bg-gray-300 disabled:text-black disabled:cursor-not-allowed transition"
                >
                  Generate Edit
                </button>
@@ -359,7 +359,7 @@ function DesignResultContent() {
               <FlashcardGrid loading={loadingCards} cards={flashcards} />
               <button 
                 onClick={() => router.push('/bookings')} 
-                className="w-full py-3.5 rounded-full border border-purple-300 text-purple-700 font-bold hover:bg-purple-50 transition flex items-center justify-center gap-3 shadow-sm mt-6"
+                className="w-full py-3.5 rounded-full border border-purple-300 text-purple-700 font-semibold hover:bg-purple-50 transition flex items-center justify-center gap-3 shadow-sm mt-6"
               >
                 <img src="/assets/google-meet-icon.png" alt="Meet" className="w-6 h-6" /> 
                 Discuss Design
