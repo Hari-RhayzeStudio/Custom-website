@@ -152,16 +152,18 @@ export default function TimelineSection({ product, mode = 'full' }: TimelineProp
                   className={`flex flex-col md:flex-row items-center w-full ${!isEven ? 'md:flex-row-reverse' : ''}`}
               >
                 
-                <div className={`w-full md:w-1/2 pl-16 md:pl-0 relative group ${isEven ? 'md:pr-12' : 'md:pl-12'}`}>
-                   <div className={`${montaga.className} text-[24px] md:text-[32px] text-[#722E85] mb-4 text-center`}>
+                <div className={`w-full md:w-1/2 pl-16 md:pl-0 relative group ${isEven ? 'md:pr-12 md:text-right' : 'md:pl-12 md:text-left'} flex flex-col items-center ${isEven ? 'md:items-end' : 'md:items-start'}`}>
+                   
+                   {/* Centered label inside the half-column */}
+                   <div className={`${montaga.className} text-[24px] md:text-[32px] text-[#722E85] mb-4 text-center w-full max-w-md`}>
                       {step.label}
                    </div>
 
-                   {/* ✅ Changed background to #FBF8EF */}
-                   <div className="bg-[#FBF8EF] p-6 md:py-[36px] md:px-[20px] rounded-4xl border border-transparent transition-all duration-300 relative overflow-hidden flex flex-col items-center text-center">
+                   {/* ✅ FIX: Added 'max-w-md' and 'mx-auto' to constrain the box size while maintaining padding */}
+                   <div className="bg-[#FBF8EF] p-6 md:py-[36px] md:px-[20px] rounded-4xl border border-transparent transition-all duration-300 relative overflow-hidden flex flex-col items-center text-center w-full max-w-md">
                       
                       <div className="mb-6">
-                          <div className="bg-white p-3 rounded-2xl inline-flex items-center justify-center border border-gray-100">
+                          <div className="bg-white p-3 rounded-2xl inline-flex items-center justify-center border border-gray-100 shadow-sm">
                               <img 
                                 src={step.img || placeholderImg} 
                                 alt={step.alt || step.title}
@@ -174,7 +176,7 @@ export default function TimelineSection({ product, mode = 'full' }: TimelineProp
                           {step.title}
                       </h3>
                       
-                      <p className={`${montserrat.className} text-[16px] text-gray-500 text-justify leading-relaxed max-w-sm`}>
+                      <p className={`${montserrat.className} text-[16px] text-gray-500 text-justify md:text-center leading-relaxed max-w-[280px]`}>
                           {step.desc}
                       </p>
                    </div>
