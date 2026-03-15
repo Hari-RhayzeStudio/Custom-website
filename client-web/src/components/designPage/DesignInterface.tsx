@@ -1,4 +1,4 @@
-// app/design/page.tsx (Server Component - This is the ONLY file you need)
+// app/design/page.tsx (Server Component)
 import DesignClient from '@/components/designPage/DesignClient';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
@@ -12,7 +12,7 @@ async function fetchWithRetry(url: string, retries = 2) {
       
       const res = await fetch(url, {
         signal: controller.signal,
-        cache: 'no-store', // ✅ Changed to no-store to always get fresh data
+        cache: 'no-store', // Always get fresh data
       });
       
       clearTimeout(timeoutId);
@@ -56,11 +56,6 @@ export default async function DesignPage() {
     getTrendingData(),
     getProductsData()
   ]);
-
-  console.log('🔍 [DESIGN PAGE] Data received:', {
-    trending: trendingData?.length || 0,
-    products: productsData?.length || 0
-  });
 
   return (
     <DesignClient 

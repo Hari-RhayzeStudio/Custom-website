@@ -27,22 +27,24 @@ import 'swiper/css';
 import 'swiper/css/effect-coverflow';
 import 'swiper/css/pagination';
 
-const DEFAULT_CATEGORIES = [
-  { name: 'Men-rings', image: '/assets/placeholder-men-ring.jpg' },
-  { name: 'Bands', image: '/assets/placeholder-band.jpg' },
-  { name: 'Ladies-rings', image: '/assets/placeholder-ladies-ring.jpg' },
-  { name: 'Earrings', image: '/assets/placeholder-earring.jpg' },
+// ✅ Exactly 4 static categories (One ring, added bracelet)
+const STATIC_CATEGORIES = [
+  { name: 'Rings', image: '/assets/ring.png' },
+  { name: 'Earrings', image: '/assets/earrings.png' },
+  { name: 'Bracelets', image: '/assets/bracelet.png' },
+  { name: 'Bands', image: '/assets/band.png' },
 ];
 
 interface DesignClientProps {
   trendingData: any[];
-  productsData: any[];
+  productsData: any[]; // Kept for prop compatibility
 }
 
-export default function DesignClient({ trendingData, productsData }: DesignClientProps) {
+export default function DesignClient({ trendingData }: DesignClientProps) {
   const router = useRouter();
   
-  const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+  // Double the array so the Swiper loops smoothly without blank spaces
+  const [categories] = useState([...STATIC_CATEGORIES, ...STATIC_CATEGORIES]);
   const [prompt, setPrompt] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
@@ -52,34 +54,6 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
   const imageRef = useRef<HTMLImageElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    if (!productsData || !Array.isArray(productsData) || productsData.length === 0) return;
-
-    const dynamicCategories = DEFAULT_CATEGORIES.map(cat => {
-      const normalizedCatName = cat.name.toLowerCase().replace(/[-_\s]/g, '');
-      const matching = productsData.filter((p: any) => {
-        if (!p.category) return false;
-        const normalizedProductCat = p.category.toLowerCase().replace(/[-_\s]/g, '');
-        return normalizedProductCat === normalizedCatName && !!(p.final_image_url || p.image_url);
-      });
-
-      if (matching.length > 0) {
-        const randomProduct = matching[Math.floor(Math.random() * matching.length)];
-        return { 
-          name: cat.name, 
-          image: randomProduct.final_image_url || randomProduct.image_url 
-        };
-      }
-      return cat;
-    });
-    
-    const loopedCategories = [...dynamicCategories];
-    while (loopedCategories.length < 6) {
-        loopedCategories.push(...dynamicCategories);
-    }
-    setCategories(loopedCategories.slice(0, 9)); 
-  }, [productsData]);
 
   const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setPrompt(e.target.value);
@@ -143,10 +117,10 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
   };
 
   const handleCategoryClick = (categoryName: string) => {
+    // Sends the user to catalogue pre-filtered for Rings, Earrings, etc.
     router.push(`/catalogue?category=${encodeURIComponent(categoryName)}`);
   };
 
-  // ✅ Click handlers for the "How it works" cards
   const handleStep1Click = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (textAreaRef.current) {
@@ -163,26 +137,19 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
       onClick={() => handleCategoryClick(category.name)}
       className={`
         relative overflow-hidden rounded-3xl transition-all duration-500 cursor-pointer 
-        ${isActive ? 'shadow-xl border-2 border-[#7D3C98]' : 'shadow-md opacity-80 hover:opacity-100'}
-        bg-white h-full w-full
+        ${isActive ? 'shadow-xl border-2 border-[#7D3C98] bg-white' : 'shadow-md opacity-70 hover:opacity-100 bg-gray-50'}
+        h-full w-full flex items-center justify-center p-4
       `}
     >
       <img 
         src={category.image} 
         alt={category.name} 
-        className="w-full h-full object-cover"
+        // ✅ FIX: object-contain makes sure the earrings fit inside the box perfectly without getting chopped
+        className="w-full h-full object-contain drop-shadow-sm"
         onError={(e) => { e.currentTarget.src = "/assets/placeholder-jewelry.jpg"; }} 
         loading="eager"
       />
-      
-      <div className={`
-        absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full backdrop-blur-md transition-all duration-300
-        ${isActive ? 'bg-white/90 text-[#7D3C98] opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}
-      `}>
-        <p className="font-serif tracking-wide text-xs md:text-sm font-semibold whitespace-nowrap">
-          {category.name}
-        </p>
-      </div>
+      {/* Category Name Label successfully removed! */}
     </div>
   );
 
@@ -315,7 +282,6 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
               </div>
               
               <div className="grid md:grid-cols-2 gap-6 md:gap-8">
-                {/* ✅ Added click handler, cursor-pointer, and hover styling */}
                 <div 
                   onClick={handleStep1Click}
                   className="bg-white p-6 md:p-8 rounded-3xl text-center shadow-sm border border-gray-50 cursor-pointer hover:shadow-md hover:-translate-y-1 transition-all duration-300 group"
@@ -328,7 +294,6 @@ export default function DesignClient({ trendingData, productsData }: DesignClien
                   </p>
                 </div>
                 
-                {/* ✅ Added click handler, cursor-pointer, and hover styling */}
                 <div 
                   onClick={handleStep2Click}
                   className="bg-white p-6 md:p-8 rounded-3xl text-center shadow-sm border border-gray-50 cursor-pointer hover:shadow-md hover:-translate-y-1 transition-all duration-300 group"

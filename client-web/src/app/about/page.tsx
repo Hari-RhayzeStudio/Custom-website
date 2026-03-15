@@ -1,7 +1,6 @@
-// src/app/about/page.tsx
 import Link from 'next/link';
-import { SparklesIcon } from '@/components/Icons';
 import TimelineSection from '@/components/TimelineSection'; 
+import AboutCarousel from '@/components/AboutCarousel'; // ✅ Import the new Carousel
 import { Montserrat } from 'next/font/google';
 
 const montserrat = Montserrat({
@@ -36,16 +35,7 @@ const FALLBACK_PRODUCT: Product = {
     final_description: "A placeholder description for offline mode."
 };
 
-function shuffleArray<T>(array: T[]): T[] {
-    const newArr = [...array];
-    for (let i = newArr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
-    }
-    return newArr;
-}
-
-async function getAboutData() {
+async function getTimelineData() {
   try {
     const res = await fetch(`${API_BASE_URL}/api/products`, { 
         next: { revalidate: 3600 } 
@@ -56,74 +46,41 @@ async function getAboutData() {
     
     if (allProducts.length === 0) throw new Error("No products found");
 
-    const shuffled = shuffleArray(allProducts);
-    const headerImages = shuffled.slice(0, 3);
-    
-    const lifecycleProduct = shuffled.find(p => p.sketch_image_url && p.wax_image_url && p.cast_image_url) || shuffled[0];
+    // Grab a product that has all timeline images
+    const lifecycleProduct = allProducts.find(p => p.sketch_image_url && p.wax_image_url && p.cast_image_url) || allProducts[0];
 
-    return { headerImages, lifecycleProduct };
+    return { lifecycleProduct };
   } catch (error) {
-    console.warn("⚠️ Backend unavailable or sleeping. Using fallback data for About Page.");
-    return { 
-        headerImages: [FALLBACK_PRODUCT, FALLBACK_PRODUCT, FALLBACK_PRODUCT], 
-        lifecycleProduct: FALLBACK_PRODUCT 
-    };
+    console.warn("⚠️ Backend unavailable. Using fallback data for Timeline.");
+    return { lifecycleProduct: FALLBACK_PRODUCT };
   }
 }
 
 export default async function AboutUs() {
-  const { headerImages, lifecycleProduct } = await getAboutData();
-  const placeholderImg = "/assets/placeholder-jewelry.jpg";
+  const { lifecycleProduct } = await getTimelineData();
 
   return (
     <main className="bg-white overflow-hidden font-sans">
       
       {/* SECTION 1: Header */}
-      <section className="pt-24 pb-4 px-6 text-center max-w-5xl mx-auto">
+      <section className="pt-24 pb-8 px-6 text-center max-w-[1440px] mx-auto">
         
-        {/* ✅ Applied montserrat.className and removed font-serif */}
-        <h1 className={`${montserrat.className} text-4xl md:text-6xl font-semibold text-gray-900 mb-6 tracking-tight`}>
+        <h1 className={`${montserrat.className} text-4xl md:text-6xl font-semibold text-gray-900 mb-10 tracking-tight`}>
           About <span className="text-[#7D3C98]">Rhayze Studio</span>
         </h1>
         
-        <div className="flex flex-row items-center justify-center gap-2 md:gap-6 mb-10 h-45 md:h-62.5">
-            <div className="relative w-[28%] md:w-39.25 h-[70%] md:h-42 rounded-2xl overflow-hidden shadow-md border border-gray-100 opacity-90 shrink-0">
-                <img src={headerImages[0]?.final_image_url || placeholderImg} alt={headerImages[0]?.final_image_alt_text || "Left Product"} className="object-cover w-full h-full hover:scale-110 transition duration-700" />
-            </div>
-            
-            <div className="relative w-[44%] md:w-83.75 h-[95%] md:h-55.25 rounded-3xl overflow-hidden shadow-2xl border border-gray-100 z-10 shrink-0">
-                <img src={headerImages[1]?.final_image_url || placeholderImg} alt={headerImages[1]?.final_image_alt_text || "Center Product"} className="object-cover w-full h-full hover:scale-110 transition duration-700" />
-            </div>
-            
-            <div className="relative w-[28%] md:w-39.25 h-[70%] md:h-42 rounded-2xl overflow-hidden shadow-md border border-gray-100 opacity-90 shrink-0">
-                <img src={headerImages[2]?.final_image_url || placeholderImg} alt={headerImages[2]?.final_image_alt_text || "Right Product"} className="object-cover w-full h-full hover:scale-110 transition duration-700" />
-            </div>
-        </div>
+        {/* ✅ Insert the 3D auto-scrolling 5-image carousel */}
+        <AboutCarousel />
 
-        {/* <div className="flex flex-row items-center justify-center gap-2 md:gap-6 mb-10 h-45 md:h-62.5">
-            <div className="relative w-[28%] md:w-39.25 h-[70%] md:h-42 rounded-2xl overflow-hidden opacity-90 shrink-0">
-                <img src={headerImages[0]?.final_image_url || placeholderImg} alt={headerImages[0]?.final_image_alt_text || "Left Product"} className="object-cover w-full h-full hover:scale-110 transition duration-700" />
-            </div>
-            
-            <div className="relative w-[44%] md:w-83.75 h-[95%] md:h-55.25 rounded-3xl overflow-hidden z-10 shrink-0">
-                <img src={headerImages[1]?.final_image_url || placeholderImg} alt={headerImages[1]?.final_image_alt_text || "Center Product"} className="object-cover w-full h-full hover:scale-110 transition duration-700" />
-            </div>
-            
-            <div className="relative w-[28%] md:w-39.25 h-[70%] md:h-42 rounded-2xl overflow-hidden opacity-90 shrink-0">
-                <img src={headerImages[2]?.final_image_url || placeholderImg} alt={headerImages[2]?.final_image_alt_text || "Right Product"} className="object-cover w-full h-full hover:scale-110 transition duration-700" />
-            </div>
-        </div>
-         */}
-        {/* ✅ Applied montserrat.className here */}
-        <p className={`${montserrat.className} text-base md:text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed mb-4 text-justify`}>
+        <p className={`${montserrat.className} text-base md:text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed mb-4 text-justify md:text-center`}>
           We are a jewellery design–first studio that blends advanced AI with real craftsmanship to help you create pieces that are truly yours. Our platform is built with jewellers, not instead of them, so every design can travel from a simple prompt to a piece you can actually wear.
         </p>
 
       </section>
 
-      {/* SECTION 2: The Timeline (Full Mode) */}
-      <section className="bg-linear-to-b from-white to-[#FDFBF7]">
-         <div className="text-center pt-20 px-4">
+      {/* SECTION 2: The Timeline */}
+      <section className="bg-gradient-to-b from-white to-[#FDFBF7]">
+         <div className="text-center pt-16 md:pt-20 px-4">
             <h2 className={`${montserrat.className} font-bold text-3xl md:text-4xl text-gray-900 mb-3`}>
                The Crafting Journey
             </h2>
@@ -138,7 +95,9 @@ export default async function AboutUs() {
       {/* SECTION 3: CTA */}
       <section className="bg-white py-20 md:py-24 px-6 text-center border-t border-gray-100">
         <div className="max-w-2xl mx-auto">
-            <h2 className={`${montserrat.className} text-2xl md:text-3xl font-bold text-gray-900 mb-4 md:mb-6`}>Ready to create your masterpiece?</h2>
+            <h2 className={`${montserrat.className} text-2xl md:text-3xl font-bold text-gray-900 mb-4 md:mb-6`}>
+                Ready to create your masterpiece?
+            </h2>
             <p className={`${montserrat.className} text-gray-500 text-sm md:text-base mb-8 md:mb-10 leading-relaxed`}>
                 Our experts are 24/7 available to guide you through the process. Let's make something beautiful together.
             </p>
