@@ -29,9 +29,38 @@ export default function WishlistPage() {
 
     const fetchWishlist = async () => {
       try {
-        // Cache Buster ensures fresh data
+        // 1. Fetch wishlist items
         const res = await axios.get(`${API_BASE_URL}/api/wishlist/${userId}?_t=${Date.now()}`);
-        setWishlist(res.data);
+        const rawWishlist = res.data;
+
+        // 2. Fetch master products list to get real Categories and Descriptions
+        const productsRes = await axios.get(`${API_BASE_URL}/api/products`);
+        const allProducts = Array.isArray(productsRes.data) ? productsRes.data : [];
+
+        // 3. Merge the data so the Wishlist exactly matches the Catalogue
+        const enrichedWishlist = rawWishlist.map((item: any) => {
+            const matchingProduct = allProducts.find((p: any) => p.sku === item.product_sku);
+            
+            let realCategory = matchingProduct?.category || item.category;
+            
+            // Smart Fallback for Custom AI Generated Designs
+            if (!realCategory || realCategory.toLowerCase() === 'jewelry') {
+                const searchName = (item.product_name || '').toLowerCase();
+                if (searchName.includes('earring')) realCategory = 'Earrings';
+                else if (searchName.includes('bracelet')) realCategory = 'Bracelets';
+                else if (searchName.includes('band')) realCategory = 'Bands';
+                else if (searchName.includes('ring')) realCategory = 'Ladies-rings';
+                else realCategory = 'Custom Design';
+            }
+
+            return {
+                ...item,
+                category: realCategory,
+                final_description: matchingProduct?.final_description || item.final_description || 'Exquisite custom design from Rhayze Studio.',
+            };
+        });
+
+        setWishlist(enrichedWishlist);
       } catch (error) {
         console.error("Failed to fetch wishlist", error);
       } finally {
@@ -48,7 +77,6 @@ export default function WishlistPage() {
 
   // 2. 🔥 INSTANT REMOVE LOGIC
   const handleRemoveItem = (e: React.MouseEvent, product_sku: string) => {
-    // Crucial: Stops the click from opening the product link
     e.preventDefault(); 
     e.stopPropagation();
 
@@ -67,19 +95,17 @@ export default function WishlistPage() {
     axios.delete(`${API_BASE_URL}/api/wishlist`, {
       data: { user_id: userId, product_sku: product_sku }
     }).catch(() => {
-      // Silently revert if the server actually fails
       setWishlist(previousWishlist);
     });
   };
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
-      {/* Container sizing perfectly matches CatalogueGrid */}
       <div className="max-w-360 mx-auto px-6 md:px-12 lg:px-20 xl:px-28 py-8 md:py-12">
         
         <div className="flex items-center justify-center mb-6">
-          <h1 className="text-[24px] md:text-[28px] lg:text-[32px] xl:text-[36px] font-serif font-bold text-gray-900 text-center">Your Wishlist</h1>
-          {isFetching && <LoaderIcon className="w-5 h-5 text-[#7D3C98] animate-spin" />}
+          <h1 className="text-[24px] md:text-[28px] lg:text-[32px] xl:text-[36px] font-serif font-medium text-gray-900 text-center">Your Wishlist</h1>
+          {isFetching && <LoaderIcon className="w-5 h-5 ml-4 text-[#7D3C98] animate-spin" />}
         </div>
 
         {!isFetching && wishlist.length === 0 ? (
@@ -94,7 +120,8 @@ export default function WishlistPage() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
             {wishlist.map((item) => {
-              const productUrl = `/${formatCategory(item.category)}/${generateSlug(item.product_name, item.product_sku)}`;
+              const categoryStr = item.category || 'Jewelry';
+              const productUrl = `/${formatCategory(categoryStr)}/${generateSlug(item.product_name, item.product_sku)}`;
 
               return (
                 <Link 
@@ -121,9 +148,10 @@ export default function WishlistPage() {
                        <div className="w-full h-full flex items-center justify-center text-gray-300 bg-gray-100 text-xs">No Image</div>
                      )}
                      
-                     {/* <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-white/90 backdrop-blur text-[9px] sm:text-[10px] font-bold px-2 py-0.5 sm:py-1 rounded-md uppercase tracking-wider text-gray-600 group-hover:text-[#722E85] transition-colors z-10">
-                       {item.category || 'Jewelry'}
-                     </div> */}
+                     {/* Category Pill - Exact Match to CatalogueGrid */}
+                     <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-white/90 backdrop-blur text-[9px] sm:text-[10px] font-medium px-2 py-0.5 sm:py-1 rounded-md uppercase tracking-wider text-gray-600 group-hover:text-[#722E85] transition-colors z-10">
+                       {categoryStr}
+                     </div>
                   </div>
 
                   {/* INSTANT REMOVE (HEART) BUTTON */}
@@ -137,11 +165,11 @@ export default function WishlistPage() {
                   
                   {/* Text Area */}
                   <div className="flex flex-col flex-1">
-                    <h3 className="font-serif text-sm sm:text-lg font-bold text-gray-900 mb-1 line-clamp-1 group-hover:text-[#722E85] transition-colors" title={item.product_name}>
+                    <h3 className="font-serif text-sm sm:text-lg font-medium text-gray-900 mb-1 line-clamp-1 group-hover:text-[#722E85] transition-colors" title={item.product_name}>
                         {item.product_name || `Product SKU: ${item.product_sku}`}
                     </h3>
                     <p className="text-[10px] sm:text-xs text-gray-500 line-clamp-2">
-                      {item.final_description || 'Exquisite custom design from Rhayze Studio.'}
+                      {item.final_description}
                     </p>
                   </div>
                 </Link>

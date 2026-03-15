@@ -63,9 +63,10 @@ export default async function AboutUs() {
     <main className="bg-white overflow-hidden font-sans">
       
       {/* SECTION 1: Header */}
-      <section className="pt-24 pb-8 px-6 text-center max-w-[1440px] mx-auto">
-        
-        <h1 className={`${montserrat.className} text-4xl md:text-6xl font-semibold text-gray-900 mb-10 tracking-tight`}>
+      <section className="pt-8 pb-8 px-6 text-center max-w-[1440px] mx-auto">
+  
+        {/* ✅ FIX: Set exact pixel values for mobile and desktop */}
+        <h1 className={`${montserrat.className} text-[24px] md:text-[36px] font-medium text-gray-900 mb-10 tracking-tight`}>
           About <span className="text-[#7D3C98]">Rhayze Studio</span>
         </h1>
         
@@ -81,10 +82,10 @@ export default async function AboutUs() {
       {/* SECTION 2: The Timeline */}
       <section className="bg-gradient-to-b from-white to-[#FDFBF7]">
          <div className="text-center pt-16 md:pt-20 px-4">
-            <h2 className={`${montserrat.className} font-bold text-3xl md:text-4xl text-gray-900 mb-3`}>
+            <h2 className={`${montserrat.className} font-medium text-3xl md:text-4xl text-gray-900 mb-3`}>
                The Crafting Journey
             </h2>
-            <p className={`${montserrat.className} text-gray-500 text-sm md:text-base`}>
+            <p className={`${montserrat.className} text-gray-500 text-sm md:text-base pb-4`}>
                From your imagination to reality
             </p>
          </div>
@@ -95,14 +96,14 @@ export default async function AboutUs() {
       {/* SECTION 3: CTA */}
       <section className="bg-white py-20 md:py-24 px-6 text-center border-t border-gray-100">
         <div className="max-w-2xl mx-auto">
-            <h2 className={`${montserrat.className} text-2xl md:text-3xl font-bold text-gray-900 mb-4 md:mb-6`}>
+            <h2 className={`${montserrat.className} text-2xl md:text-3xl font-medium text-gray-900 mb-4 md:mb-6`}>
                 Ready to create your masterpiece?
             </h2>
             <p className={`${montserrat.className} text-gray-500 text-sm md:text-base mb-8 md:mb-10 leading-relaxed`}>
                 Our experts are 24/7 available to guide you through the process. Let's make something beautiful together.
             </p>
             <Link href="/bookings">
-              <button className={`${montserrat.className} flex items-center justify-center gap-3 bg-[#7D3C98] text-white px-8 md:px-10 py-3.5 md:py-4 rounded-full font-bold text-sm md:text-base hover:bg-[#6a3281] transition shadow-lg hover:shadow-purple-200 transform hover:-translate-y-1 mx-auto cursor-pointer w-full sm:w-auto`}>
+              <button className={`${montserrat.className} flex items-center justify-center gap-3 bg-[#7D3C98] text-white px-8 md:px-10 py-3.5 md:py-4 rounded-full font-medium text-sm md:text-base hover:bg-[#6a3281] transition shadow-lg hover:shadow-purple-200 transform hover:-translate-y-1 mx-auto cursor-pointer w-full sm:w-auto`}>
                  <img src="/assets/google-meet-icon.png" alt="Meet" className="w-4 h-4 md:w-5 md:h-5" /> Start Free Consultation
               </button>
             </Link>
