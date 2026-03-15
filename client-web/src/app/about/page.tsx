@@ -81,7 +81,7 @@ export default async function AboutUs() {
 
       {/* SECTION 2: The Timeline */}
       <section className="bg-gradient-to-b from-white to-[#FDFBF7]">
-         <div className="text-center pt-16 md:pt-20 px-4">
+         <div className="text-center pt-8 px-4">
             <h2 className={`${montserrat.className} font-medium text-3xl md:text-4xl text-gray-900 mb-3`}>
                The Crafting Journey
             </h2>
